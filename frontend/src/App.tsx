@@ -45,85 +45,91 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <PublicRoute>
+            <RegisterPage />
+          </PublicRoute>
+        }
+      />
+
+      {/* Protected routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <Dashboard />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contacts"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ContactsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/companies"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <CompaniesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/deals"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <DealsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/activities"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ActivitiesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
         <Router>
-          <Routes>
-            {/* Public routes */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <LoginPage />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <PublicRoute>
-                  <RegisterPage />
-                </PublicRoute>
-              }
-            />
-
-            {/* Protected routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Dashboard />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/contacts"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <ContactsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/companies"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <CompaniesPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/deals"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <DealsPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/activities"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <ActivitiesPage />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Default redirect */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
+          <AppRoutes />
         </Router>
       </AuthProvider>
     </ErrorBoundary>
