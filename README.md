@@ -14,6 +14,7 @@ A modern, minimalist Customer Relationship Management (CRM) system built with Re
 ## Tech Stack
 
 ### Frontend
+
 - **React 19** with TypeScript
 - **Vite** for fast development and building
 - **Tailwind CSS v4** for styling
@@ -21,6 +22,7 @@ A modern, minimalist Customer Relationship Management (CRM) system built with Re
 - **Lucide React** for icons
 
 ### Backend
+
 - **Node.js** with Express.js
 - **PostgreSQL** database
 - **JWT** for authentication
@@ -30,24 +32,28 @@ A modern, minimalist Customer Relationship Management (CRM) system built with Re
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - PostgreSQL database
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd omw-crm
    ```
 
 2. **Backend Setup**
+
    ```bash
    cd backend
    npm install
    ```
 
    Create a `.env` file in the backend directory:
+
    ```env
    PORT=3001
    JWT_SECRET=your-jwt-secret-key-here
@@ -59,27 +65,32 @@ A modern, minimalist Customer Relationship Management (CRM) system built with Re
    ```
 
    Run database migrations:
+
    ```bash
    npm run migrate
    ```
 
    Start the backend server:
+
    ```bash
    npm start
    ```
 
 3. **Frontend Setup**
+
    ```bash
    cd ../frontend
    npm install
    ```
 
    Create a `.env` file in the frontend directory:
+
    ```env
    VITE_API_URL=http://localhost:3001/api
    ```
 
    Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -126,16 +137,19 @@ omw-crm/
 ### Key Workflows
 
 **Managing Contacts:**
+
 - Use the search functionality to quickly find contacts
 - Filter by company or other criteria
 - Export contact information when needed
 
 **Deal Management:**
+
 - Create deals with estimated values and close dates
 - Move deals through different stages
 - Associate deals with specific contacts and companies
 
 **Company Profiles:**
+
 - Maintain detailed company information
 - Track all contacts within each organization
 - View company-specific deals and activities
@@ -143,11 +157,13 @@ omw-crm/
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/login` - User login
 - `POST /api/auth/register` - User registration
 - `GET /api/auth/me` - Get current user
 
 ### Contacts
+
 - `GET /api/contacts` - List contacts with pagination/search
 - `POST /api/contacts` - Create new contact
 - `GET /api/contacts/:id` - Get contact details
@@ -155,6 +171,7 @@ omw-crm/
 - `DELETE /api/contacts/:id` - Delete contact
 
 ### Companies
+
 - `GET /api/companies` - List companies with pagination/search
 - `POST /api/companies` - Create new company
 - `GET /api/companies/:id` - Get company details
@@ -162,6 +179,7 @@ omw-crm/
 - `DELETE /api/companies/:id` - Delete company
 
 ### Deals
+
 - `GET /api/deals` - List deals with filters
 - `POST /api/deals` - Create new deal
 - `GET /api/deals/:id` - Get deal details
@@ -170,6 +188,7 @@ omw-crm/
 - `GET /api/deals/stages` - Get available deal stages
 
 ### Activities
+
 - `GET /api/activities` - List activities
 - `POST /api/activities` - Create new activity
 - `GET /api/activities/upcoming` - Get upcoming activities
@@ -245,6 +264,7 @@ This project is intended for personal/professional use. Please ensure you have t
 ## Support
 
 For questions or issues:
+
 1. Check the existing documentation
 2. Review the code comments
 3. Create an issue with detailed information about the problem

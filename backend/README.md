@@ -14,33 +14,39 @@ Node.js REST API backend for the OMW CRM application.
 ## Setup
 
 1. **Install Dependencies**
+
 ```bash
 npm install
 ```
 
 2. **Environment Configuration**
-Copy `.env.example` to `.env` and update the values:
+   Copy `.env.example` to `.env` and update the values:
+
 ```bash
 cp .env.example .env
 ```
 
 Required environment variables:
+
 - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`: PostgreSQL connection
 - `JWT_SECRET`: Secret key for JWT tokens
 - `FRONTEND_URL`: Frontend application URL for CORS
 
 3. **Database Setup**
-Ensure PostgreSQL is running and create the database:
+   Ensure PostgreSQL is running and create the database:
+
 ```bash
 createdb omw_crm
 ```
 
 Initialize the database tables:
+
 ```bash
 npm run db:migrate
 ```
 
 4. **Start Development Server**
+
 ```bash
 npm run dev
 ```
@@ -50,12 +56,14 @@ The API will be available at `http://localhost:3001`
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - User login
 - `GET /api/auth/me` - Get current user
 - `POST /api/auth/logout` - Logout (client-side)
 
 ### Contacts
+
 - `GET /api/contacts` - List contacts (with pagination & search)
 - `GET /api/contacts/:id` - Get contact details
 - `POST /api/contacts` - Create new contact
@@ -63,6 +71,7 @@ The API will be available at `http://localhost:3001`
 - `DELETE /api/contacts/:id` - Delete contact
 
 ### Companies
+
 - `GET /api/companies` - List companies (with pagination & search)
 - `GET /api/companies/:id` - Get company details with contacts & deals
 - `POST /api/companies` - Create new company
@@ -70,6 +79,7 @@ The API will be available at `http://localhost:3001`
 - `DELETE /api/companies/:id` - Delete company
 
 ### Deals
+
 - `GET /api/deals/stages` - Get deal stages
 - `GET /api/deals` - List deals (with filtering)
 - `GET /api/deals/by-stage` - Get deals grouped by stage (kanban)
@@ -79,6 +89,7 @@ The API will be available at `http://localhost:3001`
 - `DELETE /api/deals/:id` - Delete deal
 
 ### Activities
+
 - `GET /api/activities` - List activities (with filtering)
 - `GET /api/activities/upcoming` - Get upcoming activities
 - `GET /api/activities/:id` - Get activity details
@@ -90,6 +101,7 @@ The API will be available at `http://localhost:3001`
 ## Database Schema
 
 The application uses the following main entities:
+
 - **Users**: Authentication and ownership
 - **Companies**: Business organizations
 - **Contacts**: Individual people (linked to companies)

@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3002/api";
 
 export interface ApiResponse<T> {
   data?: T;
@@ -12,15 +13,15 @@ class ApiClient {
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
-    this.token = localStorage.getItem('token');
+    this.token = localStorage.getItem("token");
   }
 
   setToken(token: string | null) {
     this.token = token;
     if (token) {
-      localStorage.setItem('token', token);
+      localStorage.setItem("token", token);
     } else {
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
     }
   }
 
@@ -29,9 +30,9 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(options.headers as Record<string, string>),
     };
 
@@ -60,7 +61,7 @@ class ApiClient {
       };
     } catch (error) {
       return {
-        error: error instanceof Error ? error.message : 'Network error',
+        error: error instanceof Error ? error.message : "Network error",
         status: 0,
       };
     }
@@ -68,8 +69,8 @@ class ApiClient {
 
   // Auth endpoints
   async login(email: string, password: string) {
-    return this.request<{ token: string; user: User }>('/auth/login', {
-      method: 'POST',
+    return this.request<{ token: string; user: User }>("/auth/login", {
+      method: "POST",
       body: JSON.stringify({ email, password }),
     });
   }
@@ -80,14 +81,14 @@ class ApiClient {
     firstName: string;
     lastName: string;
   }) {
-    return this.request<{ token: string; user: User }>('/auth/register', {
-      method: 'POST',
+    return this.request<{ token: string; user: User }>("/auth/register", {
+      method: "POST",
       body: JSON.stringify(userData),
     });
   }
 
   async getCurrentUser() {
-    return this.request<{ user: User }>('/auth/me');
+    return this.request<{ user: User }>("/auth/me");
   }
 
   // Contacts endpoints
@@ -97,35 +98,39 @@ class ApiClient {
     search?: string;
   }) {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.append('page', params.page.toString());
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    if (params?.search) searchParams.append('search', params.search);
+    if (params?.page) searchParams.append("page", params.page.toString());
+    if (params?.limit) searchParams.append("limit", params.limit.toString());
+    if (params?.search) searchParams.append("search", params.search);
 
     const query = searchParams.toString();
-    return this.request<ContactsResponse>(`/contacts${query ? `?${query}` : ''}`);
+    return this.request<ContactsResponse>(
+      `/contacts${query ? `?${query}` : ""}`
+    );
   }
 
   async getContact(id: number) {
     return this.request<Contact>(`/contacts/${id}`);
   }
 
-  async createContact(contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) {
-    return this.request<Contact>('/contacts', {
-      method: 'POST',
+  async createContact(
+    contact: Omit<Contact, "id" | "created_at" | "updated_at">
+  ) {
+    return this.request<Contact>("/contacts", {
+      method: "POST",
       body: JSON.stringify(contact),
     });
   }
 
   async updateContact(id: number, contact: Partial<Contact>) {
     return this.request<Contact>(`/contacts/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(contact),
     });
   }
 
   async deleteContact(id: number) {
     return this.request<{ message: string }>(`/contacts/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -136,41 +141,45 @@ class ApiClient {
     search?: string;
   }) {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.append('page', params.page.toString());
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    if (params?.search) searchParams.append('search', params.search);
+    if (params?.page) searchParams.append("page", params.page.toString());
+    if (params?.limit) searchParams.append("limit", params.limit.toString());
+    if (params?.search) searchParams.append("search", params.search);
 
     const query = searchParams.toString();
-    return this.request<CompaniesResponse>(`/companies${query ? `?${query}` : ''}`);
+    return this.request<CompaniesResponse>(
+      `/companies${query ? `?${query}` : ""}`
+    );
   }
 
   async getCompany(id: number) {
     return this.request<CompanyWithDetails>(`/companies/${id}`);
   }
 
-  async createCompany(company: Omit<Company, 'id' | 'created_at' | 'updated_at'>) {
-    return this.request<Company>('/companies', {
-      method: 'POST',
+  async createCompany(
+    company: Omit<Company, "id" | "created_at" | "updated_at">
+  ) {
+    return this.request<Company>("/companies", {
+      method: "POST",
       body: JSON.stringify(company),
     });
   }
 
   async updateCompany(id: number, company: Partial<Company>) {
     return this.request<Company>(`/companies/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(company),
     });
   }
 
   async deleteCompany(id: number) {
     return this.request<{ message: string }>(`/companies/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   // Deals endpoints
   async getDealStages() {
-    return this.request<DealStage[]>('/deals/stages');
+    return this.request<DealStage[]>("/deals/stages");
   }
 
   async getDeals(params?: {
@@ -181,41 +190,43 @@ class ApiClient {
     companyId?: number;
   }) {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.append('page', params.page.toString());
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    if (params?.search) searchParams.append('search', params.search);
-    if (params?.stageId) searchParams.append('stageId', params.stageId.toString());
-    if (params?.companyId) searchParams.append('companyId', params.companyId.toString());
+    if (params?.page) searchParams.append("page", params.page.toString());
+    if (params?.limit) searchParams.append("limit", params.limit.toString());
+    if (params?.search) searchParams.append("search", params.search);
+    if (params?.stageId)
+      searchParams.append("stageId", params.stageId.toString());
+    if (params?.companyId)
+      searchParams.append("companyId", params.companyId.toString());
 
     const query = searchParams.toString();
-    return this.request<DealsResponse>(`/deals${query ? `?${query}` : ''}`);
+    return this.request<DealsResponse>(`/deals${query ? `?${query}` : ""}`);
   }
 
   async getDealsByStage() {
-    return this.request<DealsByStage>('/deals/by-stage');
+    return this.request<DealsByStage>("/deals/by-stage");
   }
 
   async getDeal(id: number) {
     return this.request<DealWithDetails>(`/deals/${id}`);
   }
 
-  async createDeal(deal: Omit<Deal, 'id' | 'created_at' | 'updated_at'>) {
-    return this.request<Deal>('/deals', {
-      method: 'POST',
+  async createDeal(deal: Omit<Deal, "id" | "created_at" | "updated_at">) {
+    return this.request<Deal>("/deals", {
+      method: "POST",
       body: JSON.stringify(deal),
     });
   }
 
   async updateDeal(id: number, deal: Partial<Deal>) {
     return this.request<Deal>(`/deals/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(deal),
     });
   }
 
   async deleteDeal(id: number) {
     return this.request<{ message: string }>(`/deals/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
@@ -230,49 +241,56 @@ class ApiClient {
     dealId?: number;
   }) {
     const searchParams = new URLSearchParams();
-    if (params?.page) searchParams.append('page', params.page.toString());
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    if (params?.type) searchParams.append('type', params.type);
-    if (params?.completed !== undefined) searchParams.append('completed', params.completed.toString());
-    if (params?.contactId) searchParams.append('contactId', params.contactId.toString());
-    if (params?.companyId) searchParams.append('companyId', params.companyId.toString());
-    if (params?.dealId) searchParams.append('dealId', params.dealId.toString());
+    if (params?.page) searchParams.append("page", params.page.toString());
+    if (params?.limit) searchParams.append("limit", params.limit.toString());
+    if (params?.type) searchParams.append("type", params.type);
+    if (params?.completed !== undefined)
+      searchParams.append("completed", params.completed.toString());
+    if (params?.contactId)
+      searchParams.append("contactId", params.contactId.toString());
+    if (params?.companyId)
+      searchParams.append("companyId", params.companyId.toString());
+    if (params?.dealId) searchParams.append("dealId", params.dealId.toString());
 
     const query = searchParams.toString();
-    return this.request<ActivitiesResponse>(`/activities${query ? `?${query}` : ''}`);
+    return this.request<ActivitiesResponse>(
+      `/activities${query ? `?${query}` : ""}`
+    );
   }
 
   async getUpcomingActivities() {
-    return this.request<ActivityWithDetails[]>('/activities/upcoming');
+    return this.request<ActivityWithDetails[]>("/activities/upcoming");
   }
 
   async getActivity(id: number) {
     return this.request<ActivityWithDetails>(`/activities/${id}`);
   }
 
-  async createActivity(activity: Omit<Activity, 'id' | 'created_at' | 'updated_at'>) {
-    return this.request<Activity>('/activities', {
-      method: 'POST',
+  async createActivity(
+    activity: Omit<Activity, "id" | "created_at" | "updated_at">
+  ) {
+    return this.request<Activity>("/activities", {
+      method: "POST",
       body: JSON.stringify(activity),
     });
   }
 
   async updateActivity(id: number, activity: Partial<Activity>) {
     return this.request<Activity>(`/activities/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(activity),
     });
   }
 
   async toggleActivityComplete(id: number) {
     return this.request<Activity>(`/activities/${id}/toggle-complete`, {
-      method: 'PATCH',
+      method: "PATCH",
     });
   }
 
   async deleteActivity(id: number) {
     return this.request<{ message: string }>(`/activities/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 }
@@ -349,7 +367,7 @@ export interface DealWithDetails extends Deal {
 
 export interface Activity {
   id: number;
-  type: 'call' | 'email' | 'meeting' | 'note' | 'task';
+  type: "call" | "email" | "meeting" | "note" | "task";
   subject: string;
   description?: string;
   dueDate?: string;

@@ -1,13 +1,34 @@
-import { useState, useEffect } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Textarea } from '../components/ui/Textarea';
-import { Select } from '../components/ui/Select';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '../components/ui/Table';
-import { apiClient } from '../lib/api';
-import type { Contact, Company } from '../lib/api';
-import { Plus, Search, Edit, Trash2, Building2, Mail, Phone, User } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Textarea } from "../components/ui/Textarea";
+import { Select } from "../components/ui/Select";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../components/ui/Card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "../components/ui/Table";
+import { apiClient } from "../lib/api";
+import type { Contact, Company } from "../lib/api";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Building2,
+  Mail,
+  Phone,
+  User,
+} from "lucide-react";
 
 interface ContactFormData {
   firstName: string;
@@ -23,19 +44,19 @@ export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [formData, setFormData] = useState<ContactFormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    position: '',
-    companyId: '',
-    notes: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    position: "",
+    companyId: "",
+    notes: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -54,7 +75,7 @@ export default function ContactsPage() {
           setTotalPages(response.data.pagination.totalPages);
         }
       } catch (error) {
-        console.error('Error fetching contacts:', error);
+        console.error("Error fetching contacts:", error);
       } finally {
         setIsLoading(false);
       }
@@ -81,7 +102,7 @@ export default function ContactsPage() {
         setTotalPages(response.data.pagination.totalPages);
       }
     } catch (error) {
-      console.error('Error fetching contacts:', error);
+      console.error("Error fetching contacts:", error);
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +115,7 @@ export default function ContactsPage() {
         setCompanies(response.data.companies);
       }
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error("Error fetching companies:", error);
     }
   };
 
@@ -102,13 +123,13 @@ export default function ContactsPage() {
     const errors: Record<string, string> = {};
 
     if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
+      errors.firstName = "First name is required";
     }
     if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
+      errors.lastName = "Last name is required";
     }
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Invalid email format';
+      errors.email = "Invalid email format";
     }
 
     setFormErrors(errors);
@@ -117,7 +138,7 @@ export default function ContactsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
@@ -127,7 +148,9 @@ export default function ContactsPage() {
         email: formData.email || undefined,
         phone: formData.phone || undefined,
         position: formData.position || undefined,
-        companyId: formData.companyId ? parseInt(formData.companyId) : undefined,
+        companyId: formData.companyId
+          ? parseInt(formData.companyId)
+          : undefined,
         notes: formData.notes || undefined,
       };
 
@@ -140,7 +163,7 @@ export default function ContactsPage() {
       resetForm();
       fetchContacts();
     } catch (error) {
-      console.error('Error saving contact:', error);
+      console.error("Error saving contact:", error);
     }
   };
 
@@ -149,35 +172,35 @@ export default function ContactsPage() {
     setFormData({
       firstName: contact.firstName,
       lastName: contact.lastName,
-      email: contact.email || '',
-      phone: contact.phone || '',
-      position: contact.position || '',
-      companyId: contact.companyId?.toString() || '',
-      notes: contact.notes || '',
+      email: contact.email || "",
+      phone: contact.phone || "",
+      position: contact.position || "",
+      companyId: contact.companyId?.toString() || "",
+      notes: contact.notes || "",
     });
     setShowForm(true);
   };
 
   const handleDelete = async (contactId: number) => {
-    if (!confirm('Are you sure you want to delete this contact?')) return;
+    if (!confirm("Are you sure you want to delete this contact?")) return;
 
     try {
       await apiClient.deleteContact(contactId);
       fetchContacts();
     } catch (error) {
-      console.error('Error deleting contact:', error);
+      console.error("Error deleting contact:", error);
     }
   };
 
   const resetForm = () => {
     setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      position: '',
-      companyId: '',
-      notes: '',
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      position: "",
+      companyId: "",
+      notes: "",
     });
     setFormErrors({});
     setEditingContact(null);
@@ -185,9 +208,9 @@ export default function ContactsPage() {
   };
 
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (formErrors[field]) {
-      setFormErrors(prev => ({ ...prev, [field]: '' }));
+      setFormErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -202,7 +225,9 @@ export default function ContactsPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Contacts</h1>
-          <p className="text-muted-foreground">Manage your contacts and relationships</p>
+          <p className="text-muted-foreground">
+            Manage your contacts and relationships
+          </p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -229,7 +254,7 @@ export default function ContactsPage() {
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setSearchTerm('');
+                  setSearchTerm("");
                   setCurrentPage(1);
                 }}
               >
@@ -246,7 +271,7 @@ export default function ContactsPage() {
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>
-                {editingContact ? 'Edit Contact' : 'Add New Contact'}
+                {editingContact ? "Edit Contact" : "Add New Contact"}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -256,22 +281,34 @@ export default function ContactsPage() {
                     <label className="text-sm font-medium">First Name *</label>
                     <Input
                       value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className={formErrors.firstName ? 'border-destructive' : ''}
+                      onChange={(e) =>
+                        handleInputChange("firstName", e.target.value)
+                      }
+                      className={
+                        formErrors.firstName ? "border-destructive" : ""
+                      }
                     />
                     {formErrors.firstName && (
-                      <p className="text-sm text-destructive mt-1">{formErrors.firstName}</p>
+                      <p className="text-sm text-destructive mt-1">
+                        {formErrors.firstName}
+                      </p>
                     )}
                   </div>
                   <div>
                     <label className="text-sm font-medium">Last Name *</label>
                     <Input
                       value={formData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className={formErrors.lastName ? 'border-destructive' : ''}
+                      onChange={(e) =>
+                        handleInputChange("lastName", e.target.value)
+                      }
+                      className={
+                        formErrors.lastName ? "border-destructive" : ""
+                      }
                     />
                     {formErrors.lastName && (
-                      <p className="text-sm text-destructive mt-1">{formErrors.lastName}</p>
+                      <p className="text-sm text-destructive mt-1">
+                        {formErrors.lastName}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -282,18 +319,24 @@ export default function ContactsPage() {
                     <Input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={formErrors.email ? 'border-destructive' : ''}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      className={formErrors.email ? "border-destructive" : ""}
                     />
                     {formErrors.email && (
-                      <p className="text-sm text-destructive mt-1">{formErrors.email}</p>
+                      <p className="text-sm text-destructive mt-1">
+                        {formErrors.email}
+                      </p>
                     )}
                   </div>
                   <div>
                     <label className="text-sm font-medium">Phone</label>
                     <Input
                       value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -303,14 +346,18 @@ export default function ContactsPage() {
                     <label className="text-sm font-medium">Position</label>
                     <Input
                       value={formData.position}
-                      onChange={(e) => handleInputChange('position', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("position", e.target.value)
+                      }
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Company</label>
                     <Select
                       value={formData.companyId}
-                      onChange={(e) => handleInputChange('companyId', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("companyId", e.target.value)
+                      }
                     >
                       <option value="">Select a company</option>
                       {companies.map((company) => (
@@ -326,7 +373,7 @@ export default function ContactsPage() {
                   <label className="text-sm font-medium">Notes</label>
                   <Textarea
                     value={formData.notes}
-                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
                     rows={3}
                   />
                 </div>
@@ -336,7 +383,7 @@ export default function ContactsPage() {
                     Cancel
                   </Button>
                   <Button type="submit">
-                    {editingContact ? 'Update Contact' : 'Create Contact'}
+                    {editingContact ? "Update Contact" : "Create Contact"}
                   </Button>
                 </div>
               </form>
@@ -357,7 +404,9 @@ export default function ContactsPage() {
               <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No contacts found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm ? 'No contacts match your search.' : 'Get started by adding your first contact.'}
+                {searchTerm
+                  ? "No contacts match your search."
+                  : "Get started by adding your first contact."}
               </p>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -395,7 +444,9 @@ export default function ContactsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {contact.position || <span className="text-muted-foreground">-</span>}
+                      {contact.position || (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {contact.email ? (
@@ -462,14 +513,16 @@ export default function ContactsPage() {
           <div className="flex space-x-2">
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               Previous
             </Button>
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
             >
               Next

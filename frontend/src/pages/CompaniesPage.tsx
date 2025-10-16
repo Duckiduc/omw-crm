@@ -1,13 +1,36 @@
-import { useState, useEffect } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Textarea } from '../components/ui/Textarea';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '../components/ui/Table';
-import { Badge } from '../components/ui/Badge';
-import { apiClient } from '../lib/api';
-import type { Company } from '../lib/api';
-import { Plus, Search, Edit, Trash2, Building2, Globe, Mail, Phone, MapPin, Users } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Textarea } from "../components/ui/Textarea";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../components/ui/Card";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "../components/ui/Table";
+import { Badge } from "../components/ui/Badge";
+import { apiClient } from "../lib/api";
+import type { Company } from "../lib/api";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Building2,
+  Globe,
+  Mail,
+  Phone,
+  MapPin,
+  Users,
+} from "lucide-react";
 
 interface CompanyFormData {
   name: string;
@@ -22,19 +45,19 @@ interface CompanyFormData {
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [formData, setFormData] = useState<CompanyFormData>({
-    name: '',
-    industry: '',
-    website: '',
-    phone: '',
-    email: '',
-    address: '',
-    notes: '',
+    name: "",
+    industry: "",
+    website: "",
+    phone: "",
+    email: "",
+    address: "",
+    notes: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -53,7 +76,7 @@ export default function CompaniesPage() {
           setTotalPages(response.data.pagination.totalPages);
         }
       } catch (error) {
-        console.error('Error fetching companies:', error);
+        console.error("Error fetching companies:", error);
       } finally {
         setIsLoading(false);
       }
@@ -76,7 +99,7 @@ export default function CompaniesPage() {
         setTotalPages(response.data.pagination.totalPages);
       }
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error("Error fetching companies:", error);
     } finally {
       setIsLoading(false);
     }
@@ -86,13 +109,13 @@ export default function CompaniesPage() {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = 'Company name is required';
+      errors.name = "Company name is required";
     }
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Invalid email format';
+      errors.email = "Invalid email format";
     }
-    if (formData.website && !formData.website.startsWith('http')) {
-      errors.website = 'Website must start with http:// or https://';
+    if (formData.website && !formData.website.startsWith("http")) {
+      errors.website = "Website must start with http:// or https://";
     }
 
     setFormErrors(errors);
@@ -101,7 +124,7 @@ export default function CompaniesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
@@ -124,7 +147,7 @@ export default function CompaniesPage() {
       resetForm();
       fetchCompanies();
     } catch (error) {
-      console.error('Error saving company:', error);
+      console.error("Error saving company:", error);
     }
   };
 
@@ -132,36 +155,41 @@ export default function CompaniesPage() {
     setEditingCompany(company);
     setFormData({
       name: company.name,
-      industry: company.industry || '',
-      website: company.website || '',
-      phone: company.phone || '',
-      email: company.email || '',
-      address: company.address || '',
-      notes: company.notes || '',
+      industry: company.industry || "",
+      website: company.website || "",
+      phone: company.phone || "",
+      email: company.email || "",
+      address: company.address || "",
+      notes: company.notes || "",
     });
     setShowForm(true);
   };
 
   const handleDelete = async (companyId: number) => {
-    if (!confirm('Are you sure you want to delete this company? This will also remove all associated contacts.')) return;
+    if (
+      !confirm(
+        "Are you sure you want to delete this company? This will also remove all associated contacts."
+      )
+    )
+      return;
 
     try {
       await apiClient.deleteCompany(companyId);
       fetchCompanies();
     } catch (error) {
-      console.error('Error deleting company:', error);
+      console.error("Error deleting company:", error);
     }
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      industry: '',
-      website: '',
-      phone: '',
-      email: '',
-      address: '',
-      notes: '',
+      name: "",
+      industry: "",
+      website: "",
+      phone: "",
+      email: "",
+      address: "",
+      notes: "",
     });
     setFormErrors({});
     setEditingCompany(null);
@@ -169,9 +197,9 @@ export default function CompaniesPage() {
   };
 
   const handleInputChange = (field: keyof CompanyFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (formErrors[field]) {
-      setFormErrors(prev => ({ ...prev, [field]: '' }));
+      setFormErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -186,7 +214,9 @@ export default function CompaniesPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Companies</h1>
-          <p className="text-muted-foreground">Manage your company relationships</p>
+          <p className="text-muted-foreground">
+            Manage your company relationships
+          </p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -213,7 +243,7 @@ export default function CompaniesPage() {
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setSearchTerm('');
+                  setSearchTerm("");
                   setCurrentPage(1);
                 }}
               >
@@ -230,7 +260,7 @@ export default function CompaniesPage() {
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>
-                {editingCompany ? 'Edit Company' : 'Add New Company'}
+                {editingCompany ? "Edit Company" : "Add New Company"}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -239,11 +269,13 @@ export default function CompaniesPage() {
                   <label className="text-sm font-medium">Company Name *</label>
                   <Input
                     value={formData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={formErrors.name ? 'border-destructive' : ''}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    className={formErrors.name ? "border-destructive" : ""}
                   />
                   {formErrors.name && (
-                    <p className="text-sm text-destructive mt-1">{formErrors.name}</p>
+                    <p className="text-sm text-destructive mt-1">
+                      {formErrors.name}
+                    </p>
                   )}
                 </div>
 
@@ -252,7 +284,9 @@ export default function CompaniesPage() {
                     <label className="text-sm font-medium">Industry</label>
                     <Input
                       value={formData.industry}
-                      onChange={(e) => handleInputChange('industry', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("industry", e.target.value)
+                      }
                       placeholder="e.g., Technology, Healthcare"
                     />
                   </div>
@@ -260,12 +294,16 @@ export default function CompaniesPage() {
                     <label className="text-sm font-medium">Website</label>
                     <Input
                       value={formData.website}
-                      onChange={(e) => handleInputChange('website', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("website", e.target.value)
+                      }
                       placeholder="https://example.com"
-                      className={formErrors.website ? 'border-destructive' : ''}
+                      className={formErrors.website ? "border-destructive" : ""}
                     />
                     {formErrors.website && (
-                      <p className="text-sm text-destructive mt-1">{formErrors.website}</p>
+                      <p className="text-sm text-destructive mt-1">
+                        {formErrors.website}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -276,18 +314,24 @@ export default function CompaniesPage() {
                     <Input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={formErrors.email ? 'border-destructive' : ''}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      className={formErrors.email ? "border-destructive" : ""}
                     />
                     {formErrors.email && (
-                      <p className="text-sm text-destructive mt-1">{formErrors.email}</p>
+                      <p className="text-sm text-destructive mt-1">
+                        {formErrors.email}
+                      </p>
                     )}
                   </div>
                   <div>
                     <label className="text-sm font-medium">Phone</label>
                     <Input
                       value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -296,7 +340,9 @@ export default function CompaniesPage() {
                   <label className="text-sm font-medium">Address</label>
                   <Input
                     value={formData.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
                   />
                 </div>
 
@@ -304,7 +350,7 @@ export default function CompaniesPage() {
                   <label className="text-sm font-medium">Notes</label>
                   <Textarea
                     value={formData.notes}
-                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
                     rows={3}
                   />
                 </div>
@@ -314,7 +360,7 @@ export default function CompaniesPage() {
                     Cancel
                   </Button>
                   <Button type="submit">
-                    {editingCompany ? 'Update Company' : 'Create Company'}
+                    {editingCompany ? "Update Company" : "Create Company"}
                   </Button>
                 </div>
               </form>
@@ -335,7 +381,9 @@ export default function CompaniesPage() {
               <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No companies found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm ? 'No companies match your search.' : 'Get started by adding your first company.'}
+                {searchTerm
+                  ? "No companies match your search."
+                  : "Get started by adding your first company."}
               </p>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -387,8 +435,12 @@ export default function CompaniesPage() {
                     <TableCell>
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{company.contact_count || 0}</span>
-                        <span className="text-muted-foreground ml-1">contacts</span>
+                        <span className="font-medium">
+                          {company.contact_count || 0}
+                        </span>
+                        <span className="text-muted-foreground ml-1">
+                          contacts
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -418,12 +470,18 @@ export default function CompaniesPage() {
                         {company.address && (
                           <div className="flex items-center text-sm">
                             <MapPin className="mr-2 h-3 w-3 text-muted-foreground" />
-                            <span className="text-muted-foreground">{company.address}</span>
+                            <span className="text-muted-foreground">
+                              {company.address}
+                            </span>
                           </div>
                         )}
-                        {!company.email && !company.phone && !company.address && (
-                          <span className="text-muted-foreground text-sm">No contact info</span>
-                        )}
+                        {!company.email &&
+                          !company.phone &&
+                          !company.address && (
+                            <span className="text-muted-foreground text-sm">
+                              No contact info
+                            </span>
+                          )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -461,14 +519,16 @@ export default function CompaniesPage() {
           <div className="flex space-x-2">
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
               Previous
             </Button>
             <Button
               variant="outline"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
             >
               Next

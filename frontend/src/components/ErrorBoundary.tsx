@@ -1,8 +1,8 @@
-import { Component } from 'react';
-import type { ErrorInfo, ReactNode } from 'react';
-import { Card, CardTitle, CardContent } from './ui/Card';
-import { Button } from './ui/Button';
-import { AlertTriangle } from 'lucide-react';
+import { Component } from "react";
+import type { ErrorInfo, ReactNode } from "react";
+import { Card, CardTitle, CardContent } from "./ui/Card";
+import { Button } from "./ui/Button";
+import { AlertTriangle } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   private handleReset = () => {
@@ -48,15 +48,13 @@ export class ErrorBoundary extends Component<Props, State> {
               <AlertTriangle className="mx-auto h-12 w-12 text-destructive mb-4" />
               <CardTitle className="mb-2">Something went wrong</CardTitle>
               <p className="text-sm text-muted-foreground mb-4">
-                {this.state.error?.message || 'An unexpected error occurred'}
+                {this.state.error?.message || "An unexpected error occurred"}
               </p>
               <div className="flex gap-2 justify-center">
                 <Button variant="outline" onClick={this.handleReset}>
                   Try Again
                 </Button>
-                <Button onClick={this.handleRefresh}>
-                  Refresh Page
-                </Button>
+                <Button onClick={this.handleRefresh}>Refresh Page</Button>
               </div>
             </CardContent>
           </Card>

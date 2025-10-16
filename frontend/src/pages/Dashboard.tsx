@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
-import { apiClient } from '../lib/api';
-import type { ActivityWithDetails } from '../lib/api';
-import { Users, Building2, TrendingUp, Calendar } from 'lucide-react';
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../components/ui/Card";
+import { apiClient } from "../lib/api";
+import type { ActivityWithDetails } from "../lib/api";
+import { Users, Building2, TrendingUp, Calendar } from "lucide-react";
 
 interface DashboardStats {
   contacts: number;
@@ -18,16 +23,24 @@ export default function Dashboard() {
     deals: 0,
     activities: 0,
   });
-  const [upcomingActivities, setUpcomingActivities] = useState<ActivityWithDetails[]>([]);
+  const [upcomingActivities, setUpcomingActivities] = useState<
+    ActivityWithDetails[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
-      
+
       try {
         // Fetch counts for each entity
-        const [contactsRes, companiesRes, dealsRes, activitiesRes, upcomingRes] = await Promise.all([
+        const [
+          contactsRes,
+          companiesRes,
+          dealsRes,
+          activitiesRes,
+          upcomingRes,
+        ] = await Promise.all([
           apiClient.getContacts({ limit: 1 }),
           apiClient.getCompanies({ limit: 1 }),
           apiClient.getDeals({ limit: 1 }),
@@ -46,7 +59,7 @@ export default function Dashboard() {
           setUpcomingActivities(upcomingRes.data);
         }
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error("Error fetching dashboard data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -57,28 +70,28 @@ export default function Dashboard() {
 
   const statsCards = [
     {
-      title: 'Total Contacts',
+      title: "Total Contacts",
       value: stats.contacts,
       icon: Users,
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
     {
-      title: 'Total Companies',
+      title: "Total Companies",
       value: stats.companies,
       icon: Building2,
-      color: 'text-green-600',
+      color: "text-green-600",
     },
     {
-      title: 'Active Deals',
+      title: "Active Deals",
       value: stats.deals,
       icon: TrendingUp,
-      color: 'text-purple-600',
+      color: "text-purple-600",
     },
     {
-      title: 'Total Activities',
+      title: "Total Activities",
       value: stats.activities,
       icon: Calendar,
-      color: 'text-orange-600',
+      color: "text-orange-600",
     },
   ];
 
@@ -136,7 +149,10 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {upcomingActivities.slice(0, 5).map((activity) => (
-                  <div key={activity.id} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+                  <div
+                    key={activity.id}
+                    className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg"
+                  >
                     <div className="flex-shrink-0">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                     </div>
@@ -145,7 +161,10 @@ export default function Dashboard() {
                         {activity.subject}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {activity.type} • {activity.contact_name || activity.company_name || 'No contact'}
+                        {activity.type} •{" "}
+                        {activity.contact_name ||
+                          activity.company_name ||
+                          "No contact"}
                       </p>
                     </div>
                     {activity.dueDate && (
@@ -166,8 +185,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <a 
-                href="/contacts" 
+              <a
+                href="/contacts"
                 className="block p-3 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
               >
                 <div className="flex items-center space-x-3">
@@ -175,8 +194,8 @@ export default function Dashboard() {
                   <span className="font-medium">Add New Contact</span>
                 </div>
               </a>
-              <a 
-                href="/companies" 
+              <a
+                href="/companies"
                 className="block p-3 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
               >
                 <div className="flex items-center space-x-3">
@@ -184,8 +203,8 @@ export default function Dashboard() {
                   <span className="font-medium">Add New Company</span>
                 </div>
               </a>
-              <a 
-                href="/deals" 
+              <a
+                href="/deals"
                 className="block p-3 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
               >
                 <div className="flex items-center space-x-3">

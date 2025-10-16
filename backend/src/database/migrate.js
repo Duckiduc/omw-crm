@@ -1,8 +1,8 @@
-const db = require('../config/database');
+const db = require("../config/database");
 
 const createTables = async () => {
   try {
-    console.log('🔨 Creating database tables...');
+    console.log("🔨 Creating database tables...");
 
     // Users table
     await db.query(`
@@ -100,17 +100,31 @@ const createTables = async () => {
     `);
 
     // Create indexes
-    await db.query('CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_deals_user_id ON deals(user_id);');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts(company_id);');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_deals_contact_id ON deals(contact_id);');
-    await db.query('CREATE INDEX IF NOT EXISTS idx_deals_company_id ON deals(company_id);');
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_deals_user_id ON deals(user_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts(company_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_deals_contact_id ON deals(contact_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_deals_company_id ON deals(company_id);"
+    );
 
-    console.log('✅ Database tables created successfully!');
+    console.log("✅ Database tables created successfully!");
   } catch (error) {
-    console.error('❌ Error creating tables:', error);
+    console.error("❌ Error creating tables:", error);
     throw error;
   }
 };
@@ -119,34 +133,34 @@ const seedDefaultData = async (userId) => {
   try {
     // Check if default deal stages exist for this user
     const existingStages = await db.query(
-      'SELECT * FROM deal_stages WHERE user_id = $1',
+      "SELECT * FROM deal_stages WHERE user_id = $1",
       [userId]
     );
 
     if (existingStages.rows.length === 0) {
       const defaultStages = [
-        { name: 'Lead', order_index: 1 },
-        { name: 'Qualified', order_index: 2 },
-        { name: 'Proposal', order_index: 3 },
-        { name: 'Negotiation', order_index: 4 },
-        { name: 'Won', order_index: 5 },
-        { name: 'Lost', order_index: 6 }
+        { name: "Lead", order_index: 1 },
+        { name: "Qualified", order_index: 2 },
+        { name: "Proposal", order_index: 3 },
+        { name: "Negotiation", order_index: 4 },
+        { name: "Won", order_index: 5 },
+        { name: "Lost", order_index: 6 },
       ];
 
       for (const stage of defaultStages) {
         await db.query(
-          'INSERT INTO deal_stages (name, order_index, user_id) VALUES ($1, $2, $3)',
+          "INSERT INTO deal_stages (name, order_index, user_id) VALUES ($1, $2, $3)",
           [stage.name, stage.order_index, userId]
         );
       }
-      console.log('✅ Default deal stages created for user');
+      console.log("✅ Default deal stages created for user");
     }
   } catch (error) {
-    console.error('❌ Error seeding default data:', error);
+    console.error("❌ Error seeding default data:", error);
   }
 };
 
 module.exports = {
   createTables,
-  seedDefaultData
+  seedDefaultData,
 };

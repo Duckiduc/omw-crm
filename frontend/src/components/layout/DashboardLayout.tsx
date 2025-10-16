@@ -1,26 +1,26 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '../ui/Button';
-import { useAuth } from '../../hooks/useAuth';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  TrendingUp, 
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "../ui/Button";
+import { useAuth } from "../../hooks/useAuth";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  TrendingUp,
   Calendar,
   LogOut,
-  User
-} from 'lucide-react';
+  User,
+} from "lucide-react";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Contacts', href: '/contacts', icon: Users },
-  { name: 'Companies', href: '/companies', icon: Building2 },
-  { name: 'Deals', href: '/deals', icon: TrendingUp },
-  { name: 'Activities', href: '/activities', icon: Calendar },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Contacts", href: "/contacts", icon: Users },
+  { name: "Companies", href: "/companies", icon: Building2 },
+  { name: "Deals", href: "/deals", icon: TrendingUp },
+  { name: "Activities", href: "/activities", icon: Calendar },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -30,7 +30,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -53,8 +53,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   to={item.href}
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   }`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
@@ -94,9 +94,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main content */}
       <div className="pl-64">
-        <main className="py-6">
-          {children}
-        </main>
+        <main className="py-6">{children}</main>
       </div>
     </div>
   );

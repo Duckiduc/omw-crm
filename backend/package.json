@@ -23,7 +23,12 @@
   "devDependencies": {
     "nodemon": "^3.0.2"
   },
-  "keywords": ["crm", "api", "express", "postgresql"],
+  "keywords": [
+    "crm",
+    "api",
+    "express",
+    "postgresql"
+  ],
   "author": "Your Name",
   "license": "MIT"
 }

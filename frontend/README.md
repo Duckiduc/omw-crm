@@ -16,7 +16,7 @@ React frontend application for the OMW CRM system built with Vite, TypeScript, a
 - 🔐 JWT Authentication (Login/Register)
 - 📊 Dashboard with overview statistics
 - 👥 Contact management
-- 🏢 Company management  
+- 🏢 Company management
 - 💼 Deal pipeline management
 - 📅 Activity tracking
 - 🎨 Clean, minimalist design
@@ -25,12 +25,14 @@ React frontend application for the OMW CRM system built with Vite, TypeScript, a
 ## Setup
 
 1. **Install Dependencies**
+
 ```bash
 npm install
 ```
 
 2. **Environment Configuration**
-Copy `.env.example` to `.env` and update if needed:
+   Copy `.env.example` to `.env` and update if needed:
+
 ```bash
 cp .env.example .env
 ```
@@ -38,6 +40,7 @@ cp .env.example .env
 The default API URL is `http://localhost:3001/api`
 
 3. **Start Development Server**
+
 ```bash
 npm run dev
 ```
@@ -78,6 +81,7 @@ No external state management libraries are used to keep the bundle small and dep
 ## API Integration
 
 The API client (`src/lib/api.ts`) provides:
+
 - Typed API responses
 - Automatic token handling
 - Error handling
@@ -93,6 +97,7 @@ The API client (`src/lib/api.ts`) provides:
 ## Design System
 
 The UI follows a minimalist design with:
+
 - Clean typography and spacing
 - Consistent color scheme using CSS custom properties
 - Responsive grid layouts
