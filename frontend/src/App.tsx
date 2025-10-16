@@ -13,6 +13,7 @@ import RegisterPage from "./pages/RegisterPage.tsx";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard.tsx";
 import ContactsPage from "./pages/ContactsPage.tsx";
+import ContactDetailPage from "./pages/ContactDetailPage.tsx";
 import CompaniesPage from "./pages/CompaniesPage.tsx";
 import DealsPage from "./pages/DealsPage.tsx";
 import ActivitiesPage from "./pages/ActivitiesPage.tsx";
@@ -83,6 +84,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout>
               <ContactsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/contacts/:id"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ContactDetailPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

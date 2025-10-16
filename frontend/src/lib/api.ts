@@ -140,6 +140,33 @@ class ApiClient {
     return this.request<{ tags: string[] }>("/contacts/tags/all");
   }
 
+  // Contact Notes endpoints
+  async getContactNotes(contactId: number) {
+    return this.request<{ notes: ContactNote[] }>(
+      `/contact-notes/contact/${contactId}`
+    );
+  }
+
+  async createContactNote(noteData: { contactId: number; content: string }) {
+    return this.request<ContactNote>("/contact-notes", {
+      method: "POST",
+      body: JSON.stringify(noteData),
+    });
+  }
+
+  async updateContactNote(noteId: number, content: string) {
+    return this.request<ContactNote>(`/contact-notes/${noteId}`, {
+      method: "PUT",
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async deleteContactNote(noteId: number) {
+    return this.request<{ message: string }>(`/contact-notes/${noteId}`, {
+      method: "DELETE",
+    });
+  }
+
   // Companies endpoints
   async getCompanies(params?: {
     page?: number;
@@ -324,6 +351,15 @@ export interface Contact {
   created_at: string;
   updated_at: string;
   company_name?: string;
+}
+
+export interface ContactNote {
+  id: number;
+  content: string;
+  contactId: number;
+  authorName: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Company {

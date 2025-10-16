@@ -1,15 +1,25 @@
-# Personal/Professional CRM System
+# OMW CRM - Personal/Professional CRM System
 
-A modern, minimalist Customer Relationship Management (CRM) system built with React.js and Node.js.
+A modern, minimalist CRM system built with React.js, Node.js, and PostgreSQL. Perfect for managing contacts, companies, deals, activities, and detailed relationship tracking.
 
-## Features
+## 🚀 Features
 
-- **Authentication**: Secure login/register with JWT tokens
-- **Contacts Management**: Add, edit, delete, and search contacts with company associations
-- **Companies Management**: Manage company profiles and their associated contacts
-- **Deals & Opportunities**: Track sales pipeline with customizable stages and values
-- **Dashboard**: Overview of key metrics and upcoming activities
-- **Responsive Design**: Clean, minimalist interface that works on all devices
+### Core CRM Functionality
+
+- **Contacts Management**: Store detailed contact information with custom tags
+- **Companies Management**: Track company relationships and details
+- **Deals Pipeline**: Manage deals through customizable stages
+- **Activities**: Track calls, emails, meetings, notes, and tasks
+- **Contact Notes**: Detailed timestamped notes for comprehensive contact history
+
+### Advanced Features
+
+- **Custom Tags**: Flexible tagging system for contacts
+- **Contact Detail Pages**: 360-degree view of each contact with full history
+- **Search & Filtering**: Powerful search across all data including tags
+- **Background vs Notes**: Separate background information from timestamped notes
+- **Authentication**: Secure JWT-based authentication system
+- **Responsive Design**: Works great on desktop and mobile
 
 ## Tech Stack
 
@@ -69,6 +79,9 @@ A modern, minimalist Customer Relationship Management (CRM) system built with Re
    ```bash
    npm run migrate
    ```
+
+   **⚠️ Important for Fresh Installations:**
+   When setting up on a new computer, you **MUST** run the migration to create all database tables, including the new contact notes and tags features.
 
    Start the backend server:
 

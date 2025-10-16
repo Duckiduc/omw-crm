@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
@@ -43,6 +44,7 @@ interface ContactFormData {
 }
 
 export default function ContactsPage() {
+  const navigate = useNavigate();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -498,7 +500,12 @@ export default function ContactsPage() {
                   <TableRow key={contact.id}>
                     <TableCell>
                       <div className="font-medium">
-                        {contact.firstName} {contact.lastName}
+                        <button
+                          onClick={() => navigate(`/contacts/${contact.id}`)}
+                          className="text-primary hover:underline text-left"
+                        >
+                          {contact.firstName} {contact.lastName}
+                        </button>
                       </div>
                     </TableCell>
                     <TableCell>

@@ -100,6 +100,19 @@ const createTables = async () => {
       );
     `);
 
+    // Contact notes table for detailed notes management
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS contact_notes (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255), -- Optional title for notes
+        content TEXT NOT NULL,
+        contact_id INTEGER REFERENCES contacts(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Create indexes
     await db.query(
       "CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);"
@@ -114,6 +127,12 @@ const createTables = async () => {
       "CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);"
     );
     await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_contact_notes_user_id ON contact_notes(user_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_contact_notes_contact_id ON contact_notes(contact_id);"
+    );
+    await db.query(
       "CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts(company_id);"
     );
     await db.query(
@@ -121,6 +140,10 @@ const createTables = async () => {
     );
     await db.query(
       "CREATE INDEX IF NOT EXISTS idx_deals_company_id ON deals(company_id);"
+    );
+    // GIN index for tags array for better search performance
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_contacts_tags ON contacts USING GIN (tags);"
     );
 
     console.log("✅ Database tables created successfully!");
