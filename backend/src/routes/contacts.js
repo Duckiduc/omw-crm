@@ -15,6 +15,7 @@ router.get(
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
     query("search").optional().trim(),
+    query("tags").optional().trim(),
   ],
   async (req, res) => {
     try {
@@ -27,6 +28,7 @@ router.get(
       const limit = req.query.limit || 20;
       const offset = (page - 1) * limit;
       const search = req.query.search;
+      const tags = req.query.tags;
 
       let countQuery = "SELECT COUNT(*) FROM contacts WHERE user_id = $1";
       let dataQuery = `
@@ -43,11 +45,24 @@ router.get(
         c.last_name ILIKE $2 OR 
         c.email ILIKE $2 OR 
         c.phone ILIKE $2 OR 
-        comp.name ILIKE $2
+        comp.name ILIKE $2 OR
+        array_to_string(c.tags, ' ') ILIKE $2
       )`;
         countQuery += searchCondition.replace("AND", "AND");
         dataQuery += searchCondition;
         params.push(`%${search}%`);
+      }
+
+      if (tags) {
+        const tagCondition = `AND c.tags && $${params.length + 1}`;
+        countQuery += tagCondition;
+        dataQuery += tagCondition;
+        // Parse comma-separated tags into array
+        const tagArray = tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean);
+        params.push(tagArray);
       }
 
       dataQuery +=
@@ -58,10 +73,7 @@ router.get(
       params.push(limit, offset);
 
       const [countResult, dataResult] = await Promise.all([
-        db.query(
-          countQuery,
-          search ? [req.user.id, `%${search}%`] : [req.user.id]
-        ),
+        db.query(countQuery, params.slice(0, -2)), // Remove limit and offset for count
         db.query(dataQuery, params),
       ]);
 
@@ -78,6 +90,7 @@ router.get(
         position: contact.position,
         companyId: contact.company_id,
         notes: contact.notes,
+        tags: contact.tags || [],
         created_at: contact.created_at,
         updated_at: contact.updated_at,
         company_name: contact.company_name,
@@ -130,6 +143,7 @@ router.get("/:id", async (req, res) => {
       position: contact.position,
       companyId: contact.company_id,
       notes: contact.notes,
+      tags: contact.tags || [],
       created_at: contact.created_at,
       updated_at: contact.updated_at,
       company_name: contact.company_name,
@@ -151,6 +165,7 @@ router.post(
     body("position").optional().trim(),
     body("companyId").optional().isInt(),
     body("notes").optional().trim(),
+    body("tags").optional().isArray(),
   ],
   async (req, res) => {
     try {
@@ -159,8 +174,16 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const { firstName, lastName, email, phone, position, companyId, notes } =
-        req.body;
+      const {
+        firstName,
+        lastName,
+        email,
+        phone,
+        position,
+        companyId,
+        notes,
+        tags,
+      } = req.body;
 
       // If companyId provided, verify it belongs to user
       if (companyId) {
@@ -173,10 +196,15 @@ router.post(
         }
       }
 
+      // Process tags - filter out empty strings and duplicates
+      const processedTags = tags
+        ? [...new Set(tags.filter((tag) => tag && tag.trim()))]
+        : [];
+
       const result = await db.query(
         `
-      INSERT INTO contacts (first_name, last_name, email, phone, position, company_id, notes, user_id) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+      INSERT INTO contacts (first_name, last_name, email, phone, position, company_id, notes, tags, user_id) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
       RETURNING *
     `,
         [
@@ -187,6 +215,7 @@ router.post(
           position || null,
           companyId || null,
           notes || null,
+          processedTags,
           req.user.id,
         ]
       );
@@ -201,6 +230,7 @@ router.post(
         position: contact.position,
         companyId: contact.company_id,
         notes: contact.notes,
+        tags: contact.tags || [],
         created_at: contact.created_at,
         updated_at: contact.updated_at,
       });
@@ -222,6 +252,7 @@ router.put(
     body("position").optional().trim(),
     body("companyId").optional().isInt(),
     body("notes").optional().trim(),
+    body("tags").optional().isArray(),
   ],
   async (req, res) => {
     try {
@@ -260,16 +291,25 @@ router.put(
       let paramCount = 1;
 
       Object.entries(updates).forEach(([key, value]) => {
-        const dbField =
-          key === "firstName"
-            ? "first_name"
-            : key === "lastName"
-            ? "last_name"
-            : key === "companyId"
-            ? "company_id"
-            : key;
-        fields.push(`${dbField} = $${paramCount}`);
-        values.push(value);
+        if (key === "tags") {
+          // Process tags - filter out empty strings and duplicates
+          const processedTags = value
+            ? [...new Set(value.filter((tag) => tag && tag.trim()))]
+            : [];
+          fields.push(`tags = $${paramCount}`);
+          values.push(processedTags);
+        } else {
+          const dbField =
+            key === "firstName"
+              ? "first_name"
+              : key === "lastName"
+              ? "last_name"
+              : key === "companyId"
+              ? "company_id"
+              : key;
+          fields.push(`${dbField} = $${paramCount}`);
+          values.push(value);
+        }
         paramCount++;
       });
 
@@ -298,6 +338,7 @@ router.put(
         position: contact.position,
         companyId: contact.company_id,
         notes: contact.notes,
+        tags: contact.tags || [],
         created_at: contact.created_at,
         updated_at: contact.updated_at,
       });
@@ -326,6 +367,27 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.error("Delete contact error:", error);
     res.status(500).json({ message: "Server error deleting contact" });
+  }
+});
+
+// Get all unique tags for user's contacts
+router.get("/tags/all", async (req, res) => {
+  try {
+    const result = await db.query(
+      `
+      SELECT DISTINCT unnest(tags) as tag 
+      FROM contacts 
+      WHERE user_id = $1 AND tags IS NOT NULL 
+      ORDER BY tag
+    `,
+      [req.user.id]
+    );
+
+    const tags = result.rows.map((row) => row.tag).filter(Boolean);
+    res.json({ tags });
+  } catch (error) {
+    console.error("Get tags error:", error);
+    res.status(500).json({ message: "Server error fetching tags" });
   }
 });
 

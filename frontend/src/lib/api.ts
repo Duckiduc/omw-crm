@@ -96,11 +96,13 @@ class ApiClient {
     page?: number;
     limit?: number;
     search?: string;
+    tags?: string;
   }) {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append("page", params.page.toString());
     if (params?.limit) searchParams.append("limit", params.limit.toString());
     if (params?.search) searchParams.append("search", params.search);
+    if (params?.tags) searchParams.append("tags", params.tags);
 
     const query = searchParams.toString();
     return this.request<ContactsResponse>(
@@ -132,6 +134,10 @@ class ApiClient {
     return this.request<{ message: string }>(`/contacts/${id}`, {
       method: "DELETE",
     });
+  }
+
+  async getContactTags() {
+    return this.request<{ tags: string[] }>("/contacts/tags/all");
   }
 
   // Companies endpoints
@@ -314,6 +320,7 @@ export interface Contact {
   position?: string;
   companyId?: number;
   notes?: string;
+  tags?: string[];
   created_at: string;
   updated_at: string;
   company_name?: string;

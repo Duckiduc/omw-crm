@@ -3,6 +3,7 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { Select } from "../components/ui/Select";
+import { TagInput } from "../components/ui/TagInput";
 import {
   Card,
   CardHeader,
@@ -38,11 +39,14 @@ interface ContactFormData {
   position: string;
   companyId: string;
   notes: string;
+  tags: string[];
 }
 
 export default function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,6 +61,7 @@ export default function ContactsPage() {
     position: "",
     companyId: "",
     notes: "",
+    tags: [],
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -68,6 +73,7 @@ export default function ContactsPage() {
           page: currentPage,
           limit: 20,
           search: searchTerm || undefined,
+          tags: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
         });
 
         if (response.data) {
@@ -82,10 +88,11 @@ export default function ContactsPage() {
     };
 
     fetchData();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, searchTerm, selectedTags]);
 
   useEffect(() => {
     fetchCompanies();
+    fetchTags();
   }, []);
 
   const fetchContacts = async () => {
@@ -95,6 +102,7 @@ export default function ContactsPage() {
         page: currentPage,
         limit: 20,
         search: searchTerm || undefined,
+        tags: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
       });
 
       if (response.data) {
@@ -105,6 +113,17 @@ export default function ContactsPage() {
       console.error("Error fetching contacts:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      const response = await apiClient.getContactTags();
+      if (response.data) {
+        setAvailableTags(response.data.tags);
+      }
+    } catch (error) {
+      console.error("Error fetching tags:", error);
     }
   };
 
@@ -152,6 +171,7 @@ export default function ContactsPage() {
           ? parseInt(formData.companyId)
           : undefined,
         notes: formData.notes || undefined,
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
       };
 
       if (editingContact) {
@@ -162,6 +182,7 @@ export default function ContactsPage() {
 
       resetForm();
       fetchContacts();
+      fetchTags(); // Refresh tags list in case new ones were added
     } catch (error) {
       console.error("Error saving contact:", error);
     }
@@ -177,6 +198,7 @@ export default function ContactsPage() {
       position: contact.position || "",
       companyId: contact.companyId?.toString() || "",
       notes: contact.notes || "",
+      tags: contact.tags || [],
     });
     setShowForm(true);
   };
@@ -201,6 +223,7 @@ export default function ContactsPage() {
       position: "",
       companyId: "",
       notes: "",
+      tags: [],
     });
     setFormErrors({});
     setEditingContact(null);
@@ -235,9 +258,9 @@ export default function ContactsPage() {
         </Button>
       </div>
 
-      {/* Search */}
+      {/* Search and Filters */}
       <Card className="mb-6">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-4">
           <form onSubmit={handleSearch} className="flex gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -262,6 +285,38 @@ export default function ContactsPage() {
               </Button>
             )}
           </form>
+
+          {/* Tag Filter */}
+          {availableTags.length > 0 && (
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Filter by tags:
+              </label>
+              <TagInput
+                tags={selectedTags}
+                onChange={(tags) => {
+                  setSelectedTags(tags);
+                  setCurrentPage(1);
+                }}
+                suggestions={availableTags}
+                placeholder="Filter by tags..."
+              />
+              {selectedTags.length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => {
+                    setSelectedTags([]);
+                    setCurrentPage(1);
+                  }}
+                >
+                  Clear Tags Filter
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -378,6 +433,18 @@ export default function ContactsPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="text-sm font-medium">Tags</label>
+                  <TagInput
+                    tags={formData.tags}
+                    onChange={(tags) =>
+                      setFormData((prev) => ({ ...prev, tags }))
+                    }
+                    suggestions={availableTags}
+                    placeholder="Add tags to categorize contact..."
+                  />
+                </div>
+
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Cancel
@@ -420,6 +487,7 @@ export default function ContactsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Position</TableHead>
+                  <TableHead>Tags</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Actions</TableHead>
@@ -445,6 +513,27 @@ export default function ContactsPage() {
                     </TableCell>
                     <TableCell>
                       {contact.position || (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {contact.tags && contact.tags.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {contact.tags.slice(0, 3).map((tag, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {contact.tags.length > 3 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{contact.tags.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>

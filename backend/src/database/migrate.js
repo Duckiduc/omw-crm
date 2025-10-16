@@ -45,6 +45,7 @@ const createTables = async () => {
         position VARCHAR(100),
         company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
         notes TEXT,
+        tags TEXT[], -- Array of tags for flexible categorization
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
