@@ -14,6 +14,7 @@ router.get(
   [
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("search").optional().trim(),
     query("type").optional().trim(),
     query("completed").optional().isBoolean(),
     query("contactId").optional().isInt(),
@@ -30,7 +31,8 @@ router.get(
       const page = req.query.page || 1;
       const limit = req.query.limit || 20;
       const offset = (page - 1) * limit;
-      const { type, completed, contactId, companyId, dealId } = req.query;
+      const { search, type, completed, contactId, companyId, dealId } =
+        req.query;
 
       let countQuery = "SELECT COUNT(*) FROM activities a WHERE a.user_id = $1";
       let dataQuery = `
@@ -46,6 +48,19 @@ router.get(
     `;
       const params = [req.user.id];
       let paramCount = 2;
+
+      // Add search filter
+      if (search) {
+        const searchCondition = `AND (
+          a.subject ILIKE $${paramCount} OR 
+          a.description ILIKE $${paramCount} OR 
+          a.type ILIKE $${paramCount}
+        )`;
+        countQuery += searchCondition;
+        dataQuery += searchCondition;
+        params.push(`%${search}%`);
+        paramCount++;
+      }
 
       // Add filters
       if (type) {

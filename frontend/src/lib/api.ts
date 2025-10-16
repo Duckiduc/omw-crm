@@ -234,6 +234,7 @@ class ApiClient {
   async getActivities(params?: {
     page?: number;
     limit?: number;
+    search?: string;
     type?: string;
     completed?: boolean;
     contactId?: number;
@@ -243,6 +244,7 @@ class ApiClient {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append("page", params.page.toString());
     if (params?.limit) searchParams.append("limit", params.limit.toString());
+    if (params?.search) searchParams.append("search", params.search);
     if (params?.type) searchParams.append("type", params.type);
     if (params?.completed !== undefined)
       searchParams.append("completed", params.completed.toString());
