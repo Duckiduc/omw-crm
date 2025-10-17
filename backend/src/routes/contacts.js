@@ -16,6 +16,7 @@ router.get(
     query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
     query("search").optional().trim(),
     query("tags").optional().trim(),
+    query("status").optional().isIn(["hot", "warm", "cold", "all_good"]),
   ],
   async (req, res) => {
     try {
@@ -29,8 +30,14 @@ router.get(
       const offset = (page - 1) * limit;
       const search = req.query.search;
       const tags = req.query.tags;
+      const status = req.query.status;
 
-      let countQuery = "SELECT COUNT(*) FROM contacts WHERE user_id = $1";
+      let countQuery = `
+      SELECT COUNT(*) 
+      FROM contacts c 
+      LEFT JOIN companies comp ON c.company_id = comp.id 
+      WHERE c.user_id = $1
+    `;
       let dataQuery = `
       SELECT c.*, comp.name as company_name 
       FROM contacts c 
@@ -48,7 +55,7 @@ router.get(
         comp.name ILIKE $2 OR
         array_to_string(c.tags, ' ') ILIKE $2
       )`;
-        countQuery += searchCondition.replace("AND", "AND");
+        countQuery += searchCondition;
         dataQuery += searchCondition;
         params.push(`%${search}%`);
       }
@@ -63,6 +70,13 @@ router.get(
           .map((tag) => tag.trim())
           .filter(Boolean);
         params.push(tagArray);
+      }
+
+      if (status) {
+        const statusCondition = `AND c.status = $${params.length + 1}`;
+        countQuery += statusCondition;
+        dataQuery += statusCondition;
+        params.push(status);
       }
 
       dataQuery +=
@@ -91,6 +105,7 @@ router.get(
         companyId: contact.company_id,
         notes: contact.notes,
         tags: contact.tags || [],
+        status: contact.status || "all_good",
         created_at: contact.created_at,
         updated_at: contact.updated_at,
         company_name: contact.company_name,
@@ -144,6 +159,7 @@ router.get("/:id", async (req, res) => {
       companyId: contact.company_id,
       notes: contact.notes,
       tags: contact.tags || [],
+      status: contact.status || "all_good",
       created_at: contact.created_at,
       updated_at: contact.updated_at,
       company_name: contact.company_name,
@@ -166,6 +182,7 @@ router.post(
     body("companyId").optional().isInt(),
     body("notes").optional().trim(),
     body("tags").optional().isArray(),
+    body("status").optional().isIn(["hot", "warm", "cold", "all_good"]),
   ],
   async (req, res) => {
     try {
@@ -183,6 +200,7 @@ router.post(
         companyId,
         notes,
         tags,
+        status,
       } = req.body;
 
       // If companyId provided, verify it belongs to user
@@ -203,8 +221,8 @@ router.post(
 
       const result = await db.query(
         `
-      INSERT INTO contacts (first_name, last_name, email, phone, position, company_id, notes, tags, user_id) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+      INSERT INTO contacts (first_name, last_name, email, phone, position, company_id, notes, tags, status, user_id) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
       RETURNING *
     `,
         [
@@ -216,6 +234,7 @@ router.post(
           companyId || null,
           notes || null,
           processedTags,
+          status || "all_good",
           req.user.id,
         ]
       );
@@ -231,6 +250,7 @@ router.post(
         companyId: contact.company_id,
         notes: contact.notes,
         tags: contact.tags || [],
+        status: contact.status || "all_good",
         created_at: contact.created_at,
         updated_at: contact.updated_at,
       });
@@ -253,6 +273,7 @@ router.put(
     body("companyId").optional().isInt(),
     body("notes").optional().trim(),
     body("tags").optional().isArray(),
+    body("status").optional().isIn(["hot", "warm", "cold", "all_good"]),
   ],
   async (req, res) => {
     try {
@@ -339,6 +360,7 @@ router.put(
         companyId: contact.company_id,
         notes: contact.notes,
         tags: contact.tags || [],
+        status: contact.status || "all_good",
         created_at: contact.created_at,
         updated_at: contact.updated_at,
       });

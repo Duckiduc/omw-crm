@@ -46,6 +46,7 @@ const createTables = async () => {
         company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
         notes TEXT,
         tags TEXT[], -- Array of tags for flexible categorization
+        status VARCHAR(20) DEFAULT 'all_good' CHECK (status IN ('hot', 'warm', 'cold', 'all_good')),
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -144,6 +145,10 @@ const createTables = async () => {
     // GIN index for tags array for better search performance
     await db.query(
       "CREATE INDEX IF NOT EXISTS idx_contacts_tags ON contacts USING GIN (tags);"
+    );
+    // Index for contact status filtering
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);"
     );
 
     console.log("✅ Database tables created successfully!");

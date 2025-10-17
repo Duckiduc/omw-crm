@@ -97,12 +97,14 @@ class ApiClient {
     limit?: number;
     search?: string;
     tags?: string;
+    status?: "hot" | "warm" | "cold" | "all_good";
   }) {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append("page", params.page.toString());
     if (params?.limit) searchParams.append("limit", params.limit.toString());
     if (params?.search) searchParams.append("search", params.search);
     if (params?.tags) searchParams.append("tags", params.tags);
+    if (params?.status) searchParams.append("status", params.status);
 
     const query = searchParams.toString();
     return this.request<ContactsResponse>(
@@ -348,6 +350,7 @@ export interface Contact {
   companyId?: number;
   notes?: string;
   tags?: string[];
+  status?: "hot" | "warm" | "cold" | "all_good";
   created_at: string;
   updated_at: string;
   company_name?: string;

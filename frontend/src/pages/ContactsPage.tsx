@@ -6,6 +6,10 @@ import { Textarea } from "../components/ui/Textarea";
 import { Select } from "../components/ui/Select";
 import { TagInput } from "../components/ui/TagInput";
 import {
+  ContactStatusBadge,
+  ContactStatusSelect,
+} from "../components/ui/ContactStatus";
+import {
   Card,
   CardHeader,
   CardTitle,
@@ -41,6 +45,7 @@ interface ContactFormData {
   companyId: string;
   notes: string;
   tags: string[];
+  status: "hot" | "warm" | "cold" | "all_good";
 }
 
 export default function ContactsPage() {
@@ -49,6 +54,9 @@ export default function ContactsPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<
+    "hot" | "warm" | "cold" | "all_good" | ""
+  >("");
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,6 +72,7 @@ export default function ContactsPage() {
     companyId: "",
     notes: "",
     tags: [],
+    status: "all_good",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -72,12 +81,12 @@ export default function ContactsPage() {
       setIsLoading(true);
       try {
         const response = await apiClient.getContacts({
-          page: currentPage,
+          page: 1,
           limit: 20,
           search: searchTerm || undefined,
           tags: selectedTags.length > 0 ? selectedTags.join(",") : undefined,
+          status: selectedStatus || undefined,
         });
-
         if (response.data) {
           setContacts(response.data.contacts);
           setTotalPages(response.data.pagination.totalPages);
@@ -90,7 +99,7 @@ export default function ContactsPage() {
     };
 
     fetchData();
-  }, [currentPage, searchTerm, selectedTags]);
+  }, [currentPage, searchTerm, selectedTags, selectedStatus]);
 
   useEffect(() => {
     fetchCompanies();
@@ -174,6 +183,7 @@ export default function ContactsPage() {
           : undefined,
         notes: formData.notes || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
+        status: formData.status,
       };
 
       if (editingContact) {
@@ -201,6 +211,7 @@ export default function ContactsPage() {
       companyId: contact.companyId?.toString() || "",
       notes: contact.notes || "",
       tags: contact.tags || [],
+      status: contact.status || "all_good",
     });
     setShowForm(true);
   };
@@ -226,6 +237,7 @@ export default function ContactsPage() {
       companyId: "",
       notes: "",
       tags: [],
+      status: "all_good",
     });
     setFormErrors({});
     setEditingContact(null);
@@ -319,6 +331,43 @@ export default function ContactsPage() {
               )}
             </div>
           )}
+
+          {/* Status Filter */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Filter by status:
+            </label>
+            <div className="flex gap-2 items-center">
+              <Select
+                value={selectedStatus}
+                onChange={(e) => {
+                  setSelectedStatus(
+                    e.target.value as "hot" | "warm" | "cold" | "all_good" | ""
+                  );
+                  setCurrentPage(1);
+                }}
+              >
+                <option value="">All statuses</option>
+                <option value="hot">Hot</option>
+                <option value="warm">Warm</option>
+                <option value="cold">Cold</option>
+                <option value="all_good">All Good</option>
+              </Select>
+              {selectedStatus && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedStatus("");
+                    setCurrentPage(1);
+                  }}
+                >
+                  Clear Status Filter
+                </Button>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -447,6 +496,16 @@ export default function ContactsPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <ContactStatusSelect
+                    value={formData.status}
+                    onChange={(status) =>
+                      setFormData((prev) => ({ ...prev, status }))
+                    }
+                  />
+                </div>
+
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Cancel
@@ -489,6 +548,7 @@ export default function ContactsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Position</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Tags</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
@@ -522,6 +582,11 @@ export default function ContactsPage() {
                       {contact.position || (
                         <span className="text-muted-foreground">-</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <ContactStatusBadge
+                        status={contact.status || "all_good"}
+                      />
                     </TableCell>
                     <TableCell>
                       {contact.tags && contact.tags.length > 0 ? (
