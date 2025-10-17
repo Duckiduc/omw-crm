@@ -626,7 +626,7 @@ export default function ContactDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4 max-h-96 overflow-y-auto">
               {showNoteForm && (
-                <div className="space-y-2 p-3 border rounded-md bg-accent/50">
+                <div className="space-y-2 p-3 border border-border rounded-md bg-accent/50">
                   <Textarea
                     placeholder="Add a new note..."
                     value={newNoteContent}
@@ -659,7 +659,7 @@ export default function ContactDetailPage() {
                 notes.map((note) => (
                   <div
                     key={note.id}
-                    className="border rounded-md p-3 space-y-2"
+                    className="border border-border rounded-md p-3 space-y-2"
                   >
                     {editingNote?.id === note.id ? (
                       <div className="space-y-2">
