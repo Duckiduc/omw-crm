@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
@@ -10,6 +10,7 @@ import {
   CardContent,
 } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
+import { Calendar as CalendarComponent } from "../components/ui/Calendar";
 import { apiClient } from "../lib/api";
 import type { ActivityWithDetails, Company, Contact, Deal } from "../lib/api";
 import {
@@ -65,6 +66,28 @@ export default function ActivitiesPage() {
     dealId: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside calendar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target as Node)
+      ) {
+        setShowCalendar(false);
+      }
+    };
+
+    if (showCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showCalendar]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -408,13 +431,55 @@ export default function ActivitiesPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium">Due Date</label>
-                    <Input
-                      type="date"
-                      value={formData.dueDate}
-                      onChange={(e) =>
-                        handleInputChange("dueDate", e.target.value)
-                      }
-                    />
+                    <div className="relative">
+                      <Input
+                        type="text"
+                        value={
+                          formData.dueDate
+                            ? new Date(formData.dueDate).toLocaleDateString()
+                            : ""
+                        }
+                        onClick={() => setShowCalendar(!showCalendar)}
+                        readOnly
+                        placeholder="Select due date"
+                        className="cursor-pointer"
+                      />
+                      <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      {showCalendar && (
+                        <div
+                          ref={calendarRef}
+                          className="absolute z-50 mt-1 bg-background border border-border rounded-lg shadow-lg"
+                        >
+                          <CalendarComponent
+                            mode="single"
+                            selected={
+                              formData.dueDate
+                                ? new Date(formData.dueDate)
+                                : undefined
+                            }
+                            onSelect={(date) => {
+                              if (date) {
+                                // Format date as YYYY-MM-DD in local timezone
+                                const year = date.getFullYear();
+                                const month = String(
+                                  date.getMonth() + 1
+                                ).padStart(2, "0");
+                                const day = String(date.getDate()).padStart(
+                                  2,
+                                  "0"
+                                );
+                                const localDateString = `${year}-${month}-${day}`;
+                                handleInputChange("dueDate", localDateString);
+                              } else {
+                                handleInputChange("dueDate", "");
+                              }
+                              setShowCalendar(false);
+                            }}
+                            className="rounded-lg border-0"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
