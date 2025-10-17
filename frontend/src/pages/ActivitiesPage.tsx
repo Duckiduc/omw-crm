@@ -174,14 +174,18 @@ export default function ActivitiesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       const activityData = {
         type: formData.type as ActivityType,
         subject: formData.subject,
         description: formData.description || undefined,
-        dueDate: formData.dueDate || undefined,
+        dueDate: formData.dueDate
+          ? formData.dueDate + "T12:00:00.000Z"
+          : undefined,
         contactId: formData.contactId
           ? parseInt(formData.contactId)
           : undefined,
@@ -194,12 +198,14 @@ export default function ActivitiesPage() {
 
       if (editingActivity) {
         await apiClient.updateActivity(editingActivity.id, activityData);
+        // Close the modal and refresh the activities list
+        resetForm();
+        fetchActivities();
       } else {
         await apiClient.createActivity(activityData);
+        resetForm();
+        fetchActivities();
       }
-
-      resetForm();
-      fetchActivities();
     } catch (error) {
       console.error("Error saving activity:", error);
     }
@@ -207,15 +213,38 @@ export default function ActivitiesPage() {
 
   const handleEdit = (activity: ActivityWithDetails) => {
     setEditingActivity(activity);
-    setFormData({
+
+    // Handle snake_case to camelCase mapping from backend
+    const activityData = activity as any;
+
+    // Better date handling - extract just the date part
+    let dueDateString = "";
+    const backendDueDate = activityData.due_date || activity.dueDate;
+
+    if (backendDueDate) {
+      try {
+        const date = new Date(backendDueDate);
+        // Format as YYYY-MM-DD
+        dueDateString = date.toISOString().split("T")[0];
+      } catch (error) {
+        console.error("Error parsing date:", backendDueDate, error);
+        dueDateString = "";
+      }
+    }
+
+    const newFormData = {
       type: activity.type,
       subject: activity.subject,
       description: activity.description || "",
-      dueDate: activity.dueDate ? activity.dueDate.split("T")[0] : "",
-      contactId: activity.contactId?.toString() || "",
-      companyId: activity.companyId?.toString() || "",
-      dealId: activity.dealId?.toString() || "",
-    });
+      dueDate: dueDateString,
+      contactId:
+        (activityData.contact_id || activity.contactId)?.toString() || "",
+      companyId:
+        (activityData.company_id || activity.companyId)?.toString() || "",
+      dealId: (activityData.deal_id || activity.dealId)?.toString() || "",
+    };
+
+    setFormData(newFormData);
     setShowForm(true);
   };
 
@@ -434,11 +463,23 @@ export default function ActivitiesPage() {
                     <div className="relative">
                       <Input
                         type="text"
-                        value={
-                          formData.dueDate
-                            ? new Date(formData.dueDate).toLocaleDateString()
-                            : ""
-                        }
+                        value={(() => {
+                          if (formData.dueDate) {
+                            try {
+                              const displayDate = new Date(
+                                formData.dueDate + "T00:00:00"
+                              ).toLocaleDateString();
+                              return displayDate;
+                            } catch (error) {
+                              console.error(
+                                "Error formatting date for display:",
+                                error
+                              );
+                              return formData.dueDate;
+                            }
+                          }
+                          return "";
+                        })()}
                         onClick={() => setShowCalendar(!showCalendar)}
                         readOnly
                         placeholder="Select due date"
@@ -454,7 +495,7 @@ export default function ActivitiesPage() {
                             mode="single"
                             selected={
                               formData.dueDate
-                                ? new Date(formData.dueDate)
+                                ? new Date(formData.dueDate + "T00:00:00")
                                 : undefined
                             }
                             onSelect={(date) => {
