@@ -537,75 +537,6 @@ export default function ContactDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Background/Notes Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Background</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isEditing ? (
-                <div>
-                  <label className="text-sm font-medium">
-                    Background Information
-                  </label>
-                  <Textarea
-                    value={formData.notes}
-                    onChange={(e) => handleInputChange("notes", e.target.value)}
-                    rows={4}
-                    placeholder="Add background information about this contact..."
-                  />
-                </div>
-              ) : (
-                <div>
-                  {contact.notes ? (
-                    <p className="whitespace-pre-wrap">{contact.notes}</p>
-                  ) : (
-                    <p className="text-muted-foreground italic">
-                      No background information available
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="space-y-6">
-          {/* Quick Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calendar className="mr-2 h-5 w-5" />
-                Quick Info
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <span className="text-sm font-medium text-muted-foreground">
-                  Created:{" "}
-                </span>
-                <span className="text-sm">
-                  {formatDate(contact.created_at)}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-muted-foreground">
-                  Last Updated:{" "}
-                </span>
-                <span className="text-sm">
-                  {formatDate(contact.updated_at)}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm font-medium text-muted-foreground">
-                  Notes Count:{" "}
-                </span>
-                <span className="text-sm">{notes.length}</span>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Notes Section */}
           <Card>
             <CardHeader>
@@ -624,7 +555,7 @@ export default function ContactDetailPage() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+            <CardContent className="space-y-4">
               {showNoteForm && (
                 <div className="space-y-2 p-3 border border-border rounded-md bg-accent/50">
                   <Textarea
@@ -722,6 +653,75 @@ export default function ContactDetailPage() {
                   </div>
                 ))
               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Sidebar */}
+        <div className="space-y-6">
+          {/* Background Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Background</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isEditing ? (
+                <div>
+                  <label className="text-sm font-medium">
+                    Background Information
+                  </label>
+                  <Textarea
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    rows={4}
+                    placeholder="Add background information about this contact..."
+                  />
+                </div>
+              ) : (
+                <div>
+                  {contact.notes ? (
+                    <p className="whitespace-pre-wrap">{contact.notes}</p>
+                  ) : (
+                    <p className="text-muted-foreground italic">
+                      No background information available
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Quick Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5" />
+                Quick Info
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Created:{" "}
+                </span>
+                <span className="text-sm">
+                  {formatDate(contact.created_at)}
+                </span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Last Updated:{" "}
+                </span>
+                <span className="text-sm">
+                  {formatDate(contact.updated_at)}
+                </span>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Notes Count:{" "}
+                </span>
+                <span className="text-sm">{notes.length}</span>
+              </div>
             </CardContent>
           </Card>
         </div>
