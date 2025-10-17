@@ -368,56 +368,54 @@ export default function ActivitiesPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-64 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search activities..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value as FilterType)}
+      <div className="mb-6">
+        <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
+          <div className="flex-1 min-w-64 relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search activities..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as FilterType)}
+          >
+            <option value="all">All Activities</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="overdue">Overdue</option>
+          </Select>
+          <Select
+            value={filterActivityType}
+            onChange={(e) => setFilterActivityType(e.target.value)}
+          >
+            <option value="">All Types</option>
+            <option value="call">Calls</option>
+            <option value="email">Emails</option>
+            <option value="meeting">Meetings</option>
+            <option value="note">Notes</option>
+            <option value="task">Tasks</option>
+          </Select>
+          <Button type="submit">Search</Button>
+          {(searchTerm || filterType !== "all" || filterActivityType) && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setSearchTerm("");
+                setFilterType("all");
+                setFilterActivityType("");
+                setCurrentPage(1);
+              }}
             >
-              <option value="all">All Activities</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="overdue">Overdue</option>
-            </Select>
-            <Select
-              value={filterActivityType}
-              onChange={(e) => setFilterActivityType(e.target.value)}
-            >
-              <option value="">All Types</option>
-              <option value="call">Calls</option>
-              <option value="email">Emails</option>
-              <option value="meeting">Meetings</option>
-              <option value="note">Notes</option>
-              <option value="task">Tasks</option>
-            </Select>
-            <Button type="submit">Search</Button>
-            {(searchTerm || filterType !== "all" || filterActivityType) && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("");
-                  setFilterType("all");
-                  setFilterActivityType("");
-                  setCurrentPage(1);
-                }}
-              >
-                Clear
-              </Button>
-            )}
-          </form>
-        </CardContent>
-      </Card>
+              Clear
+            </Button>
+          )}
+        </form>
+      </div>
 
       {/* Activity Form Modal */}
       {showForm && (
