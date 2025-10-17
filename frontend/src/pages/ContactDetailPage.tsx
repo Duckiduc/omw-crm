@@ -6,6 +6,11 @@ import { Textarea } from "../components/ui/Textarea";
 import { Select } from "../components/ui/Select";
 import { TagInput } from "../components/ui/TagInput";
 import {
+  ContactStatusBadge,
+  ContactStatusSelect,
+} from "../components/ui/ContactStatus";
+import { Badge } from "../components/ui/Badge";
+import {
   Card,
   CardHeader,
   CardTitle,
@@ -37,6 +42,7 @@ interface ContactFormData {
   companyId: string;
   notes: string;
   tags: string[];
+  status: "hot" | "warm" | "cold" | "all_good";
 }
 
 export default function ContactDetailPage() {
@@ -60,6 +66,7 @@ export default function ContactDetailPage() {
     companyId: "",
     notes: "",
     tags: [],
+    status: "all_good",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -85,6 +92,7 @@ export default function ContactDetailPage() {
             companyId: contactResponse.data.companyId?.toString() || "",
             notes: contactResponse.data.notes || "",
             tags: contactResponse.data.tags || [],
+            status: contactResponse.data.status || "all_good",
           });
         }
 
@@ -123,6 +131,7 @@ export default function ContactDetailPage() {
           companyId: contactResponse.data.companyId?.toString() || "",
           notes: contactResponse.data.notes || "",
           tags: contactResponse.data.tags || [],
+          status: contactResponse.data.status || "all_good",
         });
       }
 
@@ -188,6 +197,7 @@ export default function ContactDetailPage() {
           : undefined,
         notes: formData.notes || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
+        status: formData.status,
       };
 
       await apiClient.updateContact(contact.id, contactData);
@@ -210,6 +220,7 @@ export default function ContactDetailPage() {
         companyId: contact.companyId?.toString() || "",
         notes: contact.notes || "",
         tags: contact.tags || [],
+        status: contact.status || "all_good",
       });
     }
     setFormErrors({});
@@ -448,6 +459,14 @@ export default function ContactDetailPage() {
                       placeholder="Add tags to categorize contact..."
                     />
                   </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Status</label>
+                    <ContactStatusSelect
+                      value={formData.status}
+                      onChange={(status) => handleInputChange("status", status)}
+                    />
+                  </div>
                 </>
               ) : (
                 <div className="space-y-4">
@@ -499,16 +518,20 @@ export default function ContactDetailPage() {
                       </span>
                       <div className="flex flex-wrap gap-2">
                         {contact.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded-md text-sm"
-                          >
+                          <Badge key={index} variant="secondary">
                             {tag}
-                          </span>
+                          </Badge>
                         ))}
                       </div>
                     </div>
                   )}
+
+                  <div>
+                    <span className="text-sm font-medium text-muted-foreground block mb-2">
+                      Status:
+                    </span>
+                    <ContactStatusBadge status={contact.status || "all_good"} />
+                  </div>
                 </div>
               )}
             </CardContent>

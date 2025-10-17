@@ -1,3 +1,4 @@
+import { Badge } from "./Badge";
 import {
   type ContactStatus,
   CONTACT_STATUS_OPTIONS,
@@ -20,14 +21,15 @@ export function ContactStatusBadge({
     return null;
   }
 
-  const sizeClasses = size === "sm" ? "px-2 py-1 text-xs" : "px-3 py-1 text-sm";
-
   return (
-    <span
-      className={`inline-flex items-center rounded-full border font-medium ${statusConfig.color} ${sizeClasses}`}
+    <Badge
+      variant="outline"
+      className={`${statusConfig.color} ${
+        size === "sm" ? "text-xs" : "text-sm"
+      }`}
     >
       {statusConfig.label}
-    </span>
+    </Badge>
   );
 }
 

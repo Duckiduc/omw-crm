@@ -9,6 +9,7 @@ import {
   ContactStatusBadge,
   ContactStatusSelect,
 } from "../components/ui/ContactStatus";
+import { Badge } from "../components/ui/Badge";
 import {
   Card,
   CardHeader,
@@ -592,12 +593,9 @@ export default function ContactsPage() {
                       {contact.tags && contact.tags.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {contact.tags.slice(0, 3).map((tag, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
-                            >
+                            <Badge key={index} variant="secondary">
                               {tag}
-                            </span>
+                            </Badge>
                           ))}
                           {contact.tags.length > 3 && (
                             <span className="text-xs text-muted-foreground">
