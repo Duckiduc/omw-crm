@@ -642,7 +642,7 @@ export default function ActivitiesPage() {
                 isOverdue(activity) ? "border-red-200 bg-red-50" : ""
               }`}
             >
-              <CardContent className="p-6">
+              <CardContent className="">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
