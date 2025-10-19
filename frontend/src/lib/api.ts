@@ -408,6 +408,11 @@ export interface Deal {
 }
 
 export interface DealWithDetails extends Deal {
+  // Database response includes both camelCase (for API) and snake_case (from DB)
+  stage_id?: number;
+  contact_id?: number;
+  company_id?: number;
+  expected_close_date?: string;
   stage_name?: string;
   contact_name?: string;
   company_name?: string;

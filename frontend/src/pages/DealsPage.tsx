@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
@@ -10,6 +10,7 @@ import {
   CardContent,
 } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
+import { Calendar as CalendarComponent } from "../components/ui/Calendar";
 import { apiClient } from "../lib/api";
 import type { DealWithDetails, DealStage, Company, Contact } from "../lib/api";
 import {
@@ -56,6 +57,28 @@ export default function DealsPage() {
     notes: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside calendar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target as Node)
+      ) {
+        setShowCalendar(false);
+      }
+    };
+
+    if (showCalendar) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showCalendar]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -187,11 +210,11 @@ export default function DealsPage() {
     setFormData({
       title: deal.title,
       value: deal.value.toString(),
-      stage_id: deal.stageId?.toString() || "",
-      company_id: deal.companyId?.toString() || "",
-      contact_id: deal.contactId?.toString() || "",
-      expected_close_date: deal.expectedCloseDate
-        ? deal.expectedCloseDate.split("T")[0]
+      stage_id: deal.stage_id?.toString() || "",
+      company_id: deal.company_id?.toString() || "",
+      contact_id: deal.contact_id?.toString() || "",
+      expected_close_date: deal.expected_close_date
+        ? deal.expected_close_date.split("T")[0]
         : "",
       notes: deal.notes || "",
     });
@@ -222,6 +245,7 @@ export default function DealsPage() {
     setFormErrors({});
     setEditingDeal(null);
     setShowForm(false);
+    setShowCalendar(false);
   };
 
   const handleInputChange = (field: keyof DealFormData, value: string) => {
@@ -434,13 +458,72 @@ export default function DealsPage() {
                   <label className="text-sm font-medium">
                     Expected Close Date
                   </label>
-                  <Input
-                    type="date"
-                    value={formData.expected_close_date}
-                    onChange={(e) =>
-                      handleInputChange("expected_close_date", e.target.value)
-                    }
-                  />
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      value={(() => {
+                        if (formData.expected_close_date) {
+                          try {
+                            const displayDate = new Date(
+                              formData.expected_close_date + "T00:00:00"
+                            ).toLocaleDateString();
+                            return displayDate;
+                          } catch (error) {
+                            console.error(
+                              "Error formatting date for display:",
+                              error
+                            );
+                            return formData.expected_close_date;
+                          }
+                        }
+                        return "";
+                      })()}
+                      onClick={() => setShowCalendar(!showCalendar)}
+                      readOnly
+                      placeholder="Select expected close date"
+                      className="cursor-pointer"
+                    />
+                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    {showCalendar && (
+                      <div
+                        ref={calendarRef}
+                        className="absolute z-50 mt-1 bg-background border border-border rounded-lg shadow-lg"
+                      >
+                        <CalendarComponent
+                          mode="single"
+                          selected={
+                            formData.expected_close_date
+                              ? new Date(
+                                  formData.expected_close_date + "T00:00:00"
+                                )
+                              : undefined
+                          }
+                          onSelect={(date) => {
+                            if (date) {
+                              // Format date as YYYY-MM-DD in local timezone
+                              const year = date.getFullYear();
+                              const month = String(
+                                date.getMonth() + 1
+                              ).padStart(2, "0");
+                              const day = String(date.getDate()).padStart(
+                                2,
+                                "0"
+                              );
+                              const localDateString = `${year}-${month}-${day}`;
+                              handleInputChange(
+                                "expected_close_date",
+                                localDateString
+                              );
+                            } else {
+                              handleInputChange("expected_close_date", "");
+                            }
+                            setShowCalendar(false);
+                          }}
+                          className="rounded-lg border-0"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -519,11 +602,11 @@ export default function DealsPage() {
                         </div>
                       )}
 
-                      {deal.expectedCloseDate && (
+                      {deal.expected_close_date && (
                         <div className="flex items-center">
                           <Calendar className="mr-1 h-4 w-4" />
                           <span>
-                            Close: {formatDate(deal.expectedCloseDate)}
+                            Close: {formatDate(deal.expected_close_date)}
                           </span>
                         </div>
                       )}
