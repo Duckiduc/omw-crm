@@ -72,7 +72,8 @@ export default function SharedItems({
             sharedWithLastName: share.shared_with_last_name,
             ownerFirstName: share.shared_by_first_name,
             ownerLastName: share.shared_by_last_name,
-            isSharedWithMe: false, // This will be set by the backend based on current user
+            // Keep the backend's isSharedWithMe logic, don't override it
+            isSharedWithMe: share.isSharedWithMe,
             resourceTitle: share.resource_data
               ? getResourceTitle(share.resource_data, share.resource_type!)
               : `${share.resource_type} #${share.resource_id}`,
@@ -231,8 +232,16 @@ export default function SharedItems({
                     </TableCell>
                     <TableCell>
                       {share.isSharedWithMe
-                        ? `${share.ownerFirstName} ${share.ownerLastName}`
-                        : `${share.sharedWithFirstName} ${share.sharedWithLastName}`}
+                        ? `${
+                            share.ownerFirstName || share.shared_by_first_name
+                          } ${share.ownerLastName || share.shared_by_last_name}`
+                        : `${
+                            share.sharedWithFirstName ||
+                            share.shared_with_first_name
+                          } ${
+                            share.sharedWithLastName ||
+                            share.shared_with_last_name
+                          }`}
                     </TableCell>
                     <TableCell>
                       <Badge
