@@ -66,6 +66,7 @@ router.post(
           email: user.email,
           firstName: user.first_name,
           lastName: user.last_name,
+          role: user.role || "user",
         },
       });
     } catch (error) {
@@ -90,7 +91,7 @@ router.post(
 
       // Find user
       const result = await db.query(
-        "SELECT id, email, password, first_name, last_name FROM users WHERE email = $1",
+        "SELECT id, email, password, first_name, last_name, role FROM users WHERE email = $1",
         [email]
       );
 
@@ -121,6 +122,7 @@ router.post(
           email: user.email,
           firstName: user.first_name,
           lastName: user.last_name,
+          role: user.role || "user",
         },
       });
     } catch (error) {
@@ -138,6 +140,7 @@ router.get("/me", authenticateToken, async (req, res) => {
       email: req.user.email,
       firstName: req.user.first_name,
       lastName: req.user.last_name,
+      role: req.user.role || "user",
     },
   });
 });

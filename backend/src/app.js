@@ -10,6 +10,7 @@ const companyRoutes = require("./routes/companies");
 const dealRoutes = require("./routes/deals");
 const activityRoutes = require("./routes/activities");
 const contactNotesRoutes = require("./routes/contact-notes");
+const adminRoutes = require("./routes/admin");
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -48,6 +49,7 @@ app.use("/api/companies", companyRoutes);
 app.use("/api/deals", dealRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/contact-notes", contactNotesRoutes);
+app.use("/api/admin/users", adminRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

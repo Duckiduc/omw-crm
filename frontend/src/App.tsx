@@ -17,6 +17,7 @@ import ContactDetailPage from "./pages/ContactDetailPage.tsx";
 import CompaniesPage from "./pages/CompaniesPage.tsx";
 import DealsPage from "./pages/DealsPage.tsx";
 import ActivitiesPage from "./pages/ActivitiesPage.tsx";
+import AdminPanel from "./pages/AdminPanel.tsx";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -40,6 +41,24 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.role !== "admin") {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -126,6 +145,18 @@ function AppRoutes() {
               <ActivitiesPage />
             </DashboardLayout>
           </ProtectedRoute>
+        }
+      />
+
+      {/* Admin routes */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <DashboardLayout>
+              <AdminPanel />
+            </DashboardLayout>
+          </AdminRoute>
         }
       />
 

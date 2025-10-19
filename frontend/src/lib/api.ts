@@ -330,6 +330,60 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  // Admin endpoints
+  async getUsers(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+  }) {
+    let url = "/admin/users";
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.page) searchParams.append("page", params.page.toString());
+      if (params.limit) searchParams.append("limit", params.limit.toString());
+      if (params.search) searchParams.append("search", params.search);
+      if (params.role) searchParams.append("role", params.role);
+      if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    }
+    return this.request<UsersResponse>(url);
+  }
+
+  async getUser(id: number) {
+    return this.request<User>(`/admin/users/${id}`);
+  }
+
+  async createUser(
+    user: Omit<User, "id" | "created_at" | "updated_at"> & { password: string }
+  ) {
+    return this.request<User>("/admin/users", {
+      method: "POST",
+      body: JSON.stringify(user),
+    });
+  }
+
+  async updateUser(id: number, user: Partial<User & { password?: string }>) {
+    return this.request<User>(`/admin/users/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(user),
+    });
+  }
+
+  async deleteUser(id: number) {
+    return this.request<{ message: string }>(`/admin/users/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getUserStats() {
+    return this.request<{
+      total: number;
+      admins: number;
+      regularUsers: number;
+      newThisMonth: number;
+    }>("/admin/users/stats/overview");
+  }
 }
 
 // Types
@@ -338,6 +392,12 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  // Backend also returns snake_case fields
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Contact {
@@ -472,6 +532,11 @@ export interface DealsByStage {
     stage: DealStage;
     deals: DealWithDetails[];
   };
+}
+
+export interface UsersResponse {
+  users: User[];
+  pagination: Pagination;
 }
 
 export const apiClient = new ApiClient(API_BASE_URL);

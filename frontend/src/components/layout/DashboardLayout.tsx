@@ -9,6 +9,7 @@ import {
   Calendar,
   LogOut,
   User,
+  Shield,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -22,6 +23,8 @@ const navigation = [
   { name: "Deals", href: "/deals", icon: TrendingUp },
   { name: "Activities", href: "/activities", icon: Calendar },
 ];
+
+const adminNavigation = [{ name: "Admin Panel", href: "/admin", icon: Shield }];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
@@ -62,6 +65,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Link>
               );
             })}
+
+            {/* Admin Navigation - only show for admin users */}
+            {user?.role === "admin" && (
+              <>
+                <div className="pt-4 pb-2">
+                  <div className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Admin
+                  </div>
+                </div>
+                {adminNavigation.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      <item.icon className="mr-3 h-5 w-5" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
 
           {/* User section */}
@@ -72,7 +103,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">
-                  {user?.firstName} {user?.lastName}
+                  {user?.firstName || user?.first_name}{" "}
+                  {user?.lastName || user?.last_name}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
                   {user?.email}
