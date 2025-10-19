@@ -12,6 +12,21 @@ import {
   Shield,
   Share2,
 } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "../ui/Sidebar";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -39,97 +54,112 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border">
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center h-16 px-6 border-b border-border">
-            <h1 className="text-xl font-bold">OMW CRM</h1>
-          </div>
+    <SidebarProvider>
+      <div className="flex h-screen w-full">
+        <Sidebar>
+          <SidebarHeader>
+            <div className="flex items-center px-2 py-2">
+              <h1 className="text-xl font-bold">OMW CRM</h1>
+            </div>
+          </SidebarHeader>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {navigation.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <SidebarMenuItem key={item.name}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={item.name}
+                        >
+                          <Link to={item.href}>
+                            <item.icon />
+                            <span>{item.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
 
             {/* Admin Navigation - only show for admin users */}
             {user?.role === "admin" && (
-              <>
-                <div className="pt-4 pb-2">
-                  <div className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Admin
+              <SidebarGroup>
+                <SidebarGroupLabel>Admin</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {adminNavigation.map((item) => {
+                      const isActive = location.pathname === item.href;
+                      return (
+                        <SidebarMenuItem key={item.name}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            tooltip={item.name}
+                          >
+                            <Link to={item.href}>
+                              <item.icon />
+                              <span>{item.name}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+          </SidebarContent>
+
+          <SidebarFooter>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <div className="flex items-center space-x-3 px-2 py-2">
+                  <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full">
+                    <User className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {user?.firstName || user?.first_name}{" "}
+                      {user?.lastName || user?.last_name}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
-                {adminNavigation.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                        isActive
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      }`}
-                    >
-                      <item.icon className="mr-3 h-5 w-5" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </>
-            )}
-          </nav>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="w-full justify-start"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
 
-          {/* User section */}
-          <div className="p-4 border-t border-border">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-full">
-                <User className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {user?.firstName || user?.first_name}{" "}
-                  {user?.lastName || user?.last_name}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {user?.email}
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="w-full justify-start"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+          </header>
+          <main className="flex-1 p-6">{children}</main>
+        </SidebarInset>
       </div>
-
-      {/* Main content */}
-      <div className="pl-64">
-        <main className="py-6">{children}</main>
-      </div>
-    </div>
+    </SidebarProvider>
   );
 }
