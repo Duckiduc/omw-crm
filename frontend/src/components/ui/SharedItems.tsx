@@ -1,7 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "./Button";
 import { Card, CardHeader, CardTitle, CardContent } from "./Card";
-import { Table } from "./Table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "./Table";
 import { Badge } from "./Badge";
 import { apiClient } from "../../lib/api";
 import type { Share, Contact, Activity, Deal } from "../../lib/api";
@@ -187,47 +194,47 @@ export default function SharedItems({
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Title</th>
-                  <th>Direction</th>
-                  <th>User</th>
-                  <th>Permission</th>
-                  <th>Shared Date</th>
-                  <th>Message</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Direction</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Permission</TableHead>
+                  <TableHead>Shared Date</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {shares.map((share) => (
-                  <tr key={share.id}>
-                    <td>
+                  <TableRow key={share.id}>
+                    <TableCell>
                       <Badge variant="outline">
                         {getResourceTypeDisplay(
                           share.resourceType || share.resource_type
                         )}
                       </Badge>
-                    </td>
-                    <td className="font-medium">
+                    </TableCell>
+                    <TableCell className="font-medium">
                       {share.resourceTitle ||
                         `${share.resourceType || share.resource_type} #${
                           share.resourceId || share.resource_id
                         }`}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       {share.isSharedWithMe ? (
                         <Badge variant="secondary">Shared with me</Badge>
                       ) : (
                         <Badge variant="default">I shared</Badge>
                       )}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       {share.isSharedWithMe
                         ? `${share.ownerFirstName} ${share.ownerLastName}`
                         : `${share.sharedWithFirstName} ${share.sharedWithLastName}`}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       <Badge
                         variant={getPermissionVariant(share.permission)}
                         className="flex items-center w-fit"
@@ -235,14 +242,14 @@ export default function SharedItems({
                         {getPermissionIcon(share.permission)}
                         <span className="ml-1">{share.permission}</span>
                       </Badge>
-                    </td>
-                    <td className="text-sm text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
                       {format(
                         new Date(share.createdAt || share.created_at),
                         "MMM d, yyyy"
                       )}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       {share.message ? (
                         <div className="flex items-center text-sm">
                           <MessageSquare className="h-3 w-3 mr-1" />
@@ -256,8 +263,8 @@ export default function SharedItems({
                       ) : (
                         <span className="text-muted-foreground text-sm">-</span>
                       )}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center space-x-2">
                         <Button
                           size="sm"
@@ -292,10 +299,10 @@ export default function SharedItems({
                           </Button>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
+              </TableBody>
             </Table>
           </div>
         )}
