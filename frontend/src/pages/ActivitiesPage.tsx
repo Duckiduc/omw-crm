@@ -11,6 +11,7 @@ import {
 } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Calendar as CalendarComponent } from "../components/ui/Calendar";
+import ShareModal from "../components/ui/ShareModal";
 import { apiClient } from "../lib/api";
 import type { ActivityWithDetails, Company, Contact, Deal } from "../lib/api";
 import {
@@ -27,6 +28,7 @@ import {
   FileText,
   ListTodo,
   X,
+  Share2,
 } from "lucide-react";
 
 interface ActivityFormData {
@@ -67,6 +69,17 @@ export default function ActivitiesPage() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [showCalendar, setShowCalendar] = useState(false);
+  const [shareModal, setShareModal] = useState<{
+    isOpen: boolean;
+    resourceType: "contact" | "activity" | "deal" | "";
+    resourceId: number | null;
+    resourceTitle: string;
+  }>({
+    isOpen: false,
+    resourceType: "",
+    resourceId: null,
+    resourceTitle: "",
+  });
   const calendarRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside calendar
@@ -732,6 +745,20 @@ export default function ActivitiesPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => {
+                        setShareModal({
+                          isOpen: true,
+                          resourceType: "activity",
+                          resourceId: activity.id,
+                          resourceTitle: activity.subject,
+                        });
+                      }}
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleDelete(activity.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -770,6 +797,27 @@ export default function ActivitiesPage() {
           </div>
         </div>
       )}
+
+      {shareModal.isOpen &&
+        shareModal.resourceType !== "" &&
+        shareModal.resourceId !== null && (
+          <ShareModal
+            isOpen={shareModal.isOpen}
+            onClose={() =>
+              setShareModal({
+                isOpen: false,
+                resourceType: "",
+                resourceId: null,
+                resourceTitle: "",
+              })
+            }
+            resourceType={
+              shareModal.resourceType as "contact" | "activity" | "deal"
+            }
+            resourceId={shareModal.resourceId}
+            resourceTitle={shareModal.resourceTitle}
+          />
+        )}
     </div>
   );
 }
