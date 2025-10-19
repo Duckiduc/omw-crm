@@ -24,6 +24,7 @@ import {
   TableRow,
   TableCell,
 } from "../components/ui/Table";
+import ShareModal from "../components/ui/ShareModal";
 import { apiClient } from "../lib/api";
 import type { Contact, Company } from "../lib/api";
 import {
@@ -35,6 +36,7 @@ import {
   Mail,
   Phone,
   User,
+  Share2,
 } from "lucide-react";
 
 interface ContactFormData {
@@ -76,6 +78,15 @@ export default function ContactsPage() {
     status: "all_good",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [shareModal, setShareModal] = useState<{
+    isOpen: boolean;
+    contactId: number | null;
+    contactName: string;
+  }>({
+    isOpen: false,
+    contactId: null,
+    contactName: "",
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -642,6 +653,20 @@ export default function ContactsPage() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => {
+                            setShareModal({
+                              isOpen: true,
+                              contactId: contact.id,
+                              contactName: `${contact.firstName} ${contact.lastName}`,
+                            });
+                          }}
+                          title="Share contact"
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleEdit(contact)}
                         >
                           <Edit className="h-4 w-4" />
@@ -689,6 +714,25 @@ export default function ContactsPage() {
           </div>
         </div>
       )}
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={shareModal.isOpen}
+        onClose={() =>
+          setShareModal({
+            isOpen: false,
+            contactId: null,
+            contactName: "",
+          })
+        }
+        resourceType="contact"
+        resourceId={shareModal.contactId!}
+        resourceTitle={shareModal.contactName}
+        onSuccess={() => {
+          // Optional: Show a success message or refresh data
+          console.log("Contact shared successfully");
+        }}
+      />
     </div>
   );
 }

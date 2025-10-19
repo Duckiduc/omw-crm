@@ -384,6 +384,82 @@ class ApiClient {
       newThisMonth: number;
     }>("/admin/users/stats/overview");
   }
+
+  // Shares endpoints
+  async getSharedWithMe(params?: {
+    type?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    let url = "/shares/shared-with-me";
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.type) searchParams.append("type", params.type);
+      if (params.page) searchParams.append("page", params.page.toString());
+      if (params.limit) searchParams.append("limit", params.limit.toString());
+      if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    }
+    return this.request<SharesResponse>(url);
+  }
+
+  async getSharedByMe(params?: {
+    type?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    let url = "/shares/shared-by-me";
+    if (params) {
+      const searchParams = new URLSearchParams();
+      if (params.type) searchParams.append("type", params.type);
+      if (params.page) searchParams.append("page", params.page.toString());
+      if (params.limit) searchParams.append("limit", params.limit.toString());
+      if (searchParams.toString()) url += `?${searchParams.toString()}`;
+    }
+    return this.request<SharesResponse>(url);
+  }
+
+  async shareItem(share: {
+    resourceType: string;
+    resourceId: number;
+    sharedWithUserId: number;
+    permission?: string;
+    message?: string;
+  }) {
+    return this.request<Share>("/shares", {
+      method: "POST",
+      body: JSON.stringify(share),
+    });
+  }
+
+  async updateShare(
+    id: number,
+    updates: {
+      permission: string;
+      message?: string;
+    }
+  ) {
+    return this.request<Share>(`/shares/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(updates),
+    });
+  }
+
+  async removeShare(id: number) {
+    return this.request<{ message: string }>(`/shares/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async getShares(resourceType?: string) {
+    const url = resourceType
+      ? `/shares?resource_type=${resourceType}`
+      : "/shares";
+    return this.request<Share[]>(url);
+  }
+
+  async getUsersForSharing() {
+    return this.request<User[]>("/shares/users");
+  }
 }
 
 // Types
@@ -536,6 +612,40 @@ export interface DealsByStage {
 
 export interface UsersResponse {
   users: User[];
+  pagination: Pagination;
+}
+
+export interface Share {
+  id: number;
+  shared_by: number;
+  shared_with: number;
+  resource_type: string;
+  resource_id: number;
+  permission: string;
+  message?: string;
+  created_at: string;
+  shared_by_first_name?: string;
+  shared_by_last_name?: string;
+  shared_by_email?: string;
+  shared_with_first_name?: string;
+  shared_with_last_name?: string;
+  shared_with_email?: string;
+  resource_data?: Contact | Activity | Deal | null;
+
+  // Computed properties for frontend
+  resourceType?: string;
+  resourceId?: number;
+  createdAt?: string;
+  sharedWithFirstName?: string;
+  sharedWithLastName?: string;
+  ownerFirstName?: string;
+  ownerLastName?: string;
+  isSharedWithMe?: boolean;
+  resourceTitle?: string;
+}
+
+export interface SharesResponse {
+  shares: Share[];
   pagination: Pagination;
 }
 

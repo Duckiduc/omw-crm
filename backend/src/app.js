@@ -11,6 +11,7 @@ const dealRoutes = require("./routes/deals");
 const activityRoutes = require("./routes/activities");
 const contactNotesRoutes = require("./routes/contact-notes");
 const adminRoutes = require("./routes/admin");
+const sharesRoutes = require("./routes/shares");
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -50,6 +51,7 @@ app.use("/api/deals", dealRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/contact-notes", contactNotesRoutes);
 app.use("/api/admin/users", adminRoutes);
+app.use("/api/shares", sharesRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

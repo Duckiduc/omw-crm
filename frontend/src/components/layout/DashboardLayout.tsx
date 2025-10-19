@@ -10,6 +10,7 @@ import {
   LogOut,
   User,
   Shield,
+  Share2,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -22,6 +23,7 @@ const navigation = [
   { name: "Companies", href: "/companies", icon: Building2 },
   { name: "Deals", href: "/deals", icon: TrendingUp },
   { name: "Activities", href: "/activities", icon: Calendar },
+  { name: "Shared Items", href: "/shared", icon: Share2 },
 ];
 
 const adminNavigation = [{ name: "Admin Panel", href: "/admin", icon: Shield }];
