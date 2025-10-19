@@ -65,18 +65,15 @@ export default function SharedItems({
         const transformedShares = response.data.map(
           (share: Partial<Share>) => ({
             ...share,
-            resourceType: share.resource_type,
-            resourceId: share.resource_id,
-            createdAt: share.created_at,
-            sharedWithFirstName: share.shared_with_first_name,
-            sharedWithLastName: share.shared_with_last_name,
-            ownerFirstName: share.shared_by_first_name,
-            ownerLastName: share.shared_by_last_name,
-            // Keep the backend's isSharedWithMe logic, don't override it
-            isSharedWithMe: share.isSharedWithMe,
-            resourceTitle: share.resource_data
-              ? getResourceTitle(share.resource_data, share.resource_type!)
-              : `${share.resource_type} #${share.resource_id}`,
+            // Backend already provides camelCase versions, just add fallbacks for other fields
+            resourceType: share.resourceType || share.resource_type,
+            resourceId: share.resourceId || share.resource_id,
+            createdAt: share.createdAt || share.created_at,
+            resourceTitle:
+              share.resourceTitle ||
+              (share.resource_data
+                ? getResourceTitle(share.resource_data, share.resource_type!)
+                : `${share.resource_type} #${share.resource_id}`),
           })
         ) as Share[];
 
@@ -232,16 +229,8 @@ export default function SharedItems({
                     </TableCell>
                     <TableCell>
                       {share.isSharedWithMe
-                        ? `${
-                            share.ownerFirstName || share.shared_by_first_name
-                          } ${share.ownerLastName || share.shared_by_last_name}`
-                        : `${
-                            share.sharedWithFirstName ||
-                            share.shared_with_first_name
-                          } ${
-                            share.sharedWithLastName ||
-                            share.shared_with_last_name
-                          }`}
+                        ? `${share.ownerFirstName} ${share.ownerLastName}`
+                        : `${share.sharedWithFirstName} ${share.sharedWithLastName}`}
                     </TableCell>
                     <TableCell>
                       <Badge
