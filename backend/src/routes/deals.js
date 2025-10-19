@@ -44,17 +44,25 @@ router.get(
       const offset = (page - 1) * limit;
       const { search, stageId, companyId } = req.query;
 
-      let countQuery = "SELECT COUNT(*) FROM deals d WHERE d.user_id = $1";
+      let countQuery = `
+      SELECT COUNT(*) 
+      FROM deals d 
+      LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $1
+      WHERE (d.user_id = $1 OR s.id IS NOT NULL)
+    `;
       let dataQuery = `
       SELECT d.*, 
         ds.name as stage_name,
         c.first_name || ' ' || c.last_name as contact_name,
-        comp.name as company_name
+        comp.name as company_name,
+        CASE WHEN d.user_id = $1 THEN false ELSE true END as is_shared_with_me,
+        s.permission
       FROM deals d 
       LEFT JOIN deal_stages ds ON d.stage_id = ds.id
       LEFT JOIN contacts c ON d.contact_id = c.id
       LEFT JOIN companies comp ON d.company_id = comp.id
-      WHERE d.user_id = $1
+      LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $1
+      WHERE (d.user_id = $1 OR s.id IS NOT NULL)
     `;
       const params = [req.user.id];
       let paramCount = 2;
@@ -165,12 +173,15 @@ router.get("/:id", async (req, res) => {
       SELECT d.*, 
         ds.name as stage_name,
         c.first_name || ' ' || c.last_name as contact_name,
-        comp.name as company_name
+        comp.name as company_name,
+        CASE WHEN d.user_id = $2 THEN false ELSE true END as is_shared_with_me,
+        s.permission
       FROM deals d 
       LEFT JOIN deal_stages ds ON d.stage_id = ds.id
       LEFT JOIN contacts c ON d.contact_id = c.id
       LEFT JOIN companies comp ON d.company_id = comp.id
-      WHERE d.id = $1 AND d.user_id = $2
+      LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $2
+      WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)
     `,
       [id, req.user.id]
     );
@@ -305,14 +316,28 @@ router.put(
       const { id } = req.params;
       const updates = req.body;
 
-      // Check if deal exists and belongs to user
+      // Check if deal exists and user has edit permission
       const existingDeal = await db.query(
-        "SELECT id FROM deals WHERE id = $1 AND user_id = $2",
+        `SELECT d.id, d.user_id, s.permission 
+         FROM deals d 
+         LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $2
+         WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
         [id, req.user.id]
       );
 
       if (existingDeal.rows.length === 0) {
         return res.status(404).json({ message: "Deal not found" });
+      }
+
+      const dealPermissions = existingDeal.rows[0];
+      // Check if user is owner or has edit permission
+      if (
+        dealPermissions.user_id !== req.user.id &&
+        dealPermissions.permission !== "edit"
+      ) {
+        return res
+          .status(403)
+          .json({ message: "You don't have permission to edit this deal" });
       }
 
       // Validate foreign keys
@@ -395,13 +420,18 @@ router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Only allow owner to delete (not shared users)
     const result = await db.query(
       "DELETE FROM deals WHERE id = $1 AND user_id = $2 RETURNING id",
       [id, req.user.id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Deal not found" });
+      return res
+        .status(404)
+        .json({
+          message: "Deal not found or you don't have permission to delete it",
+        });
     }
 
     res.json({ message: "Deal deleted successfully" });

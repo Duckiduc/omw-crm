@@ -36,13 +36,17 @@ router.get(
       SELECT COUNT(*) 
       FROM contacts c 
       LEFT JOIN companies comp ON c.company_id = comp.id 
-      WHERE c.user_id = $1
+      LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $1
+      WHERE (c.user_id = $1 OR s.id IS NOT NULL)
     `;
       let dataQuery = `
-      SELECT c.*, comp.name as company_name 
+      SELECT c.*, comp.name as company_name,
+             CASE WHEN c.user_id = $1 THEN false ELSE true END as is_shared_with_me,
+             s.permission
       FROM contacts c 
       LEFT JOIN companies comp ON c.company_id = comp.id 
-      WHERE c.user_id = $1
+      LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $1
+      WHERE (c.user_id = $1 OR s.id IS NOT NULL)
     `;
       const params = [req.user.id];
 
@@ -136,10 +140,13 @@ router.get("/:id", async (req, res) => {
 
     const result = await db.query(
       `
-      SELECT c.*, comp.name as company_name 
+      SELECT c.*, comp.name as company_name,
+             CASE WHEN c.user_id = $2 THEN false ELSE true END as is_shared_with_me,
+             s.permission
       FROM contacts c 
       LEFT JOIN companies comp ON c.company_id = comp.id 
-      WHERE c.id = $1 AND c.user_id = $2
+      LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $2
+      WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)
     `,
       [id, req.user.id]
     );
@@ -148,21 +155,21 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Contact not found" });
     }
 
-    const contact = result.rows[0];
+    const foundContact = result.rows[0];
     res.json({
-      id: contact.id,
-      firstName: contact.first_name,
-      lastName: contact.last_name,
-      email: contact.email,
-      phone: contact.phone,
-      position: contact.position,
-      companyId: contact.company_id,
-      notes: contact.notes,
-      tags: contact.tags || [],
-      status: contact.status || "all_good",
-      created_at: contact.created_at,
-      updated_at: contact.updated_at,
-      company_name: contact.company_name,
+      id: foundContact.id,
+      firstName: foundContact.first_name,
+      lastName: foundContact.last_name,
+      email: foundContact.email,
+      phone: foundContact.phone,
+      position: foundContact.position,
+      companyId: foundContact.company_id,
+      notes: foundContact.notes,
+      tags: foundContact.tags || [],
+      status: foundContact.status || "all_good",
+      created_at: foundContact.created_at,
+      updated_at: foundContact.updated_at,
+      company_name: foundContact.company_name,
     });
   } catch (error) {
     console.error("Get contact error:", error);
@@ -239,20 +246,20 @@ router.post(
         ]
       );
 
-      const contact = result.rows[0];
+      const newContact = result.rows[0];
       res.status(201).json({
-        id: contact.id,
-        firstName: contact.first_name,
-        lastName: contact.last_name,
-        email: contact.email,
-        phone: contact.phone,
-        position: contact.position,
-        companyId: contact.company_id,
-        notes: contact.notes,
-        tags: contact.tags || [],
-        status: contact.status || "all_good",
-        created_at: contact.created_at,
-        updated_at: contact.updated_at,
+        id: newContact.id,
+        firstName: newContact.first_name,
+        lastName: newContact.last_name,
+        email: newContact.email,
+        phone: newContact.phone,
+        position: newContact.position,
+        companyId: newContact.company_id,
+        notes: newContact.notes,
+        tags: newContact.tags || [],
+        status: newContact.status || "all_good",
+        created_at: newContact.created_at,
+        updated_at: newContact.updated_at,
       });
     } catch (error) {
       console.error("Create contact error:", error);
@@ -285,14 +292,28 @@ router.put(
       const { id } = req.params;
       const updates = req.body;
 
-      // Check if contact exists and belongs to user
+      // Check if contact exists and user has edit permission
       const existingContact = await db.query(
-        "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
+        `SELECT c.id, c.user_id, s.permission 
+         FROM contacts c 
+         LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $2
+         WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
         [id, req.user.id]
       );
 
       if (existingContact.rows.length === 0) {
         return res.status(404).json({ message: "Contact not found" });
+      }
+
+      const contactPermissions = existingContact.rows[0];
+      // Check if user is owner or has edit permission
+      if (
+        contactPermissions.user_id !== req.user.id &&
+        contactPermissions.permission !== "edit"
+      ) {
+        return res
+          .status(403)
+          .json({ message: "You don't have permission to edit this contact" });
       }
 
       // If companyId provided, verify it belongs to user
@@ -349,20 +370,20 @@ router.put(
     `;
 
       const result = await db.query(query, values);
-      const contact = result.rows[0];
+      const updatedContact = result.rows[0];
       res.json({
-        id: contact.id,
-        firstName: contact.first_name,
-        lastName: contact.last_name,
-        email: contact.email,
-        phone: contact.phone,
-        position: contact.position,
-        companyId: contact.company_id,
-        notes: contact.notes,
-        tags: contact.tags || [],
-        status: contact.status || "all_good",
-        created_at: contact.created_at,
-        updated_at: contact.updated_at,
+        id: updatedContact.id,
+        firstName: updatedContact.first_name,
+        lastName: updatedContact.last_name,
+        email: updatedContact.email,
+        phone: updatedContact.phone,
+        position: updatedContact.position,
+        companyId: updatedContact.company_id,
+        notes: updatedContact.notes,
+        tags: updatedContact.tags || [],
+        status: updatedContact.status || "all_good",
+        created_at: updatedContact.created_at,
+        updated_at: updatedContact.updated_at,
       });
     } catch (error) {
       console.error("Update contact error:", error);
@@ -376,13 +397,19 @@ router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Only allow owner to delete (not shared users)
     const result = await db.query(
       "DELETE FROM contacts WHERE id = $1 AND user_id = $2 RETURNING id",
       [id, req.user.id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Contact not found" });
+      return res
+        .status(404)
+        .json({
+          message:
+            "Contact not found or you don't have permission to delete it",
+        });
     }
 
     res.json({ message: "Contact deleted successfully" });

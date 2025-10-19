@@ -34,17 +34,25 @@ router.get(
       const { search, type, completed, contactId, companyId, dealId } =
         req.query;
 
-      let countQuery = "SELECT COUNT(*) FROM activities a WHERE a.user_id = $1";
+      let countQuery = `
+      SELECT COUNT(*) 
+      FROM activities a 
+      LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $1
+      WHERE (a.user_id = $1 OR s.id IS NOT NULL)
+    `;
       let dataQuery = `
       SELECT a.*, 
         c.first_name || ' ' || c.last_name as contact_name,
         comp.name as company_name,
-        d.title as deal_title
+        d.title as deal_title,
+        CASE WHEN a.user_id = $1 THEN false ELSE true END as is_shared_with_me,
+        s.permission
       FROM activities a 
       LEFT JOIN contacts c ON a.contact_id = c.id
       LEFT JOIN companies comp ON a.company_id = comp.id
       LEFT JOIN deals d ON a.deal_id = d.id
-      WHERE a.user_id = $1
+      LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $1
+      WHERE (a.user_id = $1 OR s.id IS NOT NULL)
     `;
       const params = [req.user.id];
       let paramCount = 2;
@@ -176,12 +184,15 @@ router.get("/:id", async (req, res) => {
       SELECT a.*, 
         c.first_name || ' ' || c.last_name as contact_name,
         comp.name as company_name,
-        d.title as deal_title
+        d.title as deal_title,
+        CASE WHEN a.user_id = $2 THEN false ELSE true END as is_shared_with_me,
+        s.permission
       FROM activities a 
       LEFT JOIN contacts c ON a.contact_id = c.id
       LEFT JOIN companies comp ON a.company_id = comp.id
       LEFT JOIN deals d ON a.deal_id = d.id
-      WHERE a.id = $1 AND a.user_id = $2
+      LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $2
+      WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)
     `,
       [id, req.user.id]
     );
@@ -308,14 +319,28 @@ router.put(
       const { id } = req.params;
       const updates = req.body;
 
-      // Check if activity exists and belongs to user
+      // Check if activity exists and user has edit permission
       const existingActivity = await db.query(
-        "SELECT id FROM activities WHERE id = $1 AND user_id = $2",
+        `SELECT a.id, a.user_id, s.permission 
+         FROM activities a 
+         LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $2
+         WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
         [id, req.user.id]
       );
 
       if (existingActivity.rows.length === 0) {
         return res.status(404).json({ message: "Activity not found" });
+      }
+
+      const activityPermissions = existingActivity.rows[0];
+      // Check if user is owner or has edit permission
+      if (
+        activityPermissions.user_id !== req.user.id &&
+        activityPermissions.permission !== "edit"
+      ) {
+        return res
+          .status(403)
+          .json({ message: "You don't have permission to edit this activity" });
       }
 
       // Validate foreign keys
@@ -424,13 +449,19 @@ router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Only allow owner to delete (not shared users)
     const result = await db.query(
       "DELETE FROM activities WHERE id = $1 AND user_id = $2 RETURNING id",
       [id, req.user.id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Activity not found" });
+      return res
+        .status(404)
+        .json({
+          message:
+            "Activity not found or you don't have permission to delete it",
+        });
     }
 
     res.json({ message: "Activity deleted successfully" });
