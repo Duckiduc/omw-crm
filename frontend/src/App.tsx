@@ -14,6 +14,7 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 import Dashboard from "./pages/Dashboard.tsx";
 import ContactsPage from "./pages/ContactsPage.tsx";
 import ContactDetailPage from "./pages/ContactDetailPage.tsx";
+import ActivityDetailPage from "./pages/ActivityDetailPage.tsx";
 import CompaniesPage from "./pages/CompaniesPage.tsx";
 import DealsPage from "./pages/DealsPage.tsx";
 import ActivitiesPage from "./pages/ActivitiesPage.tsx";
@@ -144,6 +145,26 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout>
               <ActivitiesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/activities"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ActivitiesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/activities/:id"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <ActivityDetailPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

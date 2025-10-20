@@ -169,6 +169,33 @@ class ApiClient {
     });
   }
 
+  // Activity Notes endpoints
+  async getActivityNotes(activityId: number) {
+    return this.request<{ notes: ActivityNote[] }>(
+      `/activity-notes/activity/${activityId}`
+    );
+  }
+
+  async createActivityNote(noteData: { activityId: number; content: string }) {
+    return this.request<ActivityNote>("/activity-notes", {
+      method: "POST",
+      body: JSON.stringify(noteData),
+    });
+  }
+
+  async updateActivityNote(noteId: number, content: string) {
+    return this.request<ActivityNote>(`/activity-notes/${noteId}`, {
+      method: "PUT",
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async deleteActivityNote(noteId: number) {
+    return this.request<{ message: string }>(`/activity-notes/${noteId}`, {
+      method: "DELETE",
+    });
+  }
+
   // Companies endpoints
   async getCompanies(params?: {
     page?: number;
@@ -496,6 +523,15 @@ export interface ContactNote {
   id: number;
   content: string;
   contactId: number;
+  authorName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActivityNote {
+  id: number;
+  content: string;
+  activityId: number;
   authorName: string;
   createdAt: string;
   updatedAt: string;

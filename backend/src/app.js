@@ -10,6 +10,7 @@ const companyRoutes = require("./routes/companies");
 const dealRoutes = require("./routes/deals");
 const activityRoutes = require("./routes/activities");
 const contactNotesRoutes = require("./routes/contact-notes");
+const activityNotesRoutes = require("./routes/activity-notes");
 const adminRoutes = require("./routes/admin");
 const sharesRoutes = require("./routes/shares");
 
@@ -50,6 +51,7 @@ app.use("/api/companies", companyRoutes);
 app.use("/api/deals", dealRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/contact-notes", contactNotesRoutes);
+app.use("/api/activity-notes", activityNotesRoutes);
 app.use("/api/admin/users", adminRoutes);
 app.use("/api/shares", sharesRoutes);
 

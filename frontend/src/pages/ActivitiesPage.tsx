@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
@@ -29,6 +30,7 @@ import {
   ListTodo,
   X,
   Share2,
+  Eye,
 } from "lucide-react";
 
 interface ActivityFormData {
@@ -45,6 +47,7 @@ type ActivityType = "call" | "email" | "meeting" | "note" | "task";
 type FilterType = "all" | "pending" | "completed" | "overdue";
 
 export default function ActivitiesPage() {
+  const navigate = useNavigate();
   const [activities, setActivities] = useState<ActivityWithDetails[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -279,6 +282,10 @@ export default function ActivitiesPage() {
     } catch (error) {
       console.error("Error deleting activity:", error);
     }
+  };
+
+  const handleViewDetails = (activityId: number) => {
+    navigate(`/activities/${activityId}`);
   };
 
   const resetForm = () => {
@@ -734,6 +741,13 @@ export default function ActivitiesPage() {
                       className={activity.completed ? "text-green-600" : ""}
                     >
                       <CheckCircle className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewDetails(activity.id)}
+                    >
+                      <Eye className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"

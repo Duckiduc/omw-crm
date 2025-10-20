@@ -114,6 +114,19 @@ const createTables = async () => {
       );
     `);
 
+    // Activity notes table for detailed notes management
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS activity_notes (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255), -- Optional title for notes
+        content TEXT NOT NULL,
+        activity_id INTEGER REFERENCES activities(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Create indexes
     await db.query(
       "CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);"
@@ -132,6 +145,12 @@ const createTables = async () => {
     );
     await db.query(
       "CREATE INDEX IF NOT EXISTS idx_contact_notes_contact_id ON contact_notes(contact_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_activity_notes_user_id ON activity_notes(user_id);"
+    );
+    await db.query(
+      "CREATE INDEX IF NOT EXISTS idx_activity_notes_activity_id ON activity_notes(activity_id);"
     );
     await db.query(
       "CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts(company_id);"
