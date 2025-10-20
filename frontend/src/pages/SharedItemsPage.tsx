@@ -29,11 +29,11 @@ export default function SharedItemsPage() {
     const fetchStatistics = async () => {
       try {
         setIsLoadingStats(true);
-        
+
         // Fetch counts for shared by me and shared with me
         const [sharedByMeRes, sharedWithMeRes] = await Promise.all([
           apiClient.getSharedByMe({ limit: 1 }), // Just get pagination info
-          apiClient.getSharedWithMe({ limit: 1 }) // Just get pagination info
+          apiClient.getSharedWithMe({ limit: 1 }), // Just get pagination info
         ]);
 
         const sharedByMeTotal = sharedByMeRes.data?.pagination?.total || 0;
