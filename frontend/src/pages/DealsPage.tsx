@@ -239,7 +239,13 @@ export default function DealsPage() {
       company_id: deal.company_id?.toString() || "",
       contact_id: deal.contact_id?.toString() || "",
       expected_close_date: deal.expected_close_date
-        ? deal.expected_close_date.split("T")[0]
+        ? (() => {
+            const date = new Date(deal.expected_close_date);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          })()
         : "",
       notes: deal.notes || "",
     });
