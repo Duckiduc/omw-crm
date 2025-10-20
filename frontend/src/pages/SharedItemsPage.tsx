@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SharedItems from "../components/ui/SharedItems";
 import { Button } from "../components/ui/Button";
 import { Select } from "../components/ui/Select";
@@ -8,6 +8,7 @@ import {
   CardTitle,
   CardContent,
 } from "../components/ui/Card";
+import { apiClient } from "../lib/api";
 import { Share2, Filter, Users, Eye } from "lucide-react";
 
 export default function SharedItemsPage() {
@@ -17,6 +18,46 @@ export default function SharedItemsPage() {
   const [viewFilter, setViewFilter] = useState<
     "all" | "shared-by-me" | "shared-with-me"
   >("all");
+  const [statistics, setStatistics] = useState({
+    sharedByMe: 0,
+    sharedWithMe: 0,
+    total: 0,
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        setIsLoadingStats(true);
+        
+        // Fetch counts for shared by me and shared with me
+        const [sharedByMeRes, sharedWithMeRes] = await Promise.all([
+          apiClient.getSharedByMe({ limit: 1 }), // Just get pagination info
+          apiClient.getSharedWithMe({ limit: 1 }) // Just get pagination info
+        ]);
+
+        const sharedByMeTotal = sharedByMeRes.data?.pagination?.total || 0;
+        const sharedWithMeTotal = sharedWithMeRes.data?.pagination?.total || 0;
+
+        setStatistics({
+          sharedByMe: sharedByMeTotal,
+          sharedWithMe: sharedWithMeTotal,
+          total: sharedByMeTotal + sharedWithMeTotal,
+        });
+      } catch (error) {
+        console.error("Error fetching share statistics:", error);
+        setStatistics({
+          sharedByMe: 0,
+          sharedWithMe: 0,
+          total: 0,
+        });
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    fetchStatistics();
+  }, []);
 
   const getShowOwned = () => {
     return viewFilter === "all" || viewFilter === "shared-by-me";
@@ -50,8 +91,12 @@ export default function SharedItemsPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">+0% from last month</p>
+            <div className="text-2xl font-bold">
+              {isLoadingStats ? "..." : statistics.sharedByMe}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Items you've shared with others
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -62,8 +107,12 @@ export default function SharedItemsPage() {
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">+0% from last month</p>
+            <div className="text-2xl font-bold">
+              {isLoadingStats ? "..." : statistics.sharedWithMe}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Items others have shared with you
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -74,8 +123,12 @@ export default function SharedItemsPage() {
             <Share2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">-</div>
-            <p className="text-xs text-muted-foreground">+0% from last month</p>
+            <div className="text-2xl font-bold">
+              {isLoadingStats ? "..." : statistics.total}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              All items involved in sharing
+            </p>
           </CardContent>
         </Card>
       </div>
