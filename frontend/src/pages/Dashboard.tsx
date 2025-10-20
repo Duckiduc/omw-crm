@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "../components/ui/Card";
+import { Button } from "../components/ui/Button";
 import { apiClient } from "../lib/api";
 import type { ActivityWithDetails } from "../lib/api";
 import { Users, Building2, TrendingUp, Calendar } from "lucide-react";
@@ -17,6 +19,7 @@ interface DashboardStats {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     contacts: 0,
     companies: 0,
@@ -185,33 +188,42 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <a
-                href="/contacts"
-                className="block p-3 bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+              <Button
+                variant="outline"
+                onClick={() =>
+                  navigate("/contacts", { state: { openForm: true } })
+                }
+                className="w-full justify-start p-3 h-auto bg-primary/10 hover:bg-primary/20 border-none"
               >
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-primary" />
                   <span className="font-medium">Add New Contact</span>
                 </div>
-              </a>
-              <a
-                href="/companies"
-                className="block p-3 bg-green-100 hover:bg-green-200 rounded-lg transition-colors"
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  navigate("/companies", { state: { openForm: true } })
+                }
+                className="w-full justify-start p-3 h-auto bg-green-100 hover:bg-green-200 border-none"
               >
                 <div className="flex items-center space-x-3">
                   <Building2 className="h-5 w-5 text-green-600" />
                   <span className="font-medium">Add New Company</span>
                 </div>
-              </a>
-              <a
-                href="/deals"
-                className="block p-3 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  navigate("/deals", { state: { openForm: true } })
+                }
+                className="w-full justify-start p-3 h-auto bg-purple-100 hover:bg-purple-200 border-none"
               >
                 <div className="flex items-center space-x-3">
                   <TrendingUp className="h-5 w-5 text-purple-600" />
                   <span className="font-medium">Create New Deal</span>
                 </div>
-              </a>
+              </Button>
             </div>
           </CardContent>
         </Card>

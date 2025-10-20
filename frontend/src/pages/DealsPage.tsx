@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
@@ -38,6 +39,8 @@ interface DealFormData {
 }
 
 export default function DealsPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [deals, setDeals] = useState<DealWithDetails[]>([]);
   const [dealStages, setDealStages] = useState<DealStage[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -49,6 +52,15 @@ export default function DealsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingDeal, setEditingDeal] = useState<DealWithDetails | null>(null);
+
+  // Check if we should automatically open the form (from Dashboard navigation)
+  useEffect(() => {
+    if (location.state?.openForm) {
+      setShowForm(true);
+      // Clear the state to prevent reopening on future navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
   const [formData, setFormData] = useState<DealFormData>({
     title: "",
     value: "",

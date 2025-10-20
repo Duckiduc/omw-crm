@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
@@ -43,6 +44,8 @@ interface CompanyFormData {
 }
 
 export default function CompaniesPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -50,6 +53,15 @@ export default function CompaniesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+
+  // Check if we should automatically open the form (from Dashboard navigation)
+  useEffect(() => {
+    if (location.state?.openForm) {
+      setShowForm(true);
+      // Clear the state to prevent reopening on future navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
   const [formData, setFormData] = useState<CompanyFormData>({
     name: "",
     industry: "",

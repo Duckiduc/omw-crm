@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
@@ -53,6 +53,7 @@ interface ContactFormData {
 
 export default function ContactsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -66,6 +67,15 @@ export default function ContactsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+
+  // Check if we should automatically open the form (from Dashboard navigation)
+  useEffect(() => {
+    if (location.state?.openForm) {
+      setShowForm(true);
+      // Clear the state to prevent reopening on future navigations
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
   const [formData, setFormData] = useState<ContactFormData>({
     firstName: "",
     lastName: "",
