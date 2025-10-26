@@ -18,7 +18,7 @@ type AuthAction =
 
 const initialState: AuthState = {
   user: null,
-  isLoading: false,
+  isLoading: true, // Start with loading true to check for existing token
   error: null,
 };
 
@@ -81,22 +81,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Check for existing token on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      dispatch({ type: "AUTH_START" });
-      apiClient.setToken(token);
+    const initAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        dispatch({ type: "AUTH_START" });
+        apiClient.setToken(token);
 
-      apiClient.getCurrentUser().then((response) => {
-        if (response.data?.user) {
-          dispatch({ type: "AUTH_SUCCESS", payload: response.data.user });
-        } else {
-          // Token is invalid, remove it
+        try {
+          const response = await apiClient.getCurrentUser();
+          if (response.data?.user) {
+            dispatch({ type: "AUTH_SUCCESS", payload: response.data.user });
+          } else {
+            // Token is invalid, remove it
+            localStorage.removeItem("token");
+            apiClient.setToken(null);
+            dispatch({ type: "AUTH_ERROR", payload: "Session expired" });
+          }
+        } catch {
+          // Network error or other issues
           localStorage.removeItem("token");
           apiClient.setToken(null);
-          dispatch({ type: "AUTH_ERROR", payload: "Session expired" });
+          dispatch({ type: "AUTH_ERROR", payload: "Authentication failed" });
         }
-      });
-    }
+      } else {
+        // No token, user is not authenticated, stop loading
+        dispatch({ type: "AUTH_LOGOUT" });
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {

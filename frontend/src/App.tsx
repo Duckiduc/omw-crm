@@ -150,16 +150,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/activities"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout>
-              <ActivitiesPage />
-            </DashboardLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/activities/:id"
         element={
           <ProtectedRoute>
