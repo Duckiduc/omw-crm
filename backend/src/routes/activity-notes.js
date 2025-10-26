@@ -39,10 +39,10 @@ router.get(
         SELECT an.*, u.first_name as author_first_name, u.last_name as author_last_name
         FROM activity_notes an
         JOIN users u ON an.user_id = u.id
-        WHERE an.activity_id = $1 AND an.user_id = $2
+        WHERE an.activity_id = $1
         ORDER BY an.created_at DESC
       `,
-        [activityId, req.user.id]
+        [activityId]
       );
 
       const notes = result.rows.map((note) => ({
@@ -94,11 +94,9 @@ router.post(
       const activity = activityCheck.rows[0];
       // Check if user has permission to add notes (must be owner or have edit permission)
       if (activity.user_id !== req.user.id && activity.permission !== "edit") {
-        return res
-          .status(403)
-          .json({
-            message: "You don't have permission to add notes to this activity",
-          });
+        return res.status(403).json({
+          message: "You don't have permission to add notes to this activity",
+        });
       }
 
       // Generate a title from the first few words of content
