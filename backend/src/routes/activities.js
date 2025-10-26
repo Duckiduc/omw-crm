@@ -237,10 +237,12 @@ router.post(
         dealId,
       } = req.body;
 
-      // Validate foreign keys belong to user
+      // Validate foreign keys belong to user or are shared with user
       if (contactId) {
         const contactCheck = await db.query(
-          "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
+          `SELECT c.id FROM contacts c 
+           LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $2
+           WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
           [contactId, req.user.id]
         );
         if (contactCheck.rows.length === 0) {
@@ -250,8 +252,8 @@ router.post(
 
       if (companyId) {
         const companyCheck = await db.query(
-          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
-          [companyId, req.user.id]
+          "SELECT id FROM companies WHERE id = $1",
+          [companyId]
         );
         if (companyCheck.rows.length === 0) {
           return res.status(400).json({ message: "Invalid company ID" });
@@ -260,7 +262,9 @@ router.post(
 
       if (dealId) {
         const dealCheck = await db.query(
-          "SELECT id FROM deals WHERE id = $1 AND user_id = $2",
+          `SELECT d.id FROM deals d 
+           LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $2
+           WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
           [dealId, req.user.id]
         );
         if (dealCheck.rows.length === 0) {
@@ -346,7 +350,9 @@ router.put(
       // Validate foreign keys
       if (updates.contactId) {
         const contactCheck = await db.query(
-          "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
+          `SELECT c.id FROM contacts c 
+           LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $2
+           WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
           [updates.contactId, req.user.id]
         );
         if (contactCheck.rows.length === 0) {
@@ -356,8 +362,8 @@ router.put(
 
       if (updates.companyId) {
         const companyCheck = await db.query(
-          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
-          [updates.companyId, req.user.id]
+          "SELECT id FROM companies WHERE id = $1",
+          [updates.companyId]
         );
         if (companyCheck.rows.length === 0) {
           return res.status(400).json({ message: "Invalid company ID" });
@@ -366,7 +372,9 @@ router.put(
 
       if (updates.dealId) {
         const dealCheck = await db.query(
-          "SELECT id FROM deals WHERE id = $1 AND user_id = $2",
+          `SELECT d.id FROM deals d 
+           LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $2
+           WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
           [updates.dealId, req.user.id]
         );
         if (dealCheck.rows.length === 0) {
@@ -400,12 +408,12 @@ router.put(
       }
 
       fields.push(`updated_at = CURRENT_TIMESTAMP`);
-      values.push(id, req.user.id);
+      values.push(id);
 
       const query = `
       UPDATE activities 
       SET ${fields.join(", ")} 
-      WHERE id = $${paramCount} AND user_id = $${paramCount + 1} 
+      WHERE id = $${paramCount} 
       RETURNING *
     `;
 
@@ -456,12 +464,9 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "Activity not found or you don't have permission to delete it",
-        });
+      return res.status(404).json({
+        message: "Activity not found or you don't have permission to delete it",
+      });
     }
 
     res.json({ message: "Activity deleted successfully" });

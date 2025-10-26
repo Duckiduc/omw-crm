@@ -28,25 +28,24 @@ router.get(
       const offset = (page - 1) * limit;
       const search = req.query.search;
 
-      let countQuery = "SELECT COUNT(*) FROM companies WHERE user_id = $1";
+      let countQuery = "SELECT COUNT(*) FROM companies";
       let dataQuery = `
       SELECT c.*, 
         (SELECT COUNT(*) FROM contacts WHERE company_id = c.id) as contact_count,
         (SELECT COUNT(*) FROM deals WHERE company_id = c.id) as deal_count
       FROM companies c 
-      WHERE c.user_id = $1
     `;
-      const params = [req.user.id];
+      const params = [];
 
       if (search) {
-        const searchCondition = `AND (
-        c.name ILIKE $2 OR 
-        c.industry ILIKE $2 OR 
-        c.email ILIKE $2 OR 
-        c.website ILIKE $2
+        const searchCondition = `WHERE (
+        c.name ILIKE $1 OR 
+        c.industry ILIKE $1 OR 
+        c.email ILIKE $1 OR 
+        c.website ILIKE $1
       )`;
-        countQuery += searchCondition.replace("AND", "AND");
-        dataQuery += searchCondition;
+        countQuery += " " + searchCondition;
+        dataQuery += " " + searchCondition;
         params.push(`%${search}%`);
       }
 
@@ -58,10 +57,7 @@ router.get(
       params.push(limit, offset);
 
       const [countResult, dataResult] = await Promise.all([
-        db.query(
-          countQuery,
-          search ? [req.user.id, `%${search}%`] : [req.user.id]
-        ),
+        db.query(countQuery, search ? [`%${search}%`] : []),
         db.query(dataQuery, params),
       ]);
 
@@ -92,10 +88,7 @@ router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
     const [companyResult, contactsResult, dealsResult] = await Promise.all([
-      db.query("SELECT * FROM companies WHERE id = $1 AND user_id = $2", [
-        id,
-        req.user.id,
-      ]),
+      db.query("SELECT * FROM companies WHERE id = $1", [id]),
       db.query(
         "SELECT * FROM contacts WHERE company_id = $1 AND user_id = $2 ORDER BY created_at DESC",
         [id, req.user.id]
