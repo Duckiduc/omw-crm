@@ -8,7 +8,7 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticateToken);
 
-// Get all companies with pagination and search
+// Get all organizations with pagination and search
 router.get(
   "/",
   [
@@ -65,7 +65,7 @@ router.get(
       const totalPages = Math.ceil(total / limit);
 
       res.json({
-        companies: dataResult.rows,
+        organizations: dataResult.rows,
         pagination: {
           page,
           limit,
@@ -76,13 +76,13 @@ router.get(
         },
       });
     } catch (error) {
-      console.error("Get companies error:", error);
-      res.status(500).json({ message: "Server error fetching companies" });
+      console.error("Get organizations error:", error);
+      res.status(500).json({ message: "Server error fetching organizations" });
     }
   }
 );
 
-// Get single company with contacts and deals
+// Get single organization with contacts and deals
 router.get("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -106,7 +106,7 @@ router.get("/:id", async (req, res) => {
     ]);
 
     if (companyResult.rows.length === 0) {
-      return res.status(404).json({ message: "Company not found" });
+      return res.status(404).json({ message: "Organization not found" });
     }
 
     res.json({
@@ -115,12 +115,12 @@ router.get("/:id", async (req, res) => {
       deals: dealsResult.rows,
     });
   } catch (error) {
-    console.error("Get company error:", error);
-    res.status(500).json({ message: "Server error fetching company" });
+    console.error("Get organization error:", error);
+    res.status(500).json({ message: "Server error fetching organization" });
   }
 });
 
-// Create company
+// Create organization
 router.post(
   "/",
   [
@@ -162,13 +162,13 @@ router.post(
 
       res.status(201).json(result.rows[0]);
     } catch (error) {
-      console.error("Create company error:", error);
-      res.status(500).json({ message: "Server error creating company" });
+      console.error("Create organization error:", error);
+      res.status(500).json({ message: "Server error creating organization" });
     }
   }
 );
 
-// Update company
+// Update organization
 router.put(
   "/:id",
   [
@@ -190,14 +190,14 @@ router.put(
       const { id } = req.params;
       const updates = req.body;
 
-      // Check if company exists and belongs to user
+      // Check if organization exists and belongs to user
       const existingCompany = await db.query(
         "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
         [id, req.user.id]
       );
 
       if (existingCompany.rows.length === 0) {
-        return res.status(404).json({ message: "Company not found" });
+        return res.status(404).json({ message: "Organization not found" });
       }
 
       // Build dynamic update query
@@ -228,13 +228,13 @@ router.put(
       const result = await db.query(query, values);
       res.json(result.rows[0]);
     } catch (error) {
-      console.error("Update company error:", error);
-      res.status(500).json({ message: "Server error updating company" });
+      console.error("Update organization error:", error);
+      res.status(500).json({ message: "Server error updating organization" });
     }
   }
 );
 
-// Delete company
+// Delete organization
 router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -245,13 +245,13 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Company not found" });
+      return res.status(404).json({ message: "Organization not found" });
     }
 
-    res.json({ message: "Company deleted successfully" });
+    res.json({ message: "Organization deleted successfully" });
   } catch (error) {
-    console.error("Delete company error:", error);
-    res.status(500).json({ message: "Server error deleting company" });
+    console.error("Delete organization error:", error);
+    res.status(500).json({ message: "Server error deleting organization" });
   }
 });
 

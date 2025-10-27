@@ -14,7 +14,12 @@ import { Badge } from "../components/ui/Badge";
 import { Calendar as CalendarComponent } from "../components/ui/Calendar";
 import ShareModal from "../components/ui/ShareModal";
 import { apiClient } from "../lib/api";
-import type { DealWithDetails, DealStage, Company, Contact } from "../lib/api";
+import type {
+  DealWithDetails,
+  DealStage,
+  Organization,
+  Contact,
+} from "../lib/api";
 import {
   Plus,
   Search,
@@ -43,7 +48,7 @@ export default function DealsPage() {
   const location = useLocation();
   const [deals, setDeals] = useState<DealWithDetails[]>([]);
   const [dealStages, setDealStages] = useState<DealStage[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -115,10 +120,12 @@ export default function DealsPage() {
           setDealStages(stagesResponse.data);
         }
 
-        // Fetch companies for dropdown
-        const companiesResponse = await apiClient.getCompanies({ limit: 100 });
-        if (companiesResponse.data) {
-          setCompanies(companiesResponse.data.companies);
+        // Fetch organizations for dropdown
+        const organizationsResponse = await apiClient.getOrganizations({
+          limit: 100,
+        });
+        if (organizationsResponse.data) {
+          setOrganizations(organizationsResponse.data.organizations);
         }
 
         // Fetch contacts for dropdown
@@ -452,7 +459,7 @@ export default function DealsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium">Company</label>
+                    <label className="text-sm font-medium">Organization</label>
                     <Select
                       value={formData.company_id}
                       onChange={(e) =>
@@ -460,9 +467,9 @@ export default function DealsPage() {
                       }
                     >
                       <option value="">Select Company</option>
-                      {companies.map((company) => (
-                        <option key={company.id} value={company.id.toString()}>
-                          {company.name}
+                      {organizations.map((organization) => (
+                        <option key={organization.id} value={organization.id}>
+                          {organization.name}
                         </option>
                       ))}
                     </Select>

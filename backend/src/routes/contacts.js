@@ -360,17 +360,23 @@ router.put(
       }
 
       fields.push(`updated_at = CURRENT_TIMESTAMP`);
-      values.push(id, req.user.id);
+      values.push(id);
 
       const query = `
       UPDATE contacts 
       SET ${fields.join(", ")} 
-      WHERE id = $${paramCount} AND user_id = $${paramCount + 1} 
+      WHERE id = $${paramCount} 
       RETURNING *
     `;
 
       const result = await db.query(query, values);
       const updatedContact = result.rows[0];
+
+      if (!updatedContact) {
+        return res
+          .status(404)
+          .json({ message: "Contact not found or could not be updated" });
+      }
       res.json({
         id: updatedContact.id,
         firstName: updatedContact.first_name,
@@ -404,12 +410,9 @@ router.delete("/:id", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "Contact not found or you don't have permission to delete it",
-        });
+      return res.status(404).json({
+        message: "Contact not found or you don't have permission to delete it",
+      });
     }
 
     res.json({ message: "Contact deleted successfully" });

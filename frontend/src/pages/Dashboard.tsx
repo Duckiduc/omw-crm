@@ -13,7 +13,7 @@ import { Users, Building2, TrendingUp, Calendar } from "lucide-react";
 
 interface DashboardStats {
   contacts: number;
-  companies: number;
+  organizations: number;
   deals: number;
   activities: number;
 }
@@ -22,7 +22,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({
     contacts: 0,
-    companies: 0,
+    organizations: 0,
     deals: 0,
     activities: 0,
   });
@@ -39,13 +39,13 @@ export default function Dashboard() {
         // Fetch counts for each entity
         const [
           contactsRes,
-          companiesRes,
+          organizationsRes,
           dealsRes,
           activitiesRes,
           upcomingRes,
         ] = await Promise.all([
           apiClient.getContacts({ limit: 1 }),
-          apiClient.getCompanies({ limit: 1 }),
+          apiClient.getOrganizations({ limit: 1 }),
           apiClient.getDeals({ limit: 1 }),
           apiClient.getActivities({ limit: 1 }),
           apiClient.getUpcomingActivities(),
@@ -53,7 +53,7 @@ export default function Dashboard() {
 
         setStats({
           contacts: contactsRes.data?.pagination.total || 0,
-          companies: companiesRes.data?.pagination.total || 0,
+          organizations: organizationsRes.data?.pagination.total || 0,
           deals: dealsRes.data?.pagination.total || 0,
           activities: activitiesRes.data?.pagination.total || 0,
         });
@@ -79,8 +79,8 @@ export default function Dashboard() {
       color: "text-blue-600",
     },
     {
-      title: "Total Companies",
-      value: stats.companies,
+      title: "Total Organizations",
+      value: stats.organizations,
       icon: Building2,
       color: "text-green-600",
     },
@@ -203,13 +203,13 @@ export default function Dashboard() {
               <Button
                 variant="outline"
                 onClick={() =>
-                  navigate("/companies", { state: { openForm: true } })
+                  navigate("/organizations", { state: { openForm: true } })
                 }
                 className="w-full justify-start p-3 h-auto bg-green-100 hover:bg-green-200 border-none"
               >
                 <div className="flex items-center space-x-3">
                   <Building2 className="h-5 w-5 text-green-600" />
-                  <span className="font-medium">Add New Company</span>
+                  <span className="font-medium">Add New Organization</span>
                 </div>
               </Button>
               <Button

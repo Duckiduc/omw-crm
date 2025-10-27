@@ -196,8 +196,8 @@ class ApiClient {
     });
   }
 
-  // Companies endpoints
-  async getCompanies(params?: {
+  // Organizations endpoints
+  async getOrganizations(params?: {
     page?: number;
     limit?: number;
     search?: string;
@@ -208,33 +208,33 @@ class ApiClient {
     if (params?.search) searchParams.append("search", params.search);
 
     const query = searchParams.toString();
-    return this.request<CompaniesResponse>(
-      `/companies${query ? `?${query}` : ""}`
+    return this.request<OrganizationsResponse>(
+      `/organizations${query ? `?${query}` : ""}`
     );
   }
 
-  async getCompany(id: number) {
-    return this.request<CompanyWithDetails>(`/companies/${id}`);
+  async getOrganization(id: number) {
+    return this.request<OrganizationWithDetails>(`/organizations/${id}`);
   }
 
-  async createCompany(
-    company: Omit<Company, "id" | "created_at" | "updated_at">
+  async createOrganization(
+    organization: Omit<Organization, "id" | "created_at" | "updated_at">
   ) {
-    return this.request<Company>("/companies", {
+    return this.request<Organization>("/organizations", {
       method: "POST",
-      body: JSON.stringify(company),
+      body: JSON.stringify(organization),
     });
   }
 
-  async updateCompany(id: number, company: Partial<Company>) {
-    return this.request<Company>(`/companies/${id}`, {
+  async updateOrganization(id: number, organization: Partial<Organization>) {
+    return this.request<Organization>(`/organizations/${id}`, {
       method: "PUT",
-      body: JSON.stringify(company),
+      body: JSON.stringify(organization),
     });
   }
 
-  async deleteCompany(id: number) {
-    return this.request<{ message: string }>(`/companies/${id}`, {
+  async deleteOrganization(id: number) {
+    return this.request<{ message: string }>(`/organizations/${id}`, {
       method: "DELETE",
     });
   }
@@ -537,7 +537,7 @@ export interface ActivityNote {
   updatedAt: string;
 }
 
-export interface Company {
+export interface Organization {
   id: number;
   name: string;
   industry?: string;
@@ -552,10 +552,15 @@ export interface Company {
   deal_count?: number;
 }
 
-export interface CompanyWithDetails extends Company {
+export interface OrganizationWithDetails extends Organization {
   contacts: Contact[];
   deals: DealWithDetails[];
 }
+
+// Backward compatibility aliases
+export type Company = Organization;
+export type CompanyWithDetails = OrganizationWithDetails;
+export type CompaniesResponse = OrganizationsResponse;
 
 export interface DealStage {
   id: number;
@@ -624,8 +629,8 @@ export interface ContactsResponse {
   pagination: Pagination;
 }
 
-export interface CompaniesResponse {
-  companies: Company[];
+export interface OrganizationsResponse {
+  organizations: Organization[];
   pagination: Pagination;
 }
 

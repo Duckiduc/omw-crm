@@ -14,7 +14,7 @@ import {
 import { apiClient } from "../lib/api";
 import type {
   ActivityWithDetails,
-  Company,
+  Organization,
   Contact,
   Deal,
   ActivityNote,
@@ -54,7 +54,7 @@ export default function ActivityDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activity, setActivity] = useState<ActivityWithDetails | null>(null);
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [notes, setNotes] = useState<ActivityNote[]>([]);
@@ -85,10 +85,10 @@ export default function ActivityDetailPage() {
 
       try {
         setIsLoading(true);
-        const [activityRes, companiesRes, contactsRes, dealsRes] =
+        const [activityRes, organizationsRes, contactsRes, dealsRes] =
           await Promise.all([
             apiClient.getActivity(parseInt(id)),
-            apiClient.getCompanies({ limit: 100 }),
+            apiClient.getOrganizations({ limit: 100 }),
             apiClient.getContacts({ limit: 100 }),
             apiClient.getDeals({ limit: 100 }),
           ]);
@@ -142,7 +142,8 @@ export default function ActivityDetailPage() {
           return;
         }
 
-        if (companiesRes.data) setCompanies(companiesRes.data.companies);
+        if (organizationsRes.data)
+          setOrganizations(organizationsRes.data.organizations);
         if (contactsRes.data) setContacts(contactsRes.data.contacts);
         if (dealsRes.data) setDeals(dealsRes.data.deals);
       } catch (error) {
@@ -503,13 +504,13 @@ export default function ActivityDetailPage() {
                           handleInputChange("companyId", e.target.value)
                         }
                       >
-                        <option value="">Select Company</option>
-                        {companies.map((company) => (
+                        <option value="">Select Organization</option>
+                        {organizations.map((organization) => (
                           <option
-                            key={company.id}
-                            value={company.id.toString()}
+                            key={organization.id}
+                            value={organization.id.toString()}
                           >
-                            {company.name}
+                            {organization.name}
                           </option>
                         ))}
                       </Select>

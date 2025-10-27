@@ -256,7 +256,7 @@ router.post(
           [companyId]
         );
         if (companyCheck.rows.length === 0) {
-          return res.status(400).json({ message: "Invalid company ID" });
+          return res.status(400).json({ message: "Invalid organization ID" });
         }
       }
 
@@ -366,7 +366,7 @@ router.put(
           [updates.companyId]
         );
         if (companyCheck.rows.length === 0) {
-          return res.status(400).json({ message: "Invalid company ID" });
+          return res.status(400).json({ message: "Invalid organization ID" });
         }
       }
 

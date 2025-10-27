@@ -19,7 +19,7 @@ import {
 } from "../components/ui/Table";
 import { Badge } from "../components/ui/Badge";
 import { apiClient } from "../lib/api";
-import type { Company } from "../lib/api";
+import type { Organization } from "../lib/api";
 import {
   Plus,
   Search,
@@ -33,7 +33,7 @@ import {
   Users,
 } from "lucide-react";
 
-interface CompanyFormData {
+interface OrganizationFormData {
   name: string;
   industry: string;
   website: string;
@@ -43,16 +43,17 @@ interface CompanyFormData {
   notes: string;
 }
 
-export default function CompaniesPage() {
+export default function OrganizationsPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
-  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [editingOrganization, setEditingOrganization] =
+    useState<Organization | null>(null);
 
   // Check if we should automatically open the form (from Dashboard navigation)
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function CompaniesPage() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate, location.pathname]);
-  const [formData, setFormData] = useState<CompanyFormData>({
+  const [formData, setFormData] = useState<OrganizationFormData>({
     name: "",
     industry: "",
     website: "",
@@ -75,45 +76,45 @@ export default function CompaniesPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      setLoading(true);
       try {
-        const response = await apiClient.getCompanies({
+        const response = await apiClient.getOrganizations({
           page: currentPage,
           limit: 20,
           search: searchTerm || undefined,
         });
 
         if (response.data) {
-          setCompanies(response.data.companies);
+          setOrganizations(response.data.organizations);
           setTotalPages(response.data.pagination.totalPages);
         }
       } catch (error) {
-        console.error("Error fetching companies:", error);
+        console.error("Error fetching organizations:", error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
     fetchData();
   }, [currentPage, searchTerm]);
 
-  const fetchCompanies = async () => {
-    setIsLoading(true);
+  const fetchOrganizations = async () => {
     try {
-      const response = await apiClient.getCompanies({
+      setLoading(true);
+      const response = await apiClient.getOrganizations({
         page: currentPage,
         limit: 20,
-        search: searchTerm || undefined,
+        ...(searchTerm && { search: searchTerm }),
       });
 
       if (response.data) {
-        setCompanies(response.data.companies);
+        setOrganizations(response.data.organizations);
         setTotalPages(response.data.pagination.totalPages);
       }
     } catch (error) {
-      console.error("Error fetching companies:", error);
+      console.error("Error fetching organizations:", error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -121,7 +122,7 @@ export default function CompaniesPage() {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = "Company name is required";
+      errors.name = "Organization name is required";
     }
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = "Invalid email format";
@@ -140,7 +141,7 @@ export default function CompaniesPage() {
     if (!validateForm()) return;
 
     try {
-      const companyData = {
+      const organizationData = {
         name: formData.name,
         industry: formData.industry || undefined,
         website: formData.website || undefined,
@@ -150,44 +151,48 @@ export default function CompaniesPage() {
         notes: formData.notes || undefined,
       };
 
-      if (editingCompany) {
-        await apiClient.updateCompany(editingCompany.id, companyData);
+      if (editingOrganization) {
+        await apiClient.updateOrganization(
+          editingOrganization.id,
+          organizationData
+        );
       } else {
-        await apiClient.createCompany(companyData);
+        await apiClient.createOrganization(organizationData);
       }
 
       resetForm();
-      fetchCompanies();
+      fetchOrganizations();
     } catch (error) {
       console.error("Error saving company:", error);
     }
   };
 
-  const handleEdit = (company: Company) => {
-    setEditingCompany(company);
+  const handleEdit = (organization: Organization) => {
+    setEditingOrganization(organization);
     setFormData({
-      name: company.name,
-      industry: company.industry || "",
-      website: company.website || "",
-      phone: company.phone || "",
-      email: company.email || "",
-      address: company.address || "",
-      notes: company.notes || "",
+      name: organization.name,
+      industry: organization.industry || "",
+      website: organization.website || "",
+      phone: organization.phone || "",
+      email: organization.email || "",
+      address: organization.address || "",
+      notes: organization.notes || "",
     });
     setShowForm(true);
   };
 
-  const handleDelete = async (companyId: number) => {
+  const handleDelete = async (organizationId: number) => {
     if (
-      !confirm(
-        "Are you sure you want to delete this company? This will also remove all associated contacts."
+      !window.confirm(
+        "Are you sure you want to delete this organization? This action cannot be undone."
       )
-    )
+    ) {
       return;
+    }
 
     try {
-      await apiClient.deleteCompany(companyId);
-      fetchCompanies();
+      await apiClient.deleteOrganization(organizationId);
+      fetchOrganizations();
     } catch (error) {
       console.error("Error deleting company:", error);
     }
@@ -204,11 +209,14 @@ export default function CompaniesPage() {
       notes: "",
     });
     setFormErrors({});
-    setEditingCompany(null);
+    setEditingOrganization(null);
     setShowForm(false);
   };
 
-  const handleInputChange = (field: keyof CompanyFormData, value: string) => {
+  const handleInputChange = (
+    field: keyof OrganizationFormData,
+    value: string
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (formErrors[field]) {
       setFormErrors((prev) => ({ ...prev, [field]: "" }));
@@ -218,21 +226,21 @@ export default function CompaniesPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchCompanies();
+    fetchOrganizations();
   };
 
   return (
     <div className="px-6">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Companies</h1>
+          <h1 className="text-3xl font-bold">Organizations</h1>
           <p className="text-muted-foreground">
-            Manage your company relationships
+            Manage your organization relationships
           </p>
         </div>
         <Button onClick={() => setShowForm(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Company
+          Add Organization
         </Button>
       </div>
 
@@ -243,7 +251,7 @@ export default function CompaniesPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search companies..."
+                placeholder="Search organizations..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -272,13 +280,17 @@ export default function CompaniesPage() {
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>
-                {editingCompany ? "Edit Company" : "Add New Company"}
+                {editingOrganization
+                  ? "Edit Organization"
+                  : "Add New Organization"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Company Name *</label>
+                  <label className="text-sm font-medium">
+                    Organization Name *
+                  </label>
                   <Input
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
@@ -372,7 +384,9 @@ export default function CompaniesPage() {
                     Cancel
                   </Button>
                   <Button type="submit">
-                    {editingCompany ? "Update Company" : "Create Company"}
+                    {editingOrganization
+                      ? "Update Organization"
+                      : "Create Organization"}
                   </Button>
                 </div>
               </form>
@@ -384,18 +398,20 @@ export default function CompaniesPage() {
       {/* Companies Table */}
       <Card>
         <CardContent className="p-0">
-          {isLoading ? (
+          {loading ? (
             <div className="text-center py-12">
-              <div className="text-lg">Loading companies...</div>
+              <div className="text-lg">Loading organizations...</div>
             </div>
-          ) : companies.length === 0 ? (
+          ) : organizations.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No companies found</h3>
+              <h3 className="text-lg font-medium mb-2">
+                No organizations found
+              </h3>
               <p className="text-muted-foreground mb-4">
                 {searchTerm
-                  ? "No companies match your search."
-                  : "Get started by adding your first company."}
+                  ? "No organizations match your search."
+                  : "Get started by adding your first organization."}
               </p>
               <Button onClick={() => setShowForm(true)}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -414,32 +430,34 @@ export default function CompaniesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {companies.map((company) => (
-                  <TableRow key={company.id}>
+                {organizations.map((organization) => (
+                  <TableRow key={organization.id}>
                     <TableCell>
                       <div>
                         <div className="font-medium flex items-center">
                           <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                          {company.name}
+                          {organization.name}
                         </div>
-                        {company.website && (
+                        {organization.website && (
                           <div className="flex items-center mt-1">
                             <Globe className="mr-2 h-3 w-3 text-muted-foreground" />
                             <a
-                              href={company.website}
+                              href={organization.website}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-primary hover:underline"
                             >
-                              {company.website}
+                              {organization.website}
                             </a>
                           </div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {company.industry ? (
-                        <Badge variant="secondary">{company.industry}</Badge>
+                      {organization.industry ? (
+                        <Badge variant="secondary">
+                          {organization.industry}
+                        </Badge>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
@@ -448,7 +466,7 @@ export default function CompaniesPage() {
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {company.contact_count || 0}
+                          {organization.contact_count || 0}
                         </span>
                         <span className="text-muted-foreground ml-1">
                           contacts
@@ -457,39 +475,39 @@ export default function CompaniesPage() {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        {company.email && (
+                        {organization.email && (
                           <div className="flex items-center text-sm">
                             <Mail className="mr-2 h-3 w-3 text-muted-foreground" />
                             <a
-                              href={`mailto:${company.email}`}
+                              href={`mailto:${organization.email}`}
                               className="text-primary hover:underline"
                             >
-                              {company.email}
+                              {organization.email}
                             </a>
                           </div>
                         )}
-                        {company.phone && (
+                        {organization.phone && (
                           <div className="flex items-center text-sm">
                             <Phone className="mr-2 h-3 w-3 text-muted-foreground" />
                             <a
-                              href={`tel:${company.phone}`}
+                              href={`tel:${organization.phone}`}
                               className="text-primary hover:underline"
                             >
-                              {company.phone}
+                              {organization.phone}
                             </a>
                           </div>
                         )}
-                        {company.address && (
+                        {organization.address && (
                           <div className="flex items-center text-sm">
                             <MapPin className="mr-2 h-3 w-3 text-muted-foreground" />
                             <span className="text-muted-foreground">
-                              {company.address}
+                              {organization.address}
                             </span>
                           </div>
                         )}
-                        {!company.email &&
-                          !company.phone &&
-                          !company.address && (
+                        {!organization.email &&
+                          !organization.phone &&
+                          !organization.address && (
                             <span className="text-muted-foreground text-sm">
                               No contact info
                             </span>
@@ -501,14 +519,14 @@ export default function CompaniesPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleEdit(company)}
+                          onClick={() => handleEdit(organization)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(company.id)}
+                          onClick={() => handleDelete(organization.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

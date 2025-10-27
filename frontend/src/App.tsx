@@ -15,7 +15,7 @@ import Dashboard from "./pages/Dashboard.tsx";
 import ContactsPage from "./pages/ContactsPage.tsx";
 import ContactDetailPage from "./pages/ContactDetailPage.tsx";
 import ActivityDetailPage from "./pages/ActivityDetailPage.tsx";
-import CompaniesPage from "./pages/CompaniesPage.tsx";
+import OrganizationsPage from "./pages/OrganizationsPage.tsx";
 import DealsPage from "./pages/DealsPage.tsx";
 import ActivitiesPage from "./pages/ActivitiesPage.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
@@ -120,11 +120,11 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/companies"
+        path="/organizations"
         element={
           <ProtectedRoute>
             <DashboardLayout>
-              <CompaniesPage />
+              <OrganizationsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

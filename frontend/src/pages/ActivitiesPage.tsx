@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -111,12 +111,12 @@ export default function ActivitiesPage() {
       try {
         // Fetch companies, contacts, and deals for dropdowns
         const [companiesRes, contactsRes, dealsRes] = await Promise.all([
-          apiClient.getCompanies({ limit: 100 }),
+          apiClient.getOrganizations({ limit: 100 }),
           apiClient.getContacts({ limit: 100 }),
           apiClient.getDeals({ limit: 100 }),
         ]);
 
-        if (companiesRes.data) setCompanies(companiesRes.data.companies);
+        if (companiesRes.data) setCompanies(companiesRes.data.organizations);
         if (contactsRes.data) setContacts(contactsRes.data.contacts);
         if (dealsRes.data) setDeals(dealsRes.data.deals);
       } catch (error) {
@@ -129,13 +129,9 @@ export default function ActivitiesPage() {
     fetchInitialData();
   }, []);
 
-  useEffect(() => {
-    fetchActivities();
-  }, [currentPage, searchTerm, filterType, filterActivityType]);
-
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     try {
-      const params: Record<string, any> = {
+      const params: Record<string, string | number | boolean | undefined> = {
         page: currentPage,
         limit: 20,
         search: searchTerm || undefined,
@@ -171,7 +167,11 @@ export default function ActivitiesPage() {
     } catch (error) {
       console.error("Error fetching activities:", error);
     }
-  };
+  }, [currentPage, searchTerm, filterType, filterActivityType]);
+
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -231,7 +231,12 @@ export default function ActivitiesPage() {
     setEditingActivity(activity);
 
     // Handle snake_case to camelCase mapping from backend
-    const activityData = activity as any;
+    const activityData = activity as ActivityWithDetails & {
+      due_date?: string;
+      contact_id?: number;
+      company_id?: number;
+      deal_id?: number;
+    };
 
     // Better date handling - extract just the date part
     let dueDateString = "";

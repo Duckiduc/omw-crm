@@ -145,9 +145,9 @@ export default function ContactDetailPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await apiClient.getCompanies({ limit: 100 });
+      const response = await apiClient.getOrganizations({ limit: 100 });
       if (response.data) {
-        setCompanies(response.data.companies);
+        setCompanies(response.data.organizations);
       }
     } catch (error) {
       console.error("Error fetching companies:", error);
