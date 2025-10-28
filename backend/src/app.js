@@ -26,13 +26,26 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(limiter);
+// CORS configuration: allow specifying origins via CORS_ORIGINS env var (comma-separated)
+// Fallback to FRONTEND_URL or sensible localhost defaults for development
+const rawCorsOrigins = process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "";
+const defaultLocalOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://localhost:5174",
+];
+const allowedOrigins = rawCorsOrigins
+  ? rawCorsOrigins.split(",").map((s) => s.trim()).filter(Boolean)
+  : defaultLocalOrigins;
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      process.env.FRONTEND_URL,
-    ].filter(Boolean),
+    origin: function (origin, callback) {
+      // allow requests with no origin (e.g., server-to-server, curl, mobile)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"), false);
+    },
     credentials: true,
   })
 );
@@ -41,6 +54,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() });
+});
+
+app.get("/api/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
