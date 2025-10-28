@@ -28,14 +28,18 @@ app.use(helmet());
 app.use(limiter);
 // CORS configuration: allow specifying origins via CORS_ORIGINS env var (comma-separated)
 // Fallback to FRONTEND_URL or sensible localhost defaults for development
-const rawCorsOrigins = process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "";
+const rawCorsOrigins =
+  process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "";
 const defaultLocalOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:5174",
 ];
 const allowedOrigins = rawCorsOrigins
-  ? rawCorsOrigins.split(",").map((s) => s.trim()).filter(Boolean)
+  ? rawCorsOrigins
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
   : defaultLocalOrigins;
 
 app.use(

@@ -15,6 +15,7 @@ docker-compose -f docker-compose.dev.yml up -d --build
 ```
 
 **Development URLs:**
+
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3002
 - Database: localhost:5432
@@ -30,6 +31,7 @@ docker-compose -f docker-compose.yml up --build -d
 ```
 
 **Production URLs:**
+
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3002
 - Database: localhost:5432
@@ -37,6 +39,7 @@ docker-compose -f docker-compose.yml up --build -d
 ## Services
 
 ### Database (PostgreSQL)
+
 - **Image:** postgres:15-alpine
 - **Port:** 5432
 - **Database:** omw_crm
@@ -44,11 +47,13 @@ docker-compose -f docker-compose.yml up --build -d
 - **Password:** postgres
 
 ### Backend (Node.js/Express)
+
 - **Development Port:** 3002
 - **Production Port:** 3002
 - **Health Check:** http://localhost:3002/api/health
 
 ### Frontend (React/Vite)
+
 - **Development Port:** 5173
 - **Production Port:** 3000 (served by Nginx)
 
@@ -57,6 +62,7 @@ docker-compose -f docker-compose.yml up --build -d
 The Docker setup uses the following default environment variables:
 
 ### Backend
+
 - `NODE_ENV`: development/production
 - `PORT`: 3002
 - `DB_HOST`: db (container name)
@@ -68,11 +74,13 @@ The Docker setup uses the following default environment variables:
 - `FRONTEND_URL`: Frontend URL for CORS
 
 ### Frontend
+
 - `VITE_API_URL`: Backend API URL
 
 ## Database Setup
 
 ### Initial Setup
+
 The database will be automatically initialized when the containers start. The application will create all necessary tables through its migration system.
 
 ### Manual Database Operations
@@ -102,11 +110,13 @@ docker-compose -f docker-compose.dev.yml up --build
 ```
 
 ### Making Changes
+
 - **Frontend changes**: Automatically reloaded via Vite
 - **Backend changes**: Automatically restarted via nodemon
 - **Package changes**: Rebuild containers with `--build` flag
 
 ### Logs
+
 ```bash
 # View all logs
 docker-compose -f docker-compose.dev.yml logs -f
@@ -120,6 +130,7 @@ docker-compose -f docker-compose.dev.yml logs -f db
 ## Production Deployment
 
 ### Build and Deploy
+
 ```bash
 # Build and start production containers
 docker-compose up --build -d
@@ -132,12 +143,15 @@ docker-compose logs -f
 ```
 
 ### Health Checks
+
 All services include health checks:
+
 - **Database**: PostgreSQL connection check
 - **Backend**: HTTP health endpoint
 - **Frontend**: Nginx server check
 
 ### Monitoring
+
 ```bash
 # Check container health
 docker-compose ps
@@ -154,10 +168,12 @@ docker-compose exec db sh
 ## Data Persistence
 
 ### Volumes
+
 - **Development**: `postgres_data_dev` - Development database data
 - **Production**: `postgres_data` - Production database data
 
 ### Backup Database
+
 ```bash
 # Create database backup
 docker-compose exec db pg_dump -U postgres omw_crm > backup.sql
@@ -176,6 +192,7 @@ docker-compose exec -T db psql -U postgres omw_crm < backup.sql
 4. **Build failures**: Clear Docker cache and rebuild
 
 ### Useful Commands
+
 ```bash
 # Stop all services
 docker-compose down
@@ -195,6 +212,7 @@ docker-compose exec db psql -U postgres omw_crm
 ```
 
 ### Reset Everything
+
 ```bash
 # Stop containers and remove volumes (⚠️ deletes all data)
 docker-compose down -v
@@ -209,23 +227,28 @@ docker-compose up --build
 ## Security Notes
 
 ### Development
+
 - Default passwords are used for convenience
 - CORS is configured for localhost
 - Debug modes are enabled
 
 ### Production
+
 ⚠️ **Important**: Before deploying to production:
 
 1. **Change default passwords**:
+
    - Database password
    - JWT secret
 
 2. **Update environment variables**:
+
    - Set proper `FRONTEND_URL`
    - Configure secure `JWT_SECRET`
    - Set `NODE_ENV=production`
 
 3. **Configure networking**:
+
    - Use proper domain names
    - Enable HTTPS
    - Configure reverse proxy if needed
@@ -238,13 +261,16 @@ docker-compose up --build
 ## Performance Optimization
 
 ### Production Optimizations
+
 - **Frontend**: Multi-stage build with Nginx
 - **Backend**: Production-only dependencies
 - **Database**: Persistent volumes with optimized settings
 - **Caching**: Nginx static file caching enabled
 
 ### Scaling
+
 To scale services:
+
 ```bash
 # Scale backend to 3 instances
 docker-compose up --scale backend=3
@@ -255,6 +281,7 @@ docker-compose up --scale backend=3
 ## Support
 
 For issues or questions:
+
 1. Check logs: `docker-compose logs -f [service]`
 2. Verify health checks: `docker-compose ps`
 3. Check network connectivity between services
