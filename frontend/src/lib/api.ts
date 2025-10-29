@@ -412,6 +412,29 @@ class ApiClient {
     }>("/admin/users/stats/overview");
   }
 
+  // System Settings endpoints
+  async getSystemSettings() {
+    return this.request<{
+      settings: {
+        [key: string]: {
+          value: string;
+          description: string;
+        };
+      };
+    }>("/admin/settings");
+  }
+
+  async updateSystemSetting(key: string, value: string) {
+    return this.request<{
+      setting_key: string;
+      setting_value: string;
+      description: string;
+    }>(`/admin/settings/${key}`, {
+      method: "PUT",
+      body: JSON.stringify({ value }),
+    });
+  }
+
   // Shares endpoints
   async getSharedWithMe(params?: {
     type?: string;

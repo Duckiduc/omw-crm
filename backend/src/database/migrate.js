@@ -177,6 +177,58 @@ const createTables = async () => {
   }
 };
 
+const createDefaultAdmin = async () => {
+  try {
+    const bcrypt = require("bcryptjs");
+
+    // Check if any admin user exists
+    const existingAdmin = await db.query(
+      "SELECT id FROM users WHERE role = 'admin' LIMIT 1"
+    );
+
+    if (existingAdmin.rows.length === 0) {
+      console.log("🔨 Creating default admin user...");
+
+      // Hash the password
+      const saltRounds = 12;
+      const hashedPassword = await bcrypt.hash("password", saltRounds);
+
+      // Create default admin user
+      const result = await db.query(
+        "INSERT INTO users (email, password, first_name, last_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email",
+        [
+          "admin@omwcrm.local",
+          hashedPassword,
+          "System",
+          "Administrator",
+          "admin",
+        ]
+      );
+
+      const adminUser = result.rows[0];
+
+      // Seed default data for the admin user
+      await seedDefaultData(adminUser.id);
+
+      console.log(`✅ Default admin user created: ${adminUser.email}`);
+      console.log("📝 Default admin credentials:");
+      console.log("   Email: admin@omwcrm.local");
+      console.log("   Password: password");
+      console.log("   ⚠️  Please change this password after first login!");
+
+      return adminUser;
+    } else {
+      console.log(
+        "ℹ️ Admin user already exists, skipping default admin creation"
+      );
+      return null;
+    }
+  } catch (error) {
+    console.error("❌ Error creating default admin:", error);
+    throw error;
+  }
+};
+
 const seedDefaultData = async (userId) => {
   try {
     // Check if default deal stages exist for this user
@@ -211,4 +263,5 @@ const seedDefaultData = async (userId) => {
 module.exports = {
   createTables,
   seedDefaultData,
+  createDefaultAdmin,
 };

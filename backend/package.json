@@ -16,6 +16,8 @@
     "migrate:contact-status": "node src/database/add-contact-status-migration.js",
     "migrate:tags": "node src/database/add-tags-migration.js",
     "migrate:fix-schema": "node src/database/fix-contact-notes-schema.js",
+    "migrate:system-settings": "node src/database/add-system-settings-migration.js",
+    "create-admin": "node src/database/create-default-admin.js",
     "db:migrate": "node src/database/migrate.js",
     "db:seed": "node src/database/seed.js"
   },

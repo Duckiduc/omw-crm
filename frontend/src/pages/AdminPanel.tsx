@@ -20,6 +20,7 @@ import {
   Shield,
   UserCheck,
   Calendar,
+  Settings,
 } from "lucide-react";
 
 interface UserFormData {
@@ -61,6 +62,12 @@ export default function AdminPanel() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+  // System settings state
+  const [systemSettings, setSystemSettings] = useState<{
+    [key: string]: { value: string; description: string };
+  }>({});
+  const [activeTab, setActiveTab] = useState<"users" | "settings">("users");
+
   const fetchUsers = useCallback(async () => {
     try {
       const params = {
@@ -88,6 +95,7 @@ export default function AdminPanel() {
 
   useEffect(() => {
     fetchStats();
+    fetchSystemSettings();
   }, []);
 
   const fetchStats = async () => {
@@ -98,6 +106,30 @@ export default function AdminPanel() {
       }
     } catch (error) {
       console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchSystemSettings = async () => {
+    try {
+      const response = await apiClient.getSystemSettings();
+      if (response.data) {
+        setSystemSettings(response.data.settings);
+      }
+    } catch (error) {
+      console.error("Error fetching system settings:", error);
+    }
+  };
+
+  const updateSystemSetting = async (key: string, value: string) => {
+    try {
+      await apiClient.updateSystemSetting(key, value);
+      // Update local state
+      setSystemSettings((prev) => ({
+        ...prev,
+        [key]: { ...prev[key], value },
+      }));
+    } catch (error) {
+      console.error("Error updating system setting:", error);
     }
   };
 
@@ -246,305 +278,440 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-muted-foreground">Total Users</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Shield className="h-6 w-6 text-red-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-muted-foreground">Admins</p>
-                <p className="text-2xl font-bold">{stats.admins}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <UserCheck className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-muted-foreground">Regular Users</p>
-                <p className="text-2xl font-bold">{stats.regularUsers}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Calendar className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm text-muted-foreground">New This Month</p>
-                <p className="text-2xl font-bold">{stats.newThisMonth}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Tab Navigation */}
+      <div className="flex border-b mb-8">
+        <button
+          className={`px-6 py-3 border-b-2 font-medium transition-colors ${
+            activeTab === "users"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("users")}
+        >
+          <Users className="inline-block mr-2 h-4 w-4" />
+          User Management
+        </button>
+        <button
+          className={`px-6 py-3 border-b-2 font-medium transition-colors ${
+            activeTab === "settings"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+          onClick={() => setActiveTab("settings")}
+        >
+          <Settings className="inline-block mr-2 h-4 w-4" />
+          System Settings
+        </button>
       </div>
 
-      {/* Search and Filters */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">User Management</h2>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-          </div>
-          <form onSubmit={handleSearch} className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-            >
-              <option value="">All Roles</option>
-              <option value="user">Users</option>
-              <option value="admin">Admins</option>
-            </Select>
-            <Button type="submit">Search</Button>
-            {(searchTerm || filterRole) && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("");
-                  setFilterRole("");
-                  setCurrentPage(1);
-                }}
-              >
-                Clear
-              </Button>
-            )}
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* User Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-50">
-          <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle>
-                {editingUser ? "Edit User" : "Add New User"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">First Name *</label>
-                    <Input
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        handleInputChange("firstName", e.target.value)
-                      }
-                      className={
-                        formErrors.firstName ? "border-destructive" : ""
-                      }
-                    />
-                    {formErrors.firstName && (
-                      <p className="text-sm text-destructive mt-1">
-                        {formErrors.firstName}
-                      </p>
-                    )}
+      {/* User Management Tab */}
+      {activeTab === "users" && (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Users className="h-6 w-6 text-blue-600" />
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Last Name *</label>
-                    <Input
-                      value={formData.lastName}
-                      onChange={(e) =>
-                        handleInputChange("lastName", e.target.value)
-                      }
-                      className={
-                        formErrors.lastName ? "border-destructive" : ""
-                      }
-                    />
-                    {formErrors.lastName && (
-                      <p className="text-sm text-destructive mt-1">
-                        {formErrors.lastName}
-                      </p>
-                    )}
+                  <div className="ml-4">
+                    <p className="text-sm text-muted-foreground">Total Users</p>
+                    <p className="text-2xl font-bold">{stats.total}</p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div>
-                  <label className="text-sm font-medium">Email *</label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange("email", e.target.value)}
-                    className={formErrors.email ? "border-destructive" : ""}
-                  />
-                  {formErrors.email && (
-                    <p className="text-sm text-destructive mt-1">
-                      {formErrors.email}
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <Shield className="h-6 w-6 text-red-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm text-muted-foreground">Admins</p>
+                    <p className="text-2xl font-bold">{stats.admins}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <UserCheck className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm text-muted-foreground">
+                      Regular Users
                     </p>
-                  )}
+                    <p className="text-2xl font-bold">{stats.regularUsers}</p>
+                  </div>
                 </div>
+              </CardContent>
+            </Card>
 
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Calendar className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-sm text-muted-foreground">
+                      New This Month
+                    </p>
+                    <p className="text-2xl font-bold">{stats.newThisMonth}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Search and Filters */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">User Management</h2>
+                <Button onClick={() => setShowForm(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add User
+                </Button>
+              </div>
+              <form onSubmit={handleSearch} className="flex gap-4">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                >
+                  <option value="">All Roles</option>
+                  <option value="user">Users</option>
+                  <option value="admin">Admins</option>
+                </Select>
+                <Button type="submit">Search</Button>
+                {(searchTerm || filterRole) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setFilterRole("");
+                      setCurrentPage(1);
+                    }}
+                  >
+                    Clear
+                  </Button>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* User Form Modal */}
+          {showForm && (
+            <div className="fixed inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-50">
+              <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+                <CardHeader>
+                  <CardTitle>
+                    {editingUser ? "Edit User" : "Add New User"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">
+                          First Name *
+                        </label>
+                        <Input
+                          value={formData.firstName}
+                          onChange={(e) =>
+                            handleInputChange("firstName", e.target.value)
+                          }
+                          className={
+                            formErrors.firstName ? "border-destructive" : ""
+                          }
+                        />
+                        {formErrors.firstName && (
+                          <p className="text-sm text-destructive mt-1">
+                            {formErrors.firstName}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">
+                          Last Name *
+                        </label>
+                        <Input
+                          value={formData.lastName}
+                          onChange={(e) =>
+                            handleInputChange("lastName", e.target.value)
+                          }
+                          className={
+                            formErrors.lastName ? "border-destructive" : ""
+                          }
+                        />
+                        {formErrors.lastName && (
+                          <p className="text-sm text-destructive mt-1">
+                            {formErrors.lastName}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Email *</label>
+                      <Input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          handleInputChange("email", e.target.value)
+                        }
+                        className={formErrors.email ? "border-destructive" : ""}
+                      />
+                      {formErrors.email && (
+                        <p className="text-sm text-destructive mt-1">
+                          {formErrors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">
+                        {editingUser
+                          ? "New Password (leave blank to keep current)"
+                          : "Password *"}
+                      </label>
+                      <Input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) =>
+                          handleInputChange("password", e.target.value)
+                        }
+                        className={
+                          formErrors.password ? "border-destructive" : ""
+                        }
+                      />
+                      {formErrors.password && (
+                        <p className="text-sm text-destructive mt-1">
+                          {formErrors.password}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Role *</label>
+                      <Select
+                        value={formData.role}
+                        onChange={(e) =>
+                          handleInputChange("role", e.target.value)
+                        }
+                      >
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                      </Select>
+                    </div>
+
+                    <div className="flex justify-end space-x-2 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={resetForm}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit">
+                        {editingUser ? "Update User" : "Create User"}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Users List */}
+          <Card>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b bg-muted/50">
+                    <tr>
+                      <th className="text-left p-4 font-medium">User</th>
+                      <th className="text-left p-4 font-medium">Email</th>
+                      <th className="text-left p-4 font-medium">Role</th>
+                      <th className="text-left p-4 font-medium">Created</th>
+                      <th className="text-right p-4 font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr key={user.id} className="border-b hover:bg-muted/25">
+                        <td className="p-4">
+                          <div>
+                            <div className="font-medium">
+                              {user.firstName || user.first_name}{" "}
+                              {user.lastName || user.last_name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              ID: {user.id}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 text-muted-foreground">
+                          {user.email}
+                        </td>
+                        <td className="p-4">
+                          {getRoleBadge(user.role || "user")}
+                        </td>
+                        <td className="p-4 text-muted-foreground">
+                          {formatDate(user.created_at)}
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(user)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(user.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center p-4 border-t">
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage <= 1}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={currentPage >= totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {/* System Settings Tab */}
+      {activeTab === "settings" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Registration Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium">
-                    {editingUser
-                      ? "New Password (leave blank to keep current)"
-                      : "Password *"}
+                    Allow User Registration
                   </label>
-                  <Input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) =>
-                      handleInputChange("password", e.target.value)
-                    }
-                    className={formErrors.password ? "border-destructive" : ""}
+                  <p className="text-sm text-muted-foreground">
+                    {systemSettings.registration_enabled?.description}
+                  </p>
+                </div>
+                <button
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    systemSettings.registration_enabled?.value === "true"
+                      ? "bg-blue-600"
+                      : "bg-gray-200"
+                  }`}
+                  onClick={() =>
+                    updateSystemSetting(
+                      "registration_enabled",
+                      systemSettings.registration_enabled?.value === "true"
+                        ? "false"
+                        : "true"
+                    )
+                  }
+                >
+                  <span
+                    className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                      systemSettings.registration_enabled?.value === "true"
+                        ? "translate-x-6"
+                        : "translate-x-1"
+                    }`}
                   />
-                  {formErrors.password && (
-                    <p className="text-sm text-destructive mt-1">
-                      {formErrors.password}
-                    </p>
-                  )}
-                </div>
+                </button>
+              </div>
 
-                <div>
-                  <label className="text-sm font-medium">Role *</label>
-                  <Select
-                    value={formData.role}
-                    onChange={(e) => handleInputChange("role", e.target.value)}
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Maximum Users</label>
+                <p className="text-sm text-muted-foreground">
+                  {systemSettings.max_users?.description} (0 = unlimited)
+                </p>
+                <Input
+                  type="number"
+                  min="0"
+                  value={systemSettings.max_users?.value || "0"}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "" || parseInt(value) >= 0) {
+                      updateSystemSetting("max_users", value);
+                    }
+                  }}
+                  className="w-32"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    {editingUser ? "Update User" : "Create User"}
-                  </Button>
-                </div>
-              </form>
+          <Card>
+            <CardHeader>
+              <CardTitle>Application Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Application Name</label>
+                <Input
+                  value={systemSettings.app_name?.value || "OMW CRM"}
+                  onChange={(e) => {
+                    updateSystemSetting("app_name", e.target.value);
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
       )}
-
-      {/* Users List */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="text-left p-4 font-medium">User</th>
-                  <th className="text-left p-4 font-medium">Email</th>
-                  <th className="text-left p-4 font-medium">Role</th>
-                  <th className="text-left p-4 font-medium">Created</th>
-                  <th className="text-right p-4 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} className="border-b hover:bg-muted/25">
-                    <td className="p-4">
-                      <div>
-                        <div className="font-medium">
-                          {user.firstName || user.first_name}{" "}
-                          {user.lastName || user.last_name}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          ID: {user.id}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-muted-foreground">{user.email}</td>
-                    <td className="p-4">{getRoleBadge(user.role || "user")}</td>
-                    <td className="p-4 text-muted-foreground">
-                      {formatDate(user.created_at)}
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(user)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(user.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center p-4 border-t">
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage <= 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage >= totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

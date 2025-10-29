@@ -73,7 +73,7 @@ app.use("/api/deals", dealRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/contact-notes", contactNotesRoutes);
 app.use("/api/activity-notes", activityNotesRoutes);
-app.use("/api/admin/users", adminRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/shares", sharesRoutes);
 
 // Error handling middleware

@@ -13,7 +13,7 @@ router.use(requireAdmin);
 
 // Get all users with pagination and filtering
 router.get(
-  "/",
+  "/users",
   [
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
@@ -103,7 +103,7 @@ router.get(
 );
 
 // Get single user
-router.get("/:id", async (req, res) => {
+router.get("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -134,7 +134,7 @@ router.get("/:id", async (req, res) => {
 
 // Create user
 router.post(
-  "/",
+  "/users",
   [
     body("email").isEmail().normalizeEmail(),
     body("password").isLength({ min: 6 }),
@@ -190,7 +190,7 @@ router.post(
 
 // Update user
 router.put(
-  "/:id",
+  "/users/:id",
   [
     body("email").optional().isEmail().normalizeEmail(),
     body("password").optional().isLength({ min: 6 }),
@@ -296,7 +296,7 @@ router.put(
 );
 
 // Delete user
-router.delete("/:id", async (req, res) => {
+router.delete("/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -323,8 +323,87 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+// Get system settings
+router.get("/settings", async (req, res) => {
+  try {
+    const result = await db.query(
+      "SELECT setting_key, setting_value, description FROM system_settings ORDER BY setting_key"
+    );
+
+    // Convert to object format for easier frontend consumption
+    const settings = {};
+    result.rows.forEach((row) => {
+      settings[row.setting_key] = {
+        value: row.setting_value,
+        description: row.description,
+      };
+    });
+
+    res.json({ settings });
+  } catch (error) {
+    console.error("Get system settings error:", error);
+    res.status(500).json({ message: "Server error fetching system settings" });
+  }
+});
+
+// Update system setting
+router.put(
+  "/settings/:key",
+  [body("value").notEmpty().withMessage("Setting value is required")],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      const { key } = req.params;
+      const { value } = req.body;
+
+      // Validate specific setting types
+      if (
+        key === "registration_enabled" &&
+        !["true", "false"].includes(value)
+      ) {
+        return res.status(400).json({
+          message: "registration_enabled must be 'true' or 'false'",
+        });
+      }
+
+      if (key === "max_users" && (isNaN(value) || parseInt(value) < 0)) {
+        return res.status(400).json({
+          message: "max_users must be a non-negative number",
+        });
+      }
+
+      // Update setting
+      const result = await db.query(
+        `UPDATE system_settings 
+         SET setting_value = $1, updated_at = CURRENT_TIMESTAMP 
+         WHERE setting_key = $2 
+         RETURNING setting_key, setting_value, description`,
+        [value, key]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+
+      const setting = result.rows[0];
+      res.json({
+        setting_key: setting.setting_key,
+        setting_value: setting.setting_value,
+        description: setting.description,
+      });
+    } catch (error) {
+      console.error("Update system setting error:", error);
+      res.status(500).json({ message: "Server error updating system setting" });
+    }
+  }
+);
+
 // Get user statistics
-router.get("/stats/overview", async (req, res) => {
+router.get("/users/stats/overview", async (req, res) => {
   try {
     const stats = await Promise.all([
       db.query("SELECT COUNT(*) as total FROM users"),

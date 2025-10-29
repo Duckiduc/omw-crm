@@ -5,6 +5,10 @@ const { body, validationResult } = require("express-validator");
 const db = require("../config/database");
 const { seedDefaultData } = require("../database/migrate");
 const { authenticateToken } = require("../middleware/auth");
+const {
+  isRegistrationEnabled,
+  isUserLimitReached,
+} = require("../utils/systemSettings");
 
 const router = express.Router();
 
@@ -22,6 +26,23 @@ router.post(
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Check if registration is enabled
+      const registrationEnabled = await isRegistrationEnabled();
+      if (!registrationEnabled) {
+        return res.status(403).json({
+          message:
+            "User registration is currently disabled by the administrator",
+        });
+      }
+
+      // Check if user limit is reached
+      const limitReached = await isUserLimitReached();
+      if (limitReached) {
+        return res.status(403).json({
+          message: "Maximum number of users reached. Contact administrator.",
+        });
       }
 
       const { email, password, firstName, lastName } = req.body;

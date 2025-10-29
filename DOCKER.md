@@ -81,7 +81,15 @@ The Docker setup uses the following default environment variables:
 
 ### Initial Setup
 
-The database will be automatically initialized when the containers start. The application will create all necessary tables through its migration system.
+The database will be automatically initialized when the containers start. The application will create all necessary tables through its migration system and will create a default admin user.
+
+**Default Admin Credentials:**
+
+- Email: `admin@omwcrm.local`
+- Password: `password`
+- ⚠️ **Important**: Please change this password after first login!
+
+The default admin user is created automatically during the first migration. You can use these credentials to login and access the Admin Panel to manage system settings and users.
 
 ### Manual Database Operations
 
@@ -94,6 +102,9 @@ docker-compose exec backend npm run migrate
 
 # Run all migrations
 docker-compose exec backend npm run migrate:all
+
+# Create default admin user (if not already created)
+docker-compose exec backend npm run create-admin
 ```
 
 ## Development Workflow

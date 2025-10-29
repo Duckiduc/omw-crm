@@ -1,5 +1,9 @@
 require("dotenv").config();
-const { createTables, seedDefaultData } = require("./migrate");
+const {
+  createTables,
+  seedDefaultData,
+  createDefaultAdmin,
+} = require("./migrate");
 const { addAdminRole } = require("./add-admin-role-migration");
 const { createSharesTable } = require("./add-shares-migration");
 const { addContactNotesTable } = require("./add-contact-notes-migration");
@@ -7,6 +11,9 @@ const { addActivityNotesTable } = require("./add-activity-notes-migration");
 const { addContactStatus } = require("./add-contact-status-migration");
 const { addTagsToContacts } = require("./add-tags-migration");
 const { fixContactNotesSchema } = require("./fix-contact-notes-schema");
+const {
+  createSystemSettingsTable,
+} = require("./add-system-settings-migration");
 
 const runAllMigrations = async () => {
   try {
@@ -46,6 +53,14 @@ const runAllMigrations = async () => {
     console.log("Step 8: Creating shares table...");
     await createSharesTable();
 
+    // Step 9: Create system settings table
+    console.log("Step 9: Creating system settings table...");
+    await createSystemSettingsTable();
+
+    // Step 10: Create default admin user
+    console.log("Step 10: Creating default admin user...");
+    await createDefaultAdmin();
+
     console.log("");
     console.log("✅ ALL migrations completed successfully!");
     console.log("Your database is now fully up to date with OMW CRM.");
@@ -59,6 +74,8 @@ const runAllMigrations = async () => {
     console.log("- ✅ Activity notes system added");
     console.log("- ✅ Contact notes schema fixed");
     console.log("- ✅ Sharing system added");
+    console.log("- ✅ System settings table added");
+    console.log("- ✅ Default admin user created");
     console.log("");
     console.log("Next steps:");
     console.log("1. Start the backend: npm run dev");
