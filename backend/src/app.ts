@@ -1,18 +1,21 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
-require("dotenv").config();
+import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import dotenv from "dotenv";
 
-const authRoutes = require("./routes/auth");
-const contactRoutes = require("./routes/contacts");
-const organizationRoutes = require("./routes/organizations");
-const dealRoutes = require("./routes/deals");
-const activityRoutes = require("./routes/activities");
-const contactNotesRoutes = require("./routes/contact-notes");
-const activityNotesRoutes = require("./routes/activity-notes");
-const adminRoutes = require("./routes/admin");
-const sharesRoutes = require("./routes/shares");
+import authRoutes from "./routes/auth";
+import contactRoutes from "./routes/contacts";
+import organizationRoutes from "./routes/organizations";
+import dealRoutes from "./routes/deals";
+import activityRoutes from "./routes/activities";
+import contactNotesRoutes from "./routes/contact-notes";
+import activityNotesRoutes from "./routes/activity-notes";
+import adminRoutes from "./routes/admin";
+import sharesRoutes from "./routes/shares";
+import environmentConfig from "./config/environment";
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -26,8 +29,6 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(limiter);
-// CORS configuration using environment-aware config
-const environmentConfig = require("./config/environment");
 
 console.log(
   "🌍 Environment Configuration: CORS enabled for Docker/Local setup"
@@ -38,11 +39,11 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get("/health", (req, res) => {
+app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (req: Request, res: Response) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
@@ -58,7 +59,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/shares", sharesRoutes);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(500).json({
     message: "Something went wrong!",
@@ -67,7 +68,7 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-app.use("*", (req, res) => {
+app.use("*", (req: Request, res: Response) => {
   res.status(404).json({ message: "Route not found" });
 });
 
