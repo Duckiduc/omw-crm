@@ -165,8 +165,8 @@ export default function Dashboard() {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {activity.type} •{" "}
-                        {activity.contact_name ||
-                          activity.company_name ||
+                        {activity.contactName ||
+                          activity.companyName ||
                           "No contact"}
                       </p>
                     </div>

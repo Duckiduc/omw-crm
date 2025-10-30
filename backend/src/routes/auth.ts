@@ -33,16 +33,16 @@ interface UserRow {
   id: string;
   email: string;
   password: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   role: string;
 }
 
 interface NewUserRow {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
 }
 
 // Register
@@ -100,7 +100,7 @@ router.post(
 
       // Create user
       const result = await db.query<NewUserRow>(
-        "INSERT INTO users (email, password, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name",
+        "INSERT INTO users (email, password, firstName, lastName) VALUES ($1, $2, $3, $4) RETURNING id, email, firstName, lastName",
         [email, hashedPassword, firstName, lastName]
       );
 
@@ -127,8 +127,8 @@ router.post(
         user: {
           id: user.id,
           email: user.email,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: "user",
         },
       });
@@ -155,7 +155,7 @@ router.post(
 
       // Find user
       const result = await db.query<UserRow>(
-        "SELECT id, email, password, first_name, last_name, role FROM users WHERE email = $1",
+        "SELECT id, email, password, firstName, lastName, role FROM users WHERE email = $1",
         [email]
       );
 
@@ -191,8 +191,8 @@ router.post(
         user: {
           id: user.id,
           email: user.email,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role || "user",
         },
       });

@@ -66,14 +66,14 @@ export default function SharedItems({
           (share: Partial<Share>) => ({
             ...share,
             // Backend already provides camelCase versions, just add fallbacks for other fields
-            resourceType: share.resourceType || share.resource_type,
-            resourceId: share.resourceId || share.resource_id,
-            createdAt: share.createdAt || share.created_at,
+            resourceType: share.resourceType || share.resourceType,
+            resourceId: share.resourceId || share.resourceId,
+            createdAt: share.createdAt || share.createdAt,
             resourceTitle:
               share.resourceTitle ||
-              (share.resource_data
-                ? getResourceTitle(share.resource_data, share.resource_type!)
-                : `${share.resource_type} #${share.resource_id}`),
+              (share.resourceData
+                ? getResourceTitle(share.resourceData, share.resourceType!)
+                : `${share.resourceType} #${share.resourceId}`),
           })
         ) as Share[];
 
@@ -210,14 +210,14 @@ export default function SharedItems({
                     <TableCell>
                       <Badge variant="outline">
                         {getResourceTypeDisplay(
-                          share.resourceType || share.resource_type
+                          share.resourceType || share.resourceType
                         )}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">
                       {share.resourceTitle ||
-                        `${share.resourceType || share.resource_type} #${
-                          share.resourceId || share.resource_id
+                        `${share.resourceType || share.resourceType} #${
+                          share.resourceId || share.resourceId
                         }`}
                     </TableCell>
                     <TableCell>
@@ -243,7 +243,7 @@ export default function SharedItems({
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {format(
-                        new Date(share.createdAt || share.created_at),
+                        new Date(share.createdAt || share.createdAt),
                         "MMM d, yyyy"
                       )}
                     </TableCell>
@@ -270,9 +270,9 @@ export default function SharedItems({
                           onClick={() => {
                             // Navigate to the resource (this would be implemented based on your routing)
                             const resourceType =
-                              share.resourceType || share.resource_type;
+                              share.resourceType || share.resourceType;
                             const resourceId =
-                              share.resourceId || share.resource_id;
+                              share.resourceId || share.resourceId;
                             const baseUrl =
                               resourceType === "contact"
                                 ? "/contacts"

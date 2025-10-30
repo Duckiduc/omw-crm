@@ -5,23 +5,23 @@ export const addContactStatus = async (): Promise<void> => {
     console.log("🔨 Adding status column to contacts table...");
 
     // Check if status column already exists
-    const columnCheck = await db.query<{ column_name: string }>(`
-      SELECT column_name 
+    const columnCheck = await db.query<{ columnName: string }>(`
+      SELECT columnName 
       FROM information_schema.columns 
-      WHERE table_name = 'contacts' AND column_name = 'status'
+      WHERE tableName = 'contacts' AND columnName = 'status'
     `);
 
     if (columnCheck.rows.length === 0) {
       // Add status column if it doesn't exist
       await db.query(`
         ALTER TABLE contacts 
-        ADD COLUMN status VARCHAR(20) DEFAULT 'all_good' 
-        CHECK (status IN ('hot', 'warm', 'cold', 'all_good'));
+        ADD COLUMN status VARCHAR(20) DEFAULT 'allGood' 
+        CHECK (status IN ('hot', 'warm', 'cold', 'allGood'));
       `);
 
       // Create index for better filtering performance
       await db.query(`
-        CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);
+        CREATE INDEX IF NOT EXISTS idxContactsStatus ON contacts(status);
       `);
 
       console.log("✅ Status column added successfully!");

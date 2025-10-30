@@ -18,28 +18,28 @@ export interface AuthenticatedRequest<
 export interface User {
   id: string;
   email: string;
-  password_hash: string;
-  first_name: string;
-  last_name: string;
+  passwordHash: string;
+  firstName: string;
+  lastName: string;
   role: "user" | "admin";
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Contact {
   id: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   email?: string;
   phone?: string;
-  company_id?: string;
+  companyId?: string;
   position?: string;
   status?: string;
   tags?: string[];
   notes?: string;
-  created_at: Date;
-  updated_at: Date;
-  user_id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
 }
 
 export interface Organization {
@@ -51,9 +51,9 @@ export interface Organization {
   email?: string;
   address?: string;
   notes?: string;
-  created_at: Date;
-  updated_at: Date;
-  user_id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
 }
 
 export interface Deal {
@@ -61,14 +61,14 @@ export interface Deal {
   title: string;
   value?: number;
   stage: string;
-  contact_id?: string;
-  organization_id?: string;
-  expected_close_date?: Date;
+  contactId?: string;
+  organizationId?: string;
+  expectedCloseDate?: Date;
   probability?: number;
   notes?: string;
-  created_at: Date;
-  updated_at: Date;
-  user_id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
 }
 
 export interface Activity {
@@ -76,42 +76,42 @@ export interface Activity {
   type: string;
   subject: string;
   description?: string;
-  contact_id?: string;
-  organization_id?: string;
-  deal_id?: string;
-  due_date?: Date;
+  contactId?: string;
+  organizationId?: string;
+  dealId?: string;
+  dueDate?: Date;
   completed: boolean;
-  created_at: Date;
-  updated_at: Date;
-  user_id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
 }
 
 export interface ContactNote {
   id: string;
-  contact_id: string;
+  contactId: string;
   note: string;
-  created_at: Date;
-  updated_at: Date;
-  user_id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
 }
 
 export interface ActivityNote {
   id: string;
-  activity_id: string;
+  activityId: string;
   note: string;
-  created_at: Date;
-  updated_at: Date;
-  user_id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
 }
 
 export interface Share {
   id: string;
-  item_type: "contact" | "organization" | "deal" | "activity";
-  item_id: string;
-  shared_by_user_id: string;
-  shared_with_user_id: string;
+  itemType: "contact" | "organization" | "deal" | "activity";
+  itemId: string;
+  sharedByUserId: string;
+  sharedWithUserId: string;
   permissions: "read" | "write";
-  created_at: Date;
+  createdAt: Date;
 }
 
 export interface SystemSetting {
@@ -119,8 +119,8 @@ export interface SystemSetting {
   key: string;
   value: string;
   description?: string;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Environment configuration types

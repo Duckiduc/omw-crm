@@ -1,20 +1,20 @@
 import db from "../config/database";
 
 interface ColumnInfo {
-  column_name: string;
+  columnName: string;
   is_nullable: string;
   data_type: string;
 }
 
 export const fixContactNotesSchema = async (): Promise<void> => {
   try {
-    console.log("🔨 Fixing contact_notes table schema...");
+    console.log("🔨 Fixing contactNotes table schema...");
 
     // Check if title column exists and is NOT NULL
     const columnCheck = await db.query<ColumnInfo>(`
-      SELECT column_name, is_nullable, data_type
+      SELECT columnName, is_nullable, data_type
       FROM information_schema.columns 
-      WHERE table_name = 'contact_notes' AND column_name = 'title'
+      WHERE tableName = 'contactNotes' AND columnName = 'title'
     `);
 
     if (
@@ -25,7 +25,7 @@ export const fixContactNotesSchema = async (): Promise<void> => {
 
       // Make title column nullable
       await db.query(`
-        ALTER TABLE contact_notes 
+        ALTER TABLE contactNotes 
         ALTER COLUMN title DROP NOT NULL;
       `);
 

@@ -2,35 +2,35 @@ import db from "../config/database";
 
 export const addContactNotesTable = async (): Promise<void> => {
   try {
-    console.log("🔨 Adding contact_notes table...");
+    console.log("🔨 Adding contactNotes table...");
 
     // Check if table already exists
-    const tableCheck = await db.query<{ table_name: string }>(`
-      SELECT table_name 
+    const tableCheck = await db.query<{ tableName: string }>(`
+      SELECT tableName 
       FROM information_schema.tables 
-      WHERE table_name = 'contact_notes'
+      WHERE tableName = 'contactNotes'
     `);
 
     if (tableCheck.rows.length === 0) {
-      // Create contact_notes table
+      // Create contactNotes table
       await db.query(`
-        CREATE TABLE contact_notes (
+        CREATE TABLE contactNotes (
           id SERIAL PRIMARY KEY,
           title VARCHAR(255) NOT NULL,
           content TEXT NOT NULL,
-          contact_id INTEGER REFERENCES contacts(id) ON DELETE CASCADE,
-          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          contactId INTEGER REFERENCES contacts(id) ON DELETE CASCADE,
+          userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
 
       // Create indexes
       await db.query(`
-        CREATE INDEX idx_contact_notes_user_id ON contact_notes(user_id);
+        CREATE INDEX idxContactNotesUserId ON contactNotes(userId);
       `);
       await db.query(`
-        CREATE INDEX idx_contact_notes_contact_id ON contact_notes(contact_id);
+        CREATE INDEX idxContactNotesContactId ON contactNotes(contactId);
       `);
 
       console.log("✅ Contact notes table created successfully!");

@@ -99,15 +99,15 @@ export default function ActivityDetailPage() {
 
           // Handle snake_case to camelCase mapping from backend
           const actData = activityData as ActivityWithDetails & {
-            due_date?: string;
-            contact_id?: number;
-            company_id?: number;
-            deal_id?: number;
+            dueDate?: string;
+            contactId?: number;
+            companyId?: number;
+            dealId?: number;
           };
 
           // Better date handling
           let dueDateString = "";
-          const backendDueDate = actData.due_date || activityData.dueDate;
+          const backendDueDate = actData.dueDate || activityData.dueDate;
 
           if (backendDueDate) {
             try {
@@ -125,10 +125,10 @@ export default function ActivityDetailPage() {
             description: activityData.description || "",
             dueDate: dueDateString,
             contactId:
-              (actData.contact_id || activityData.contactId)?.toString() || "",
+              (actData.contactId || activityData.contactId)?.toString() || "",
             companyId:
-              (actData.company_id || activityData.companyId)?.toString() || "",
-            dealId: (actData.deal_id || activityData.dealId)?.toString() || "",
+              (actData.companyId || activityData.companyId)?.toString() || "",
+            dealId: (actData.dealId || activityData.dealId)?.toString() || "",
             completed: activityData.completed || false,
           });
 
@@ -360,7 +360,7 @@ export default function ActivityDetailPage() {
             </h1>
             <p className="text-muted-foreground">
               {activity.description && <span>{activity.description} • </span>}
-              Created {formatDateTime(activity.created_at)}
+              Created {formatDateTime(activity.createdAt)}
             </p>
           </div>
         </div>
@@ -594,28 +594,28 @@ export default function ActivityDetailPage() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-6">
-                    {activity.contact_name && (
+                    {activity.contactName && (
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">
                           Contact
                         </h4>
-                        <p className="mt-1">{activity.contact_name}</p>
+                        <p className="mt-1">{activity.contactName}</p>
                       </div>
                     )}
-                    {activity.company_name && (
+                    {activity.companyName && (
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">
                           Company
                         </h4>
-                        <p className="mt-1">{activity.company_name}</p>
+                        <p className="mt-1">{activity.companyName}</p>
                       </div>
                     )}
-                    {activity.deal_title && (
+                    {activity.dealName && (
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">
                           Deal
                         </h4>
-                        <p className="mt-1">{activity.deal_title}</p>
+                        <p className="mt-1">{activity.dealName}</p>
                       </div>
                     )}
                   </div>

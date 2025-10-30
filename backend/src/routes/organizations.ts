@@ -10,13 +10,13 @@ const router = express.Router();
 router.use(authenticateToken);
 
 interface OrganizationWithCounts extends Organization {
-  contact_count: string;
-  deal_count: string;
+  contactCount: string;
+  dealCount: string;
 }
 
 interface OrganizationDetail extends Organization {
   contacts: Contact[];
-  deals: (Deal & { stage_name?: string })[];
+  deals: (Deal & { stageName?: string })[];
 }
 
 interface CountRow {
@@ -81,8 +81,8 @@ router.get(
       let countQuery = "SELECT COUNT(*) FROM companies";
       let dataQuery = `
         SELECT c.*, 
-          (SELECT COUNT(*) FROM contacts WHERE company_id = c.id) as contact_count,
-          (SELECT COUNT(*) FROM deals WHERE company_id = c.id) as deal_count
+          (SELECT COUNT(*) FROM contacts WHERE companyId = c.id) as contactCount,
+          (SELECT COUNT(*) FROM deals WHERE companyId = c.id) as dealCount
         FROM companies c 
       `;
       const params: any[] = [];
@@ -100,7 +100,7 @@ router.get(
       }
 
       dataQuery +=
-        " ORDER BY c.created_at DESC LIMIT $" +
+        " ORDER BY c.createdAt DESC LIMIT $" +
         (params.length + 1) +
         " OFFSET $" +
         (params.length + 2);
@@ -145,15 +145,15 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const [companyResult, contactsResult, dealsResult] = await Promise.all([
       db.query<Organization>("SELECT * FROM companies WHERE id = $1", [id]),
       db.query<Contact>(
-        "SELECT * FROM contacts WHERE company_id = $1 AND user_id = $2 ORDER BY created_at DESC",
+        "SELECT * FROM contacts WHERE companyId = $1 AND userId = $2 ORDER BY createdAt DESC",
         [id, req.user.userId]
       ),
-      db.query<Deal & { stage_name?: string }>(
-        `SELECT d.*, ds.name as stage_name 
+      db.query<Deal & { stageName?: string }>(
+        `SELECT d.*, ds.name as stageName 
         FROM deals d 
-        LEFT JOIN deal_stages ds ON d.stage_id = ds.id 
-        WHERE d.company_id = $1 AND d.user_id = $2 
-        ORDER BY d.created_at DESC`,
+        LEFT JOIN dealStages ds ON d.stageId = ds.id 
+        WHERE d.companyId = $1 AND d.userId = $2 
+        ORDER BY d.createdAt DESC`,
         [id, req.user.userId]
       ),
     ]);
@@ -208,7 +208,7 @@ router.post(
         req.body;
 
       const result = await db.query<Organization>(
-        `INSERT INTO companies (name, industry, website, phone, email, address, notes, user_id) 
+        `INSERT INTO companies (name, industry, website, phone, email, address, notes, userId) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
          RETURNING *`,
         [
@@ -264,7 +264,7 @@ router.put(
 
       // Check if organization exists and belongs to user
       const existingCompany = await db.query<{ id: string }>(
-        "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
+        "SELECT id FROM companies WHERE id = $1 AND userId = $2",
         [id, req.user.userId]
       );
 
@@ -289,13 +289,13 @@ router.put(
         return;
       }
 
-      fields.push("updated_at = CURRENT_TIMESTAMP");
+      fields.push("updatedAt = CURRENT_TIMESTAMP");
       values.push(id, req.user.userId);
 
       const query = `
         UPDATE companies 
         SET ${fields.join(", ")} 
-        WHERE id = $${paramCount} AND user_id = $${paramCount + 1} 
+        WHERE id = $${paramCount} AND userId = $${paramCount + 1} 
         RETURNING *
       `;
 
@@ -319,7 +319,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
 
     const result = await db.query<{ id: string }>(
-      "DELETE FROM companies WHERE id = $1 AND user_id = $2 RETURNING id",
+      "DELETE FROM companies WHERE id = $1 AND userId = $2 RETURNING id",
       [id, req.user.userId]
     );
 

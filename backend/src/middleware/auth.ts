@@ -27,7 +27,7 @@ export const authenticateToken = async (
 
     // Verify user still exists
     const userResult = await db.query<User>(
-      "SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users WHERE id = $1",
+      "SELECT id, email, firstName, lastName, role, createdAt, updatedAt FROM users WHERE id = $1",
       [decoded.userId]
     );
 
@@ -41,11 +41,11 @@ export const authenticateToken = async (
       id: user.id,
       userId: user.id,
       email: user.email,
-      first_name: user.first_name,
-      last_name: user.last_name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       role: user.role,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
 
     next();

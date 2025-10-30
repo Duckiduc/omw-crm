@@ -5,10 +5,10 @@ export const addTagsToContacts = async (): Promise<void> => {
     console.log("🔨 Adding tags column to contacts table...");
 
     // Check if tags column already exists
-    const columnCheck = await db.query<{ column_name: string }>(`
-      SELECT column_name 
+    const columnCheck = await db.query<{ columnName: string }>(`
+      SELECT columnName 
       FROM information_schema.columns 
-      WHERE table_name = 'contacts' AND column_name = 'tags'
+      WHERE tableName = 'contacts' AND columnName = 'tags'
     `);
 
     if (columnCheck.rows.length === 0) {
@@ -20,7 +20,7 @@ export const addTagsToContacts = async (): Promise<void> => {
 
       // Create index for better search performance
       await db.query(`
-        CREATE INDEX IF NOT EXISTS idx_contacts_tags ON contacts USING GIN (tags);
+        CREATE INDEX IF NOT EXISTS idxContactsTags ON contacts USING GIN (tags);
       `);
 
       console.log("✅ Tags column added successfully!");

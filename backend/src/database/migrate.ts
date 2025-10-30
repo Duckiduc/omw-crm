@@ -13,8 +13,8 @@ interface ExistingAdminRow {
 interface ExistingStagesRow {
   id: string;
   name: string;
-  order_index: number;
-  user_id: string;
+  orderIndex: number;
+  userId: string;
 }
 
 export const createTables = async (): Promise<void> => {
@@ -27,11 +27,11 @@ export const createTables = async (): Promise<void> => {
         id SERIAL PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        first_name VARCHAR(100) NOT NULL,
-        last_name VARCHAR(100) NOT NULL,
+        firstName VARCHAR(100) NOT NULL,
+        lastName VARCHAR(100) NOT NULL,
         role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -46,9 +46,9 @@ export const createTables = async (): Promise<void> => {
         email VARCHAR(255),
         address TEXT,
         notes TEXT,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -56,29 +56,29 @@ export const createTables = async (): Promise<void> => {
     await db.query(`
       CREATE TABLE IF NOT EXISTS contacts (
         id SERIAL PRIMARY KEY,
-        first_name VARCHAR(100) NOT NULL,
-        last_name VARCHAR(100) NOT NULL,
+        firstName VARCHAR(100) NOT NULL,
+        lastName VARCHAR(100) NOT NULL,
         email VARCHAR(255),
         phone VARCHAR(50),
         position VARCHAR(100),
-        company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+        companyId INTEGER REFERENCES companies(id) ON DELETE SET NULL,
         notes TEXT,
         tags TEXT[], -- Array of tags for flexible categorization
-        status VARCHAR(20) DEFAULT 'all_good' CHECK (status IN ('hot', 'warm', 'cold', 'all_good')),
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        status VARCHAR(20) DEFAULT 'allGood' CHECK (status IN ('hot', 'warm', 'cold', 'allGood')),
+        userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     // Deal stages lookup
     await db.query(`
-      CREATE TABLE IF NOT EXISTS deal_stages (
+      CREATE TABLE IF NOT EXISTS dealStages (
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
-        order_index INTEGER NOT NULL,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        orderIndex INTEGER NOT NULL,
+        userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -89,15 +89,15 @@ export const createTables = async (): Promise<void> => {
         title VARCHAR(255) NOT NULL,
         value DECIMAL(12,2) DEFAULT 0,
         currency VARCHAR(3) DEFAULT 'USD',
-        stage_id INTEGER REFERENCES deal_stages(id) ON DELETE SET NULL,
-        contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-        company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
-        expected_close_date DATE,
+        stageId INTEGER REFERENCES dealStages(id) ON DELETE SET NULL,
+        contactId INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+        companyId INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+        expectedCloseDate DATE,
         probability INTEGER DEFAULT 0 CHECK (probability >= 0 AND probability <= 100),
         notes TEXT,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -108,52 +108,52 @@ export const createTables = async (): Promise<void> => {
         type VARCHAR(50) NOT NULL, -- 'call', 'email', 'meeting', 'note', 'task'
         subject VARCHAR(255) NOT NULL,
         description TEXT,
-        due_date TIMESTAMP,
+        dueDate TIMESTAMP,
         completed BOOLEAN DEFAULT FALSE,
-        contact_id INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
-        company_id INTEGER REFERENCES companies(id) ON DELETE SET NULL,
-        deal_id INTEGER REFERENCES deals(id) ON DELETE SET NULL,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        contactId INTEGER REFERENCES contacts(id) ON DELETE SET NULL,
+        companyId INTEGER REFERENCES companies(id) ON DELETE SET NULL,
+        dealId INTEGER REFERENCES deals(id) ON DELETE SET NULL,
+        userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     // Contact notes table for detailed notes management
     await db.query(`
-      CREATE TABLE IF NOT EXISTS contact_notes (
+      CREATE TABLE IF NOT EXISTS contactNotes (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255), -- Optional title for notes
         content TEXT NOT NULL,
-        contact_id INTEGER REFERENCES contacts(id) ON DELETE CASCADE,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        contactId INTEGER REFERENCES contacts(id) ON DELETE CASCADE,
+        userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     // Activity notes table for detailed notes management
     await db.query(`
-      CREATE TABLE IF NOT EXISTS activity_notes (
+      CREATE TABLE IF NOT EXISTS activityNotes (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255), -- Optional title for notes
         content TEXT NOT NULL,
-        activity_id INTEGER REFERENCES activities(id) ON DELETE CASCADE,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        activityId INTEGER REFERENCES activities(id) ON DELETE CASCADE,
+        userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     // System settings table
     await db.query(`
-      CREATE TABLE IF NOT EXISTS system_settings (
+      CREATE TABLE IF NOT EXISTS systemSettings (
         id SERIAL PRIMARY KEY,
-        setting_key VARCHAR(100) UNIQUE NOT NULL,
-        setting_value TEXT NOT NULL,
+        settingKey VARCHAR(100) UNIQUE NOT NULL,
+        settingValue TEXT NOT NULL,
         description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -161,33 +161,33 @@ export const createTables = async (): Promise<void> => {
     await db.query(`
       CREATE TABLE IF NOT EXISTS shares (
         id SERIAL PRIMARY KEY,
-        item_type VARCHAR(50) NOT NULL CHECK (item_type IN ('contact', 'organization', 'deal', 'activity')),
-        item_id INTEGER NOT NULL,
-        shared_by_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        shared_with_user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        itemType VARCHAR(50) NOT NULL CHECK (itemType IN ('contact', 'organization', 'deal', 'activity')),
+        itemId INTEGER NOT NULL,
+        sharedByUserId INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        sharedWithUserId INTEGER REFERENCES users(id) ON DELETE CASCADE,
         permissions VARCHAR(10) DEFAULT 'read' CHECK (permissions IN ('read', 'write')),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(item_type, item_id, shared_by_user_id, shared_with_user_id)
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(itemType, itemId, sharedByUserId, sharedWithUserId)
       );
     `);
 
     // Create indexes
     const indexes = [
-      "CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON contacts(user_id);",
-      "CREATE INDEX IF NOT EXISTS idx_companies_user_id ON companies(user_id);",
-      "CREATE INDEX IF NOT EXISTS idx_deals_user_id ON deals(user_id);",
-      "CREATE INDEX IF NOT EXISTS idx_activities_user_id ON activities(user_id);",
-      "CREATE INDEX IF NOT EXISTS idx_contact_notes_user_id ON contact_notes(user_id);",
-      "CREATE INDEX IF NOT EXISTS idx_contact_notes_contact_id ON contact_notes(contact_id);",
-      "CREATE INDEX IF NOT EXISTS idx_activity_notes_user_id ON activity_notes(user_id);",
-      "CREATE INDEX IF NOT EXISTS idx_activity_notes_activity_id ON activity_notes(activity_id);",
-      "CREATE INDEX IF NOT EXISTS idx_contacts_company_id ON contacts(company_id);",
-      "CREATE INDEX IF NOT EXISTS idx_deals_contact_id ON deals(contact_id);",
-      "CREATE INDEX IF NOT EXISTS idx_deals_company_id ON deals(company_id);",
-      "CREATE INDEX IF NOT EXISTS idx_contacts_tags ON contacts USING GIN (tags);",
-      "CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);",
-      "CREATE INDEX IF NOT EXISTS idx_shares_shared_with ON shares(shared_with_user_id);",
-      "CREATE INDEX IF NOT EXISTS idx_shares_item ON shares(item_type, item_id);",
+      "CREATE INDEX IF NOT EXISTS idxContactsUserId ON contacts(userId);",
+      "CREATE INDEX IF NOT EXISTS idxCompaniesUserId ON companies(userId);",
+      "CREATE INDEX IF NOT EXISTS idxDealsUserId ON deals(userId);",
+      "CREATE INDEX IF NOT EXISTS idxActivitiesUserId ON activities(userId);",
+      "CREATE INDEX IF NOT EXISTS idxContactNotesUserId ON contactNotes(userId);",
+      "CREATE INDEX IF NOT EXISTS idxContactNotesContactId ON contactNotes(contactId);",
+      "CREATE INDEX IF NOT EXISTS idxActivityNotesUserId ON activityNotes(userId);",
+      "CREATE INDEX IF NOT EXISTS idxActivityNotesActivityId ON activityNotes(activityId);",
+      "CREATE INDEX IF NOT EXISTS idxContactsCompanyId ON contacts(companyId);",
+      "CREATE INDEX IF NOT EXISTS idxDealsContactId ON deals(contactId);",
+      "CREATE INDEX IF NOT EXISTS idxDealsCompanyId ON deals(companyId);",
+      "CREATE INDEX IF NOT EXISTS idxContactsTags ON contacts USING GIN (tags);",
+      "CREATE INDEX IF NOT EXISTS idxContactsStatus ON contacts(status);",
+      "CREATE INDEX IF NOT EXISTS idxSharesSharedWith ON shares(sharedWithUserId);",
+      "CREATE INDEX IF NOT EXISTS idxSharesItem ON shares(itemType, itemId);",
     ];
 
     for (const indexQuery of indexes) {
@@ -218,7 +218,7 @@ export const createDefaultAdmin = async (): Promise<AdminUserRow | null> => {
 
       // Create default admin user
       const result = await db.query<AdminUserRow>(
-        "INSERT INTO users (email, password, first_name, last_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email",
+        "INSERT INTO users (email, password, firstName, lastName, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email",
         [
           "admin@omwcrm.local",
           hashedPassword,
@@ -256,24 +256,24 @@ export const seedDefaultData = async (userId: string): Promise<void> => {
   try {
     // Check if default deal stages exist for this user
     const existingStages = await db.query<ExistingStagesRow>(
-      "SELECT * FROM deal_stages WHERE user_id = $1",
+      "SELECT * FROM dealStages WHERE userId = $1",
       [userId]
     );
 
     if (existingStages.rows.length === 0) {
       const defaultStages = [
-        { name: "Lead", order_index: 1 },
-        { name: "Qualified", order_index: 2 },
-        { name: "Proposal", order_index: 3 },
-        { name: "Negotiation", order_index: 4 },
-        { name: "Won", order_index: 5 },
-        { name: "Lost", order_index: 6 },
+        { name: "Lead", orderIndex: 1 },
+        { name: "Qualified", orderIndex: 2 },
+        { name: "Proposal", orderIndex: 3 },
+        { name: "Negotiation", orderIndex: 4 },
+        { name: "Won", orderIndex: 5 },
+        { name: "Lost", orderIndex: 6 },
       ];
 
       for (const stage of defaultStages) {
         await db.query(
-          "INSERT INTO deal_stages (name, order_index, user_id) VALUES ($1, $2, $3)",
-          [stage.name, stage.order_index, userId]
+          "INSERT INTO dealStages (name, orderIndex, userId) VALUES ($1, $2, $3)",
+          [stage.name, stage.orderIndex, userId]
         );
       }
       console.log("✅ Default deal stages created for user");
@@ -282,12 +282,12 @@ export const seedDefaultData = async (userId: string): Promise<void> => {
     // Insert default system settings
     const defaultSettings = [
       {
-        key: "registration_enabled",
+        key: "registrationEnabled",
         value: "true",
         description: "Allow new user registration",
       },
       {
-        key: "max_users",
+        key: "maxUsers",
         value: "0",
         description: "Maximum number of users (0 = unlimited)",
       },
@@ -296,9 +296,9 @@ export const seedDefaultData = async (userId: string): Promise<void> => {
     for (const setting of defaultSettings) {
       await db.query(
         `
-        INSERT INTO system_settings (setting_key, setting_value, description)
+        INSERT INTO systemSettings (settingKey, settingValue, description)
         VALUES ($1, $2, $3)
-        ON CONFLICT (setting_key) DO NOTHING
+        ON CONFLICT (settingKey) DO NOTHING
       `,
         [setting.key, setting.value, setting.description]
       );

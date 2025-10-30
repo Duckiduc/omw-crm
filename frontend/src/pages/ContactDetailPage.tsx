@@ -42,7 +42,7 @@ interface ContactFormData {
   companyId: string;
   notes: string;
   tags: string[];
-  status: "hot" | "warm" | "cold" | "all_good";
+  status: "hot" | "warm" | "cold" | "allGood";
 }
 
 export default function ContactDetailPage() {
@@ -66,7 +66,7 @@ export default function ContactDetailPage() {
     companyId: "",
     notes: "",
     tags: [],
-    status: "all_good",
+    status: "allGood",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -92,7 +92,7 @@ export default function ContactDetailPage() {
             companyId: contactResponse.data.companyId?.toString() || "",
             notes: contactResponse.data.notes || "",
             tags: contactResponse.data.tags || [],
-            status: contactResponse.data.status || "all_good",
+            status: contactResponse.data.status || "allGood",
           });
         }
 
@@ -131,7 +131,7 @@ export default function ContactDetailPage() {
           companyId: contactResponse.data.companyId?.toString() || "",
           notes: contactResponse.data.notes || "",
           tags: contactResponse.data.tags || [],
-          status: contactResponse.data.status || "all_good",
+          status: contactResponse.data.status || "allGood",
         });
       }
 
@@ -220,7 +220,7 @@ export default function ContactDetailPage() {
         companyId: contact.companyId?.toString() || "",
         notes: contact.notes || "",
         tags: contact.tags || [],
-        status: contact.status || "all_good",
+        status: contact.status || "allGood",
       });
     }
     setFormErrors({});
@@ -504,10 +504,10 @@ export default function ContactDetailPage() {
                     </div>
                   )}
 
-                  {contact.company_name && (
+                  {contact.companyName && (
                     <div className="flex items-center">
                       <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                      <span>{contact.company_name}</span>
+                      <span>{contact.companyName}</span>
                     </div>
                   )}
 
@@ -530,7 +530,7 @@ export default function ContactDetailPage() {
                     <span className="text-sm font-medium text-muted-foreground block mb-2">
                       Status:
                     </span>
-                    <ContactStatusBadge status={contact.status || "all_good"} />
+                    <ContactStatusBadge status={contact.status || "allGood"} />
                   </div>
                 </div>
               )}
@@ -704,17 +704,13 @@ export default function ContactDetailPage() {
                 <span className="text-sm font-medium text-muted-foreground">
                   Created:{" "}
                 </span>
-                <span className="text-sm">
-                  {formatDate(contact.created_at)}
-                </span>
+                <span className="text-sm">{formatDate(contact.createdAt)}</span>
               </div>
               <div>
                 <span className="text-sm font-medium text-muted-foreground">
                   Last Updated:{" "}
                 </span>
-                <span className="text-sm">
-                  {formatDate(contact.updated_at)}
-                </span>
+                <span className="text-sm">{formatDate(contact.updatedAt)}</span>
               </div>
               <div>
                 <span className="text-sm font-medium text-muted-foreground">

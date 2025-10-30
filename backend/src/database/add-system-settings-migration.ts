@@ -2,38 +2,38 @@ import db from "../config/database";
 
 export const createSystemSettingsTable = async (): Promise<void> => {
   try {
-    console.log("🔨 Creating system_settings table...");
+    console.log("🔨 Creating systemSettings table...");
 
-    // Create system_settings table
+    // Create systemSettings table
     await db.query(`
-      CREATE TABLE IF NOT EXISTS system_settings (
+      CREATE TABLE IF NOT EXISTS systemSettings (
         id SERIAL PRIMARY KEY,
-        setting_key VARCHAR(255) UNIQUE NOT NULL,
-        setting_value TEXT NOT NULL,
+        settingKey VARCHAR(255) UNIQUE NOT NULL,
+        settingValue TEXT NOT NULL,
         description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
     // Insert default settings
     await db.query(`
-      INSERT INTO system_settings (setting_key, setting_value, description) 
+      INSERT INTO systemSettings (settingKey, settingValue, description) 
       VALUES 
-        ('registration_enabled', 'true', 'Allow new user registration'),
-        ('app_name', 'OMW CRM', 'Application name'),
-        ('max_users', '0', 'Maximum number of users (0 = unlimited)')
-      ON CONFLICT (setting_key) DO NOTHING;
+        ('registrationEnabled', 'true', 'Allow new user registration'),
+        ('appName', 'OMW CRM', 'Application name'),
+        ('maxUsers', '0', 'Maximum number of users (0 = unlimited)')
+      ON CONFLICT (settingKey) DO NOTHING;
     `);
 
     // Create index for faster lookups
     await db.query(`
-      CREATE INDEX IF NOT EXISTS idx_system_settings_key ON system_settings(setting_key);
+      CREATE INDEX IF NOT EXISTS idx_systemSettings_key ON systemSettings(settingKey);
     `);
 
     console.log("✅ System settings table created successfully!");
   } catch (error) {
-    console.error("❌ Error creating system_settings table:", error);
+    console.error("❌ Error creating systemSettings table:", error);
     throw error;
   }
 };

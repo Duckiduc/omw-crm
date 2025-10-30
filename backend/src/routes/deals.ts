@@ -12,16 +12,16 @@ router.use(authenticateToken);
 interface DealStage {
   id: string;
   name: string;
-  order_index: number;
-  user_id: string;
-  created_at: Date;
+  orderIndex: number;
+  userId: string;
+  createdAt: Date;
 }
 
 interface DealRow extends Deal {
-  stage_name?: string;
-  contact_name?: string;
-  company_name?: string;
-  is_shared_with_me?: boolean;
+  stageName?: string;
+  contactName?: string;
+  companyName?: string;
+  isSharedWithMe?: boolean;
   permissions?: string;
 }
 
@@ -29,10 +29,28 @@ interface CountRow {
   count: string;
 }
 
+interface TransformedDeal {
+  id: number;
+  title: string;
+  value: number;
+  currency: string;
+  stageId: number;
+  contactId?: number;
+  companyId?: number;
+  expectedCloseDate?: string;
+  probability: number;
+  notes?: string;
+  contactName?: string;
+  companyName?: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: number;
+}
+
 interface DealsByStageResponse {
   [stageId: string]: {
     stage: DealStage;
-    deals: DealRow[];
+    deals: TransformedDeal[];
   };
 }
 
@@ -74,7 +92,7 @@ interface ValidationRow {
 
 interface ExistingDealRow {
   id: string;
-  user_id: string;
+  userId: string;
   permissions?: string;
 }
 
@@ -87,7 +105,7 @@ router.get("/stages", async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const result = await db.query<DealStage>(
-      "SELECT * FROM deal_stages WHERE user_id = $1 ORDER BY order_index",
+      "SELECT * FROM dealStages WHERE userId = $1 ORDER BY orderIndex",
       [req.user.userId]
     );
     res.json(result.rows);
@@ -131,23 +149,23 @@ router.get(
       let countQuery = `
         SELECT COUNT(*) 
         FROM deals d 
-        LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $1
-        WHERE (d.user_id = $1 OR s.id IS NOT NULL)
+        LEFT JOIN shares s ON s.itemType = 'deal' AND s.itemId = d.id AND s.sharedWithUserId = $1
+        WHERE (d.userId = $1 OR s.id IS NOT NULL)
       `;
 
       let dataQuery = `
         SELECT d.*, 
-          ds.name as stage_name,
-          c.first_name || ' ' || c.last_name as contact_name,
-          comp.name as company_name,
-          CASE WHEN d.user_id = $1 THEN false ELSE true END as is_shared_with_me,
+          ds.name as stageName,
+          c.firstName || ' ' || c.lastName as contactName,
+          comp.name as companyName,
+          CASE WHEN d.userId = $1 THEN false ELSE true END as isSharedWithMe,
           s.permissions
         FROM deals d 
-        LEFT JOIN deal_stages ds ON d.stage_id = ds.id
-        LEFT JOIN contacts c ON d.contact_id = c.id
-        LEFT JOIN companies comp ON d.company_id = comp.id
-        LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $1
-        WHERE (d.user_id = $1 OR s.id IS NOT NULL)
+        LEFT JOIN dealStages ds ON d.stageId = ds.id
+        LEFT JOIN contacts c ON d.contactId = c.id
+        LEFT JOIN companies comp ON d.companyId = comp.id
+        LEFT JOIN shares s ON s.itemType = 'deal' AND s.itemId = d.id AND s.sharedWithUserId = $1
+        WHERE (d.userId = $1 OR s.id IS NOT NULL)
       `;
 
       const params: any[] = [req.user.userId];
@@ -163,7 +181,7 @@ router.get(
       }
 
       if (stageId) {
-        const stageCondition = ` AND d.stage_id = $${paramCount}`;
+        const stageCondition = ` AND d.stageId = $${paramCount}`;
         countQuery += stageCondition;
         dataQuery += stageCondition;
         params.push(stageId);
@@ -171,14 +189,14 @@ router.get(
       }
 
       if (companyId) {
-        const companyCondition = ` AND d.company_id = $${paramCount}`;
+        const companyCondition = ` AND d.companyId = $${paramCount}`;
         countQuery += companyCondition;
         dataQuery += companyCondition;
         params.push(companyId);
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY d.created_at DESC LIMIT $${paramCount} OFFSET $${
+      dataQuery += ` ORDER BY d.createdAt DESC LIMIT $${paramCount} OFFSET $${
         paramCount + 1
       }`;
 
@@ -193,8 +211,30 @@ router.get(
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
 
+      // Transform to camelCase for frontend compatibility
+      const deals = dataResult.rows.map((deal: any) => ({
+        id: deal.id,
+        title: deal.title,
+        value: deal.value,
+        currency: deal.currency,
+        stageId: deal.stageId,
+        contactId: deal.contactId,
+        companyId: deal.companyId,
+        expectedCloseDate: deal.expectedCloseDate,
+        probability: deal.probability,
+        notes: deal.notes,
+        contactName: deal.contactName,
+        companyName: deal.companyName,
+        stageName: deal.stageName,
+        isSharedWithMe: deal.isSharedWithMe,
+        permission: deal.permissions,
+        createdAt: deal.createdAt,
+        updatedAt: deal.updatedAt,
+        userId: deal.userId,
+      }));
+
       res.json({
-        deals: dataResult.rows,
+        deals,
         pagination: {
           page,
           limit,
@@ -220,7 +260,7 @@ router.get("/by-stage", async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const stagesResult = await db.query<DealStage>(
-      "SELECT * FROM deal_stages WHERE user_id = $1 ORDER BY order_index",
+      "SELECT * FROM dealStages WHERE userId = $1 ORDER BY orderIndex",
       [req.user.userId]
     );
 
@@ -229,19 +269,38 @@ router.get("/by-stage", async (req: AuthenticatedRequest, res: Response) => {
     for (const stage of stagesResult.rows) {
       const dealsResult = await db.query<DealRow>(
         `SELECT d.*, 
-          c.first_name || ' ' || c.last_name as contact_name,
-          comp.name as company_name
+          c.firstName || ' ' || c.lastName as contactName,
+          comp.name as companyName
         FROM deals d 
-        LEFT JOIN contacts c ON d.contact_id = c.id
-        LEFT JOIN companies comp ON d.company_id = comp.id
-        WHERE d.stage_id = $1 AND d.user_id = $2
-        ORDER BY d.created_at DESC`,
+        LEFT JOIN contacts c ON d.contactId = c.id
+        LEFT JOIN companies comp ON d.companyId = comp.id
+        WHERE d.stageId = $1 AND d.userId = $2
+        ORDER BY d.createdAt DESC`,
         [stage.id, req.user.userId]
       );
 
+      // Transform deals to camelCase for frontend compatibility
+      const deals = dealsResult.rows.map((deal: any) => ({
+        id: deal.id,
+        title: deal.title,
+        value: deal.value,
+        currency: deal.currency,
+        stageId: deal.stageId,
+        contactId: deal.contactId,
+        companyId: deal.companyId,
+        expectedCloseDate: deal.expectedCloseDate,
+        probability: deal.probability,
+        notes: deal.notes,
+        contactName: deal.contactName,
+        companyName: deal.companyName,
+        createdAt: deal.createdAt,
+        updatedAt: deal.updatedAt,
+        userId: deal.userId,
+      }));
+
       dealsByStage[stage.id] = {
         stage: stage,
-        deals: dealsResult.rows,
+        deals: deals,
       };
     }
 
@@ -264,17 +323,17 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
     const result = await db.query<DealRow>(
       `SELECT d.*, 
-        ds.name as stage_name,
-        c.first_name || ' ' || c.last_name as contact_name,
-        comp.name as company_name,
-        CASE WHEN d.user_id = $2 THEN false ELSE true END as is_shared_with_me,
+        ds.name as stageName,
+        c.firstName || ' ' || c.lastName as contactName,
+        comp.name as companyName,
+        CASE WHEN d.userId = $2 THEN false ELSE true END as isSharedWithMe,
         s.permissions
       FROM deals d 
-      LEFT JOIN deal_stages ds ON d.stage_id = ds.id
-      LEFT JOIN contacts c ON d.contact_id = c.id
-      LEFT JOIN companies comp ON d.company_id = comp.id
-      LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $2
-      WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
+      LEFT JOIN dealStages ds ON d.stageId = ds.id
+      LEFT JOIN contacts c ON d.contactId = c.id
+      LEFT JOIN companies comp ON d.companyId = comp.id
+      LEFT JOIN shares s ON s.itemType = 'deal' AND s.itemId = d.id AND s.sharedWithUserId = $2
+      WHERE d.id = $1 AND (d.userId = $2 OR s.id IS NOT NULL)`,
       [id, req.user.userId]
     );
 
@@ -283,7 +342,30 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    res.json(result.rows[0]);
+    // Transform to camelCase for frontend compatibility
+    const deal: any = result.rows[0];
+    const transformedDeal = {
+      id: deal.id,
+      title: deal.title,
+      value: deal.value,
+      currency: deal.currency,
+      stageId: deal.stageId,
+      contactId: deal.contactId,
+      companyId: deal.companyId,
+      expectedCloseDate: deal.expectedCloseDate,
+      probability: deal.probability,
+      notes: deal.notes,
+      contactName: deal.contactName,
+      companyName: deal.companyName,
+      stageName: deal.stageName,
+      isSharedWithMe: deal.isSharedWithMe,
+      permission: deal.permissions,
+      createdAt: deal.createdAt,
+      updatedAt: deal.updatedAt,
+      userId: deal.userId,
+    };
+
+    res.json(transformedDeal);
   } catch (error) {
     console.error("Get deal error:", error);
     res.status(500).json({ message: "Server error fetching deal" });
@@ -332,7 +414,7 @@ router.post(
       // Validate foreign keys belong to user
       if (stageId) {
         const stageCheck = await db.query<ValidationRow>(
-          "SELECT id FROM deal_stages WHERE id = $1 AND user_id = $2",
+          "SELECT id FROM dealStages WHERE id = $1 AND userId = $2",
           [stageId, req.user.userId]
         );
         if (stageCheck.rows.length === 0) {
@@ -343,7 +425,7 @@ router.post(
 
       if (contactId) {
         const contactCheck = await db.query<ValidationRow>(
-          "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
+          "SELECT id FROM contacts WHERE id = $1 AND userId = $2",
           [contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
@@ -354,7 +436,7 @@ router.post(
 
       if (companyId) {
         const companyCheck = await db.query<ValidationRow>(
-          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
+          "SELECT id FROM companies WHERE id = $1 AND userId = $2",
           [companyId, req.user.userId]
         );
         if (companyCheck.rows.length === 0) {
@@ -365,8 +447,8 @@ router.post(
 
       const result = await db.query<Deal>(
         `INSERT INTO deals (
-          title, value, currency, stage_id, contact_id, company_id, 
-          expected_close_date, probability, notes, user_id
+          title, value, currency, stageId, contactId, companyId, 
+          expectedCloseDate, probability, notes, userId
         ) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
         RETURNING *`,
@@ -384,7 +466,25 @@ router.post(
         ]
       );
 
-      res.status(201).json(result.rows[0]);
+      // Transform to camelCase for frontend compatibility
+      const deal: any = result.rows[0];
+      const transformedDeal = {
+        id: deal.id,
+        title: deal.title,
+        value: deal.value,
+        currency: deal.currency,
+        stageId: deal.stageId,
+        contactId: deal.contactId,
+        companyId: deal.companyId,
+        expectedCloseDate: deal.expectedCloseDate,
+        probability: deal.probability,
+        notes: deal.notes,
+        createdAt: deal.createdAt,
+        updatedAt: deal.updatedAt,
+        userId: deal.userId,
+      };
+
+      res.status(201).json(transformedDeal);
     } catch (error) {
       console.error("Create deal error:", error);
       res.status(500).json({ message: "Server error creating deal" });
@@ -427,10 +527,10 @@ router.put(
 
       // Check if deal exists and user has edit permission
       const existingDeal = await db.query<ExistingDealRow>(
-        `SELECT d.id, d.user_id, s.permissions 
+        `SELECT d.id, d.userId, s.permissions 
          FROM deals d 
-         LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $2
-         WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
+         LEFT JOIN shares s ON s.itemType = 'deal' AND s.itemId = d.id AND s.sharedWithUserId = $2
+         WHERE d.id = $1 AND (d.userId = $2 OR s.id IS NOT NULL)`,
         [id, req.user.userId]
       );
 
@@ -442,7 +542,7 @@ router.put(
       const dealPermissions = existingDeal.rows[0];
       // Check if user is owner or has write permission
       if (
-        dealPermissions.user_id !== req.user.userId &&
+        dealPermissions.userId !== req.user.userId &&
         dealPermissions.permissions !== "write"
       ) {
         res
@@ -454,7 +554,7 @@ router.put(
       // Validate foreign keys
       if (updates.stageId) {
         const stageCheck = await db.query<ValidationRow>(
-          "SELECT id FROM deal_stages WHERE id = $1 AND user_id = $2",
+          "SELECT id FROM dealStages WHERE id = $1 AND userId = $2",
           [updates.stageId, req.user.userId]
         );
         if (stageCheck.rows.length === 0) {
@@ -465,7 +565,7 @@ router.put(
 
       if (updates.contactId) {
         const contactCheck = await db.query<ValidationRow>(
-          "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
+          "SELECT id FROM contacts WHERE id = $1 AND userId = $2",
           [updates.contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
@@ -476,7 +576,7 @@ router.put(
 
       if (updates.companyId) {
         const companyCheck = await db.query<ValidationRow>(
-          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
+          "SELECT id FROM companies WHERE id = $1 AND userId = $2",
           [updates.companyId, req.user.userId]
         );
         if (companyCheck.rows.length === 0) {
@@ -493,13 +593,13 @@ router.put(
       Object.entries(updates).forEach(([key, value]) => {
         const dbField =
           key === "stageId"
-            ? "stage_id"
+            ? "stageId"
             : key === "contactId"
-            ? "contact_id"
+            ? "contactId"
             : key === "companyId"
-            ? "company_id"
+            ? "companyId"
             : key === "expectedCloseDate"
-            ? "expected_close_date"
+            ? "expectedCloseDate"
             : key;
         fields.push(`${dbField} = $${paramCount}`);
         values.push(value);
@@ -511,18 +611,37 @@ router.put(
         return;
       }
 
-      fields.push("updated_at = CURRENT_TIMESTAMP");
+      fields.push("updatedAt = CURRENT_TIMESTAMP");
       values.push(id, req.user.userId);
 
       const query = `
         UPDATE deals 
         SET ${fields.join(", ")} 
-        WHERE id = $${paramCount} AND user_id = $${paramCount + 1} 
+        WHERE id = $${paramCount} AND userId = $${paramCount + 1} 
         RETURNING *
       `;
 
       const result = await db.query<Deal>(query, values);
-      res.json(result.rows[0]);
+
+      // Transform to camelCase for frontend compatibility
+      const deal: any = result.rows[0];
+      const transformedDeal = {
+        id: deal.id,
+        title: deal.title,
+        value: deal.value,
+        currency: deal.currency,
+        stageId: deal.stageId,
+        contactId: deal.contactId,
+        companyId: deal.companyId,
+        expectedCloseDate: deal.expectedCloseDate,
+        probability: deal.probability,
+        notes: deal.notes,
+        createdAt: deal.createdAt,
+        updatedAt: deal.updatedAt,
+        userId: deal.userId,
+      };
+
+      res.json(transformedDeal);
     } catch (error) {
       console.error("Update deal error:", error);
       res.status(500).json({ message: "Server error updating deal" });
@@ -542,7 +661,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
     // Only allow owner to delete (not shared users)
     const result = await db.query<{ id: string }>(
-      "DELETE FROM deals WHERE id = $1 AND user_id = $2 RETURNING id",
+      "DELETE FROM deals WHERE id = $1 AND userId = $2 RETURNING id",
       [id, req.user.userId]
     );
 

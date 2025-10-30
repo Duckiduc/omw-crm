@@ -127,8 +127,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {user?.firstName || user?.first_name}{" "}
-                      {user?.lastName || user?.last_name}
+                      {user?.firstName || user?.firstName}{" "}
+                      {user?.lastName || user?.lastName}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {user?.email}

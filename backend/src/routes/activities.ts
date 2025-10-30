@@ -10,10 +10,10 @@ const router = express.Router();
 router.use(authenticateToken);
 
 interface ActivityRow extends Activity {
-  contact_name?: string;
-  company_name?: string;
-  deal_title?: string;
-  is_shared_with_me?: boolean;
+  contactName?: string;
+  companyName?: string;
+  dealTitle?: string;
+  isSharedWithMe?: boolean;
   permission?: string;
 }
 
@@ -59,7 +59,7 @@ interface ValidationRow {
 
 interface ExistingActivityRow {
   id: string;
-  user_id: string;
+  userId: string;
   permission?: string;
 }
 
@@ -101,21 +101,21 @@ router.get(
       let countQuery = `
         SELECT COUNT(*) 
         FROM activities a 
-        LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $1
-        WHERE (a.user_id = $1 OR s.id IS NOT NULL)
+        LEFT JOIN shares s ON s.itemType = 'activity' AND s.itemId = a.id AND s.sharedWithUserId = $1
+        WHERE (a.userId = $1 OR s.id IS NOT NULL)
       `;
 
       let dataQuery = `
         SELECT a.*, 
-          c.first_name || ' ' || c.last_name as contact_name,
-          comp.name as company_name,
-          d.title as deal_name
+          c.firstName || ' ' || c.lastName as contactName,
+          comp.name as companyName,
+          d.title as dealName
         FROM activities a 
-        LEFT JOIN contacts c ON a.contact_id = c.id
-        LEFT JOIN companies comp ON a.company_id = comp.id
-        LEFT JOIN deals d ON a.deal_id = d.id
-        LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $1
-        WHERE (a.user_id = $1 OR s.id IS NOT NULL)
+        LEFT JOIN contacts c ON a.contactId = c.id
+        LEFT JOIN companies comp ON a.companyId = comp.id
+        LEFT JOIN deals d ON a.dealId = d.id
+        LEFT JOIN shares s ON s.itemType = 'activity' AND s.itemId = a.id AND s.sharedWithUserId = $1
+        WHERE (a.userId = $1 OR s.id IS NOT NULL)
       `;
 
       const params: any[] = [req.user.userId];
@@ -152,7 +152,7 @@ router.get(
       }
 
       if (contactId) {
-        const contactCondition = `AND a.contact_id = $${paramCount}`;
+        const contactCondition = `AND a.contactId = $${paramCount}`;
         countQuery += contactCondition;
         dataQuery += contactCondition;
         params.push(contactId);
@@ -160,7 +160,7 @@ router.get(
       }
 
       if (companyId) {
-        const companyCondition = `AND a.company_id = $${paramCount}`;
+        const companyCondition = `AND a.companyId = $${paramCount}`;
         countQuery += companyCondition;
         dataQuery += companyCondition;
         params.push(companyId);
@@ -168,14 +168,14 @@ router.get(
       }
 
       if (dealId) {
-        const dealCondition = `AND a.deal_id = $${paramCount}`;
+        const dealCondition = `AND a.dealId = $${paramCount}`;
         countQuery += dealCondition;
         dataQuery += dealCondition;
         params.push(dealId);
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY a.due_date ASC NULLS LAST, a.created_at DESC LIMIT $${paramCount} OFFSET $${
+      dataQuery += ` ORDER BY a.dueDate ASC NULLS LAST, a.createdAt DESC LIMIT $${paramCount} OFFSET $${
         paramCount + 1
       }`;
 
@@ -190,8 +190,27 @@ router.get(
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
 
+      // Transform to camelCase for frontend compatibility
+      const activities = dataResult.rows.map((activity: any) => ({
+        id: activity.id,
+        subject: activity.subject,
+        description: activity.description,
+        type: activity.type,
+        dueDate: activity.dueDate,
+        completed: activity.completed,
+        contactId: activity.contactId,
+        companyId: activity.companyId,
+        dealId: activity.dealId,
+        contactName: activity.contactName,
+        companyName: activity.companyName,
+        dealName: activity.dealName,
+        createdAt: activity.createdAt,
+        updatedAt: activity.updatedAt,
+        userId: activity.userId,
+      }));
+
       res.json({
-        activities: dataResult.rows,
+        activities,
         pagination: {
           page,
           limit,
@@ -218,21 +237,40 @@ router.get("/upcoming", async (req: AuthenticatedRequest, res: Response) => {
 
     const result = await db.query<ActivityRow>(
       `SELECT a.*, 
-        c.first_name || ' ' || c.last_name as contact_name,
-        comp.name as company_name,
-        d.title as deal_title
+        c.firstName || ' ' || c.lastName as contactName,
+        comp.name as companyName,
+        d.title as dealName
       FROM activities a 
-      LEFT JOIN contacts c ON a.contact_id = c.id
-      LEFT JOIN companies comp ON a.company_id = comp.id
-      LEFT JOIN deals d ON a.deal_id = d.id
-      WHERE a.user_id = $1 AND a.completed = false 
-        AND (a.due_date IS NULL OR a.due_date >= CURRENT_DATE)
-      ORDER BY a.due_date ASC NULLS LAST, a.created_at DESC
+      LEFT JOIN contacts c ON a.contactId = c.id
+      LEFT JOIN companies comp ON a.companyId = comp.id
+      LEFT JOIN deals d ON a.dealId = d.id
+      WHERE a.userId = $1 AND a.completed = false 
+        AND (a.dueDate IS NULL OR a.dueDate >= CURRENT_DATE)
+      ORDER BY a.dueDate ASC NULLS LAST, a.createdAt DESC
       LIMIT 10`,
       [req.user.userId]
     );
 
-    res.json(result.rows);
+    // Transform to camelCase for frontend compatibility
+    const activities = result.rows.map((activity: any) => ({
+      id: activity.id,
+      subject: activity.subject,
+      description: activity.description,
+      type: activity.type,
+      dueDate: activity.dueDate,
+      completed: activity.completed,
+      contactId: activity.contactId,
+      companyId: activity.companyId,
+      dealId: activity.dealId,
+      contactName: activity.contactName,
+      companyName: activity.companyName,
+      dealName: activity.dealName,
+      createdAt: activity.createdAt,
+      updatedAt: activity.updatedAt,
+      userId: activity.userId,
+    }));
+
+    res.json(activities);
   } catch (error) {
     console.error("Get upcoming activities error:", error);
     res
@@ -253,17 +291,17 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
     const result = await db.query<ActivityRow>(
       `SELECT a.*, 
-        c.first_name || ' ' || c.last_name as contact_name,
-        comp.name as company_name,
-        d.title as deal_title,
-        CASE WHEN a.user_id = $2 THEN false ELSE true END as is_shared_with_me,
-        s.permission
+        c.firstName || ' ' || c.lastName as contactName,
+        comp.name as companyName,
+        d.title as dealName,
+        CASE WHEN a.userId = $2 THEN false ELSE true END as isSharedWithMe,
+        s.permissions
       FROM activities a 
-      LEFT JOIN contacts c ON a.contact_id = c.id
-      LEFT JOIN companies comp ON a.company_id = comp.id
-      LEFT JOIN deals d ON a.deal_id = d.id
-      LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
-      WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
+      LEFT JOIN contacts c ON a.contactId = c.id
+      LEFT JOIN companies comp ON a.companyId = comp.id
+      LEFT JOIN deals d ON a.dealId = d.id
+      LEFT JOIN shares s ON s.itemType = 'activity' AND s.itemId = a.id AND s.sharedWithUserId = $2
+      WHERE a.id = $1 AND (a.userId = $2 OR s.id IS NOT NULL)`,
       [id, req.user.userId]
     );
 
@@ -272,7 +310,29 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    res.json(result.rows[0]);
+    // Transform to camelCase for frontend compatibility
+    const activity: any = result.rows[0];
+    const transformedActivity = {
+      id: activity.id,
+      subject: activity.subject,
+      description: activity.description,
+      type: activity.type,
+      dueDate: activity.dueDate,
+      completed: activity.completed,
+      contactId: activity.contactId,
+      companyId: activity.companyId,
+      dealId: activity.dealId,
+      contactName: activity.contactName,
+      companyName: activity.companyName,
+      dealName: activity.dealName,
+      isSharedWithMe: activity.isSharedWithMe,
+      permission: activity.permissions,
+      createdAt: activity.createdAt,
+      updatedAt: activity.updatedAt,
+      userId: activity.userId,
+    };
+
+    res.json(transformedActivity);
   } catch (error) {
     console.error("Get activity error:", error);
     res.status(500).json({ message: "Server error fetching activity" });
@@ -321,8 +381,8 @@ router.post(
       if (contactId) {
         const contactCheck = await db.query<ValidationRow>(
           `SELECT c.id FROM contacts c 
-           LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $2
-           WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
+           LEFT JOIN shares s ON s.itemType = 'contact' AND s.itemId = c.id AND s.sharedWithUserId = $2
+           WHERE c.id = $1 AND (c.userId = $2 OR s.id IS NOT NULL)`,
           [contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
@@ -345,8 +405,8 @@ router.post(
       if (dealId) {
         const dealCheck = await db.query<ValidationRow>(
           `SELECT d.id FROM deals d 
-           LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $2
-           WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
+           LEFT JOIN shares s ON s.itemType = 'deal' AND s.itemId = d.id AND s.sharedWithUserId = $2
+           WHERE d.id = $1 AND (d.userId = $2 OR s.id IS NOT NULL)`,
           [dealId, req.user.userId]
         );
         if (dealCheck.rows.length === 0) {
@@ -357,7 +417,7 @@ router.post(
 
       const result = await db.query<Activity>(
         `INSERT INTO activities (
-          type, subject, description, due_date, contact_id, company_id, deal_id, user_id
+          type, subject, description, dueDate, contactId, companyId, dealId, userId
         ) 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
         RETURNING *`,
@@ -373,7 +433,24 @@ router.post(
         ]
       );
 
-      res.status(201).json(result.rows[0]);
+      // Transform to camelCase for frontend compatibility
+      const activity: any = result.rows[0];
+      const transformedActivity = {
+        id: activity.id,
+        subject: activity.subject,
+        description: activity.description,
+        type: activity.type,
+        dueDate: activity.dueDate,
+        completed: activity.completed,
+        contactId: activity.contactId,
+        companyId: activity.companyId,
+        dealId: activity.dealId,
+        createdAt: activity.createdAt,
+        updatedAt: activity.updatedAt,
+        userId: activity.userId,
+      };
+
+      res.status(201).json(transformedActivity);
     } catch (error) {
       console.error("Create activity error:", error);
       res.status(500).json({ message: "Server error creating activity" });
@@ -415,10 +492,10 @@ router.put(
 
       // Check if activity exists and user has edit permission
       const existingActivity = await db.query<ExistingActivityRow>(
-        `SELECT a.id, a.user_id, s.permissions as permission 
+        `SELECT a.id, a.userId, s.permissions as permission 
          FROM activities a 
-         LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
-         WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
+         LEFT JOIN shares s ON s.itemType = 'activity' AND s.itemId = a.id AND s.sharedWithUserId = $2
+         WHERE a.id = $1 AND (a.userId = $2 OR s.id IS NOT NULL)`,
         [id, req.user.userId]
       );
 
@@ -430,7 +507,7 @@ router.put(
       const activityPermissions = existingActivity.rows[0];
       // Check if user is owner or has edit permission
       if (
-        activityPermissions.user_id !== req.user.userId &&
+        activityPermissions.userId !== req.user.userId &&
         activityPermissions.permission !== "edit"
       ) {
         res
@@ -443,8 +520,8 @@ router.put(
       if (updates.contactId) {
         const contactCheck = await db.query<ValidationRow>(
           `SELECT c.id FROM contacts c 
-           LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $2
-           WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
+           LEFT JOIN shares s ON s.itemType = 'contact' AND s.itemId = c.id AND s.sharedWithUserId = $2
+           WHERE c.id = $1 AND (c.userId = $2 OR s.id IS NOT NULL)`,
           [updates.contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
@@ -467,8 +544,8 @@ router.put(
       if (updates.dealId) {
         const dealCheck = await db.query<ValidationRow>(
           `SELECT d.id FROM deals d 
-           LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $2
-           WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
+           LEFT JOIN shares s ON s.itemType = 'deal' AND s.itemId = d.id AND s.sharedWithUserId = $2
+           WHERE d.id = $1 AND (d.userId = $2 OR s.id IS NOT NULL)`,
           [updates.dealId, req.user.userId]
         );
         if (dealCheck.rows.length === 0) {
@@ -485,13 +562,13 @@ router.put(
       Object.entries(updates).forEach(([key, value]) => {
         const dbField =
           key === "dueDate"
-            ? "due_date"
+            ? "dueDate"
             : key === "contactId"
-            ? "contact_id"
+            ? "contactId"
             : key === "companyId"
-            ? "company_id"
+            ? "companyId"
             : key === "dealId"
-            ? "deal_id"
+            ? "dealId"
             : key;
         fields.push(`${dbField} = $${paramCount}`);
         values.push(value);
@@ -503,7 +580,7 @@ router.put(
         return;
       }
 
-      fields.push("updated_at = CURRENT_TIMESTAMP");
+      fields.push("updatedAt = CURRENT_TIMESTAMP");
       values.push(id);
 
       const query = `
@@ -514,7 +591,25 @@ router.put(
       `;
 
       const result = await db.query<Activity>(query, values);
-      res.json(result.rows[0]);
+
+      // Transform to camelCase for frontend compatibility
+      const activity: any = result.rows[0];
+      const transformedActivity = {
+        id: activity.id,
+        subject: activity.subject,
+        description: activity.description,
+        type: activity.type,
+        dueDate: activity.dueDate,
+        completed: activity.completed,
+        contactId: activity.contactId,
+        companyId: activity.companyId,
+        dealId: activity.dealId,
+        createdAt: activity.createdAt,
+        updatedAt: activity.updatedAt,
+        userId: activity.userId,
+      };
+
+      res.json(transformedActivity);
     } catch (error) {
       console.error("Update activity error:", error);
       res.status(500).json({ message: "Server error updating activity" });
@@ -536,8 +631,8 @@ router.patch(
 
       const result = await db.query<Activity>(
         `UPDATE activities 
-       SET completed = NOT completed, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $1 AND user_id = $2 
+       SET completed = NOT completed, updatedAt = CURRENT_TIMESTAMP
+       WHERE id = $1 AND userId = $2 
        RETURNING *`,
         [id, req.user.userId]
       );
@@ -547,7 +642,24 @@ router.patch(
         return;
       }
 
-      res.json(result.rows[0]);
+      // Transform to camelCase for frontend compatibility
+      const activity: any = result.rows[0];
+      const transformedActivity = {
+        id: activity.id,
+        subject: activity.subject,
+        description: activity.description,
+        type: activity.type,
+        dueDate: activity.dueDate,
+        completed: activity.completed,
+        contactId: activity.contactId,
+        companyId: activity.companyId,
+        dealId: activity.dealId,
+        createdAt: activity.createdAt,
+        updatedAt: activity.updatedAt,
+        userId: activity.userId,
+      };
+
+      res.json(transformedActivity);
     } catch (error) {
       console.error("Toggle activity complete error:", error);
       res.status(500).json({ message: "Server error updating activity" });
@@ -567,7 +679,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
     // Only allow owner to delete (not shared users)
     const result = await db.query<{ id: string }>(
-      "DELETE FROM activities WHERE id = $1 AND user_id = $2 RETURNING id",
+      "DELETE FROM activities WHERE id = $1 AND userId = $2 RETURNING id",
       [id, req.user.userId]
     );
 
