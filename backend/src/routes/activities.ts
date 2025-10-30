@@ -1,8 +1,8 @@
-import express, { Response } from 'express';
-import { body, validationResult, query } from 'express-validator';
-import db from '../config/database';
-import { authenticateToken } from '../middleware/auth';
-import { AuthenticatedRequest, Activity } from '../types';
+import express, { Response } from "express";
+import { body, validationResult, query } from "express-validator";
+import db from "../config/database";
+import { authenticateToken } from "../middleware/auth";
+import { AuthenticatedRequest, Activity } from "../types";
 
 const router = express.Router();
 
@@ -33,7 +33,7 @@ interface ActivitiesQueryParams {
 }
 
 interface CreateActivityBody {
-  type: 'call' | 'email' | 'meeting' | 'note' | 'task';
+  type: "call" | "email" | "meeting" | "note" | "task";
   subject: string;
   description?: string;
   dueDate?: string;
@@ -43,7 +43,7 @@ interface CreateActivityBody {
 }
 
 interface UpdateActivityBody {
-  type?: 'call' | 'email' | 'meeting' | 'note' | 'task';
+  type?: "call" | "email" | "meeting" | "note" | "task";
   subject?: string;
   description?: string;
   dueDate?: string;
@@ -65,18 +65,21 @@ interface ExistingActivityRow {
 
 // Get all activities with pagination and filtering
 router.get(
-  '/',
+  "/",
   [
-    query('page').optional().isInt({ min: 1 }).toInt(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
-    query('search').optional().trim(),
-    query('type').optional().trim(),
-    query('completed').optional().isBoolean(),
-    query('contactId').optional().isInt(),
-    query('companyId').optional().isInt(),
-    query('dealId').optional().isInt(),
+    query("page").optional().isInt({ min: 1 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("search").optional().trim(),
+    query("type").optional().trim(),
+    query("completed").optional().isBoolean(),
+    query("contactId").optional().isInt(),
+    query("companyId").optional().isInt(),
+    query("dealId").optional().isInt(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, {}, ActivitiesQueryParams>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, {}, ActivitiesQueryParams>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -85,14 +88,15 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 20;
       const offset = (page - 1) * limit;
-      const { search, type, completed, contactId, companyId, dealId } = req.query;
+      const { search, type, completed, contactId, companyId, dealId } =
+        req.query;
 
       let countQuery = `
         SELECT COUNT(*) 
@@ -173,7 +177,9 @@ router.get(
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY a.due_date ASC NULLS LAST, a.created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+      dataQuery += ` ORDER BY a.due_date ASC NULLS LAST, a.created_at DESC LIMIT $${paramCount} OFFSET $${
+        paramCount + 1
+      }`;
 
       const countParams = [...params];
       const dataParams = [...params, limit, offset];
@@ -198,17 +204,17 @@ router.get(
         },
       });
     } catch (error) {
-      console.error('Get activities error:', error);
-      res.status(500).json({ message: 'Server error fetching activities' });
+      console.error("Get activities error:", error);
+      res.status(500).json({ message: "Server error fetching activities" });
     }
   }
 );
 
 // Get upcoming activities (dashboard)
-router.get('/upcoming', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/upcoming", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
@@ -230,16 +236,18 @@ router.get('/upcoming', async (req: AuthenticatedRequest, res: Response) => {
 
     res.json(result.rows);
   } catch (error) {
-    console.error('Get upcoming activities error:', error);
-    res.status(500).json({ message: 'Server error fetching upcoming activities' });
+    console.error("Get upcoming activities error:", error);
+    res
+      .status(500)
+      .json({ message: "Server error fetching upcoming activities" });
   }
 });
 
 // Get single activity
-router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
@@ -262,30 +270,33 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ message: 'Activity not found' });
+      res.status(404).json({ message: "Activity not found" });
       return;
     }
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Get activity error:', error);
-    res.status(500).json({ message: 'Server error fetching activity' });
+    console.error("Get activity error:", error);
+    res.status(500).json({ message: "Server error fetching activity" });
   }
 });
 
 // Create activity
 router.post(
-  '/',
+  "/",
   [
-    body('type').isIn(['call', 'email', 'meeting', 'note', 'task']),
-    body('subject').trim().notEmpty(),
-    body('description').optional().trim(),
-    body('dueDate').optional().isISO8601(),
-    body('contactId').optional().isInt(),
-    body('companyId').optional().isInt(),
-    body('dealId').optional().isInt(),
+    body("type").isIn(["call", "email", "meeting", "note", "task"]),
+    body("subject").trim().notEmpty(),
+    body("description").optional().trim(),
+    body("dueDate").optional().isISO8601(),
+    body("contactId").optional().isInt(),
+    body("companyId").optional().isInt(),
+    body("dealId").optional().isInt(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, CreateActivityBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, CreateActivityBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -294,7 +305,7 @@ router.post(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -317,18 +328,18 @@ router.post(
           [contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid contact ID' });
+          res.status(400).json({ message: "Invalid contact ID" });
           return;
         }
       }
 
       if (companyId) {
         const companyCheck = await db.query<ValidationRow>(
-          'SELECT id FROM companies WHERE id = $1',
+          "SELECT id FROM companies WHERE id = $1",
           [companyId]
         );
         if (companyCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid organization ID' });
+          res.status(400).json({ message: "Invalid organization ID" });
           return;
         }
       }
@@ -341,7 +352,7 @@ router.post(
           [dealId, req.user.userId]
         );
         if (dealCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid deal ID' });
+          res.status(400).json({ message: "Invalid deal ID" });
           return;
         }
       }
@@ -366,26 +377,29 @@ router.post(
 
       res.status(201).json(result.rows[0]);
     } catch (error) {
-      console.error('Create activity error:', error);
-      res.status(500).json({ message: 'Server error creating activity' });
+      console.error("Create activity error:", error);
+      res.status(500).json({ message: "Server error creating activity" });
     }
   }
 );
 
 // Update activity
 router.put(
-  '/:id',
+  "/:id",
   [
-    body('type').optional().isIn(['call', 'email', 'meeting', 'note', 'task']),
-    body('subject').optional().trim().notEmpty(),
-    body('description').optional().trim(),
-    body('dueDate').optional().isISO8601(),
-    body('completed').optional().isBoolean(),
-    body('contactId').optional().isInt(),
-    body('companyId').optional().isInt(),
-    body('dealId').optional().isInt(),
+    body("type").optional().isIn(["call", "email", "meeting", "note", "task"]),
+    body("subject").optional().trim().notEmpty(),
+    body("description").optional().trim(),
+    body("dueDate").optional().isISO8601(),
+    body("completed").optional().isBoolean(),
+    body("contactId").optional().isInt(),
+    body("companyId").optional().isInt(),
+    body("dealId").optional().isInt(),
   ],
-  async (req: AuthenticatedRequest<{ id: string }, {}, UpdateActivityBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{ id: string }, {}, UpdateActivityBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -394,7 +408,7 @@ router.put(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -411,7 +425,7 @@ router.put(
       );
 
       if (existingActivity.rows.length === 0) {
-        res.status(404).json({ message: 'Activity not found' });
+        res.status(404).json({ message: "Activity not found" });
         return;
       }
 
@@ -419,9 +433,11 @@ router.put(
       // Check if user is owner or has edit permission
       if (
         activityPermissions.user_id !== req.user.userId &&
-        activityPermissions.permission !== 'edit'
+        activityPermissions.permission !== "edit"
       ) {
-        res.status(403).json({ message: "You don't have permission to edit this activity" });
+        res
+          .status(403)
+          .json({ message: "You don't have permission to edit this activity" });
         return;
       }
 
@@ -434,18 +450,18 @@ router.put(
           [updates.contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid contact ID' });
+          res.status(400).json({ message: "Invalid contact ID" });
           return;
         }
       }
 
       if (updates.companyId) {
         const companyCheck = await db.query<ValidationRow>(
-          'SELECT id FROM companies WHERE id = $1',
+          "SELECT id FROM companies WHERE id = $1",
           [updates.companyId]
         );
         if (companyCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid organization ID' });
+          res.status(400).json({ message: "Invalid organization ID" });
           return;
         }
       }
@@ -458,7 +474,7 @@ router.put(
           [updates.dealId, req.user.userId]
         );
         if (dealCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid deal ID' });
+          res.status(400).json({ message: "Invalid deal ID" });
           return;
         }
       }
@@ -470,14 +486,14 @@ router.put(
 
       Object.entries(updates).forEach(([key, value]) => {
         const dbField =
-          key === 'dueDate'
-            ? 'due_date'
-            : key === 'contactId'
-            ? 'contact_id'
-            : key === 'companyId'
-            ? 'company_id'
-            : key === 'dealId'
-            ? 'deal_id'
+          key === "dueDate"
+            ? "due_date"
+            : key === "contactId"
+            ? "contact_id"
+            : key === "companyId"
+            ? "company_id"
+            : key === "dealId"
+            ? "deal_id"
             : key;
         fields.push(`${dbField} = $${paramCount}`);
         values.push(value);
@@ -485,16 +501,16 @@ router.put(
       });
 
       if (fields.length === 0) {
-        res.status(400).json({ message: 'No valid fields to update' });
+        res.status(400).json({ message: "No valid fields to update" });
         return;
       }
 
-      fields.push('updated_at = CURRENT_TIMESTAMP');
+      fields.push("updated_at = CURRENT_TIMESTAMP");
       values.push(id);
 
       const query = `
         UPDATE activities 
-        SET ${fields.join(', ')} 
+        SET ${fields.join(", ")} 
         WHERE id = $${paramCount} 
         RETURNING *
       `;
@@ -502,47 +518,50 @@ router.put(
       const result = await db.query<Activity>(query, values);
       res.json(result.rows[0]);
     } catch (error) {
-      console.error('Update activity error:', error);
-      res.status(500).json({ message: 'Server error updating activity' });
+      console.error("Update activity error:", error);
+      res.status(500).json({ message: "Server error updating activity" });
     }
   }
 );
 
 // Mark activity as complete/incomplete
-router.patch('/:id/toggle-complete', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
-      return;
-    }
+router.patch(
+  "/:id/toggle-complete",
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: "User not authenticated" });
+        return;
+      }
 
-    const { id } = req.params;
+      const { id } = req.params;
 
-    const result = await db.query<Activity>(
-      `UPDATE activities 
+      const result = await db.query<Activity>(
+        `UPDATE activities 
        SET completed = NOT completed, updated_at = CURRENT_TIMESTAMP
        WHERE id = $1 AND user_id = $2 
        RETURNING *`,
-      [id, req.user.userId]
-    );
+        [id, req.user.userId]
+      );
 
-    if (result.rows.length === 0) {
-      res.status(404).json({ message: 'Activity not found' });
-      return;
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "Activity not found" });
+        return;
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error("Toggle activity complete error:", error);
+      res.status(500).json({ message: "Server error updating activity" });
     }
-
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Toggle activity complete error:', error);
-    res.status(500).json({ message: 'Server error updating activity' });
   }
-});
+);
 
 // Delete activity
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
@@ -550,7 +569,7 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
 
     // Only allow owner to delete (not shared users)
     const result = await db.query<{ id: string }>(
-      'DELETE FROM activities WHERE id = $1 AND user_id = $2 RETURNING id',
+      "DELETE FROM activities WHERE id = $1 AND user_id = $2 RETURNING id",
       [id, req.user.userId]
     );
 
@@ -561,10 +580,10 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    res.json({ message: 'Activity deleted successfully' });
+    res.json({ message: "Activity deleted successfully" });
   } catch (error) {
-    console.error('Delete activity error:', error);
-    res.status(500).json({ message: 'Server error deleting activity' });
+    console.error("Delete activity error:", error);
+    res.status(500).json({ message: "Server error deleting activity" });
   }
 });
 

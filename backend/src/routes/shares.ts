@@ -1,8 +1,8 @@
-import express, { Response } from 'express';
-import { body, validationResult, query } from 'express-validator';
-import db from '../config/database';
-import { authenticateToken } from '../middleware/auth';
-import { AuthenticatedRequest, Share } from '../types';
+import express, { Response } from "express";
+import { body, validationResult, query } from "express-validator";
+import db from "../config/database";
+import { authenticateToken } from "../middleware/auth";
+import { AuthenticatedRequest, Share } from "../types";
 
 const router = express.Router();
 
@@ -13,9 +13,9 @@ interface ShareRow {
   id: string;
   shared_by: string;
   shared_with: string;
-  resource_type: 'contact' | 'activity' | 'deal';
+  resource_type: "contact" | "activity" | "deal";
   resource_id: string;
-  permission: 'view' | 'edit';
+  permission: "view" | "edit";
   message?: string;
   created_at: Date;
   updated_at: Date;
@@ -40,34 +40,37 @@ interface UserRow {
 }
 
 interface SharesQueryParams {
-  type?: 'contact' | 'activity' | 'deal';
-  resource_type?: 'contact' | 'activity' | 'deal';
+  type?: "contact" | "activity" | "deal";
+  resource_type?: "contact" | "activity" | "deal";
   page?: number;
   limit?: number;
 }
 
 interface CreateShareBody {
-  resourceType: 'contact' | 'activity' | 'deal';
+  resourceType: "contact" | "activity" | "deal";
   resourceId: number;
   sharedWithUserId: number;
-  permission?: 'view' | 'edit';
+  permission?: "view" | "edit";
   message?: string;
 }
 
 interface UpdateShareBody {
-  permission: 'view' | 'edit';
+  permission: "view" | "edit";
   message?: string;
 }
 
 // Get all items shared with the current user
 router.get(
-  '/shared-with-me',
+  "/shared-with-me",
   [
-    query('type').optional().isIn(['contact', 'activity', 'deal']),
-    query('page').optional().isInt({ min: 1 }).toInt(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("type").optional().isIn(["contact", "activity", "deal"]),
+    query("page").optional().isInt({ min: 1 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, {}, SharesQueryParams>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, {}, SharesQueryParams>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -76,7 +79,7 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -85,7 +88,7 @@ router.get(
       const offset = (page - 1) * limit;
       const { type } = req.query;
 
-      let whereClause = 'WHERE s.shared_with = $1';
+      let whereClause = "WHERE s.shared_with = $1";
       const params: any[] = [req.user.userId];
       let paramCount = 2;
 
@@ -149,21 +152,24 @@ router.get(
         },
       });
     } catch (error) {
-      console.error('Get shared items error:', error);
-      res.status(500).json({ message: 'Server error fetching shared items' });
+      console.error("Get shared items error:", error);
+      res.status(500).json({ message: "Server error fetching shared items" });
     }
   }
 );
 
 // Get all items shared by the current user
 router.get(
-  '/shared-by-me',
+  "/shared-by-me",
   [
-    query('type').optional().isIn(['contact', 'activity', 'deal']),
-    query('page').optional().isInt({ min: 1 }).toInt(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("type").optional().isIn(["contact", "activity", "deal"]),
+    query("page").optional().isInt({ min: 1 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, {}, SharesQueryParams>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, {}, SharesQueryParams>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -172,7 +178,7 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -181,7 +187,7 @@ router.get(
       const offset = (page - 1) * limit;
       const { type } = req.query;
 
-      let whereClause = 'WHERE s.shared_by = $1';
+      let whereClause = "WHERE s.shared_by = $1";
       const params: any[] = [req.user.userId];
       let paramCount = 2;
 
@@ -228,21 +234,23 @@ router.get(
         },
       });
     } catch (error) {
-      console.error('Get items shared by me error:', error);
-      res.status(500).json({ message: 'Server error fetching items shared by me' });
+      console.error("Get items shared by me error:", error);
+      res
+        .status(500)
+        .json({ message: "Server error fetching items shared by me" });
     }
   }
 );
 
 // Share an item with another user
 router.post(
-  '/',
+  "/",
   [
-    body('resourceType').isIn(['contact', 'activity', 'deal']),
-    body('resourceId').isInt({ min: 1 }),
-    body('sharedWithUserId').isInt({ min: 1 }),
-    body('permission').optional().isIn(['view', 'edit']),
-    body('message').optional().trim(),
+    body("resourceType").isIn(["contact", "activity", "deal"]),
+    body("resourceId").isInt({ min: 1 }),
+    body("sharedWithUserId").isInt({ min: 1 }),
+    body("permission").optional().isIn(["view", "edit"]),
+    body("message").optional().trim(),
   ],
   async (req: AuthenticatedRequest<{}, {}, CreateShareBody>, res: Response) => {
     try {
@@ -253,7 +261,7 @@ router.post(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -261,35 +269,35 @@ router.post(
         resourceType,
         resourceId,
         sharedWithUserId,
-        permission = 'view',
+        permission = "view",
         message,
       } = req.body;
 
       // Verify the user exists
       const userCheck = await db.query<{ id: string }>(
-        'SELECT id FROM users WHERE id = $1',
+        "SELECT id FROM users WHERE id = $1",
         [sharedWithUserId]
       );
 
       if (userCheck.rows.length === 0) {
-        res.status(400).json({ message: 'User to share with not found' });
+        res.status(400).json({ message: "User to share with not found" });
         return;
       }
 
       // Verify the resource exists and belongs to the current user
       let resourceTable: string;
       switch (resourceType) {
-        case 'contact':
-          resourceTable = 'contacts';
+        case "contact":
+          resourceTable = "contacts";
           break;
-        case 'activity':
-          resourceTable = 'activities';
+        case "activity":
+          resourceTable = "activities";
           break;
-        case 'deal':
-          resourceTable = 'deals';
+        case "deal":
+          resourceTable = "deals";
           break;
         default:
-          res.status(400).json({ message: 'Invalid resource type' });
+          res.status(400).json({ message: "Invalid resource type" });
           return;
       }
 
@@ -307,7 +315,7 @@ router.post(
 
       // Check if already shared with this user
       const existingShare = await db.query<{ id: string }>(
-        'SELECT id FROM shares WHERE shared_with = $1 AND resource_type = $2 AND resource_id = $3',
+        "SELECT id FROM shares WHERE shared_with = $1 AND resource_type = $2 AND resource_id = $3",
         [sharedWithUserId, resourceType, resourceId]
       );
 
@@ -335,20 +343,23 @@ router.post(
 
       res.status(201).json(result.rows[0]);
     } catch (error) {
-      console.error('Share item error:', error);
-      res.status(500).json({ message: 'Server error sharing item' });
+      console.error("Share item error:", error);
+      res.status(500).json({ message: "Server error sharing item" });
     }
   }
 );
 
 // Update share permissions
 router.put(
-  '/:id',
+  "/:id",
   [
-    body('permission').isIn(['view', 'edit']),
-    body('message').optional().trim(),
+    body("permission").isIn(["view", "edit"]),
+    body("message").optional().trim(),
   ],
-  async (req: AuthenticatedRequest<{ id: string }, {}, UpdateShareBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{ id: string }, {}, UpdateShareBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -357,7 +368,7 @@ router.put(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -366,7 +377,7 @@ router.put(
 
       // Check if share exists and belongs to current user
       const shareCheck = await db.query<{ id: string }>(
-        'SELECT id FROM shares WHERE id = $1 AND shared_by = $2',
+        "SELECT id FROM shares WHERE id = $1 AND shared_by = $2",
         [id, req.user.userId]
       );
 
@@ -379,23 +390,23 @@ router.put(
 
       // Update the share
       const result = await db.query<ShareRow>(
-        'UPDATE shares SET permission = $1, message = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *',
+        "UPDATE shares SET permission = $1, message = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *",
         [permission, message, id]
       );
 
       res.json(result.rows[0]);
     } catch (error) {
-      console.error('Update share error:', error);
-      res.status(500).json({ message: 'Server error updating share' });
+      console.error("Update share error:", error);
+      res.status(500).json({ message: "Server error updating share" });
     }
   }
 );
 
 // Remove a share
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
@@ -403,7 +414,7 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
 
     // Check if share exists and belongs to current user
     const result = await db.query<{ id: string }>(
-      'DELETE FROM shares WHERE id = $1 AND shared_by = $2 RETURNING id',
+      "DELETE FROM shares WHERE id = $1 AND shared_by = $2 RETURNING id",
       [id, req.user.userId]
     );
 
@@ -414,22 +425,25 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    res.json({ message: 'Share removed successfully' });
+    res.json({ message: "Share removed successfully" });
   } catch (error) {
-    console.error('Remove share error:', error);
-    res.status(500).json({ message: 'Server error removing share' });
+    console.error("Remove share error:", error);
+    res.status(500).json({ message: "Server error removing share" });
   }
 });
 
 // Get all shares (both directions) - used by frontend SharedItems component
 router.get(
-  '/',
+  "/",
   [
-    query('resource_type').optional().isIn(['contact', 'activity', 'deal']),
-    query('page').optional().isInt({ min: 1 }).toInt(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("resource_type").optional().isIn(["contact", "activity", "deal"]),
+    query("page").optional().isInt({ min: 1 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, {}, SharesQueryParams>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, {}, SharesQueryParams>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -438,7 +452,7 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -447,7 +461,7 @@ router.get(
       const offset = (page - 1) * limit;
       const { resource_type } = req.query;
 
-      let whereClause = 'WHERE (s.shared_with = $1 OR s.shared_by = $1)';
+      let whereClause = "WHERE (s.shared_with = $1 OR s.shared_by = $1)";
       const params: any[] = [req.user.userId];
       let paramCount = 2;
 
@@ -507,34 +521,34 @@ router.get(
         ownerLastName: share.shared_by_last_name,
         isSharedWithMe: share.shared_with === req.user?.userId,
         resourceTitle: share.resource_data
-          ? share.resource_type === 'contact'
+          ? share.resource_type === "contact"
             ? `${share.resource_data.first_name} ${share.resource_data.last_name}`
-            : share.resource_type === 'activity'
+            : share.resource_type === "activity"
             ? share.resource_data.subject || share.resource_data.type
-            : share.resource_type === 'deal'
+            : share.resource_type === "deal"
             ? share.resource_data.title
-            : 'Unknown'
+            : "Unknown"
           : `${share.resource_type} #${share.resource_id}`,
       }));
 
       res.json(shares);
     } catch (error) {
-      console.error('Get all shares error:', error);
-      res.status(500).json({ message: 'Server error fetching shares' });
+      console.error("Get all shares error:", error);
+      res.status(500).json({ message: "Server error fetching shares" });
     }
   }
 );
 
 // Get users available for sharing (exclude current user)
-router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/users", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
     const result = await db.query<UserRow>(
-      'SELECT id, first_name, last_name, email FROM users WHERE id != $1 ORDER BY first_name, last_name',
+      "SELECT id, first_name, last_name, email FROM users WHERE id != $1 ORDER BY first_name, last_name",
       [req.user.userId]
     );
 
@@ -548,8 +562,8 @@ router.get('/users', async (req: AuthenticatedRequest, res: Response) => {
 
     res.json(users);
   } catch (error) {
-    console.error('Get users for sharing error:', error);
-    res.status(500).json({ message: 'Server error fetching users' });
+    console.error("Get users for sharing error:", error);
+    res.status(500).json({ message: "Server error fetching users" });
   }
 });
 

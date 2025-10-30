@@ -1,9 +1,9 @@
-import * as http from 'http';
+import * as http from "http";
 
 const options: http.RequestOptions = {
-  host: 'localhost',
+  host: "localhost",
   port: process.env.PORT || 3002,
-  path: '/api/health',
+  path: "/api/health",
   timeout: 2000,
 };
 
@@ -16,8 +16,8 @@ const request = http.request(options, (res: http.IncomingMessage) => {
   }
 });
 
-request.on('error', (err: Error) => {
-  console.log('ERROR', err);
+request.on("error", (err: Error) => {
+  console.log("ERROR", err);
   process.exit(1);
 });
 

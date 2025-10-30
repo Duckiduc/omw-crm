@@ -1,10 +1,10 @@
-import express, { Response } from 'express';
-import bcrypt from 'bcryptjs';
-import { body, validationResult, query } from 'express-validator';
-import db from '../config/database';
-import { authenticateToken } from '../middleware/auth';
-import { requireAdmin } from '../middleware/admin';
-import { AuthenticatedRequest, User, SystemSetting } from '../types';
+import express, { Response } from "express";
+import bcrypt from "bcryptjs";
+import { body, validationResult, query } from "express-validator";
+import db from "../config/database";
+import { authenticateToken } from "../middleware/auth";
+import { requireAdmin } from "../middleware/admin";
+import { AuthenticatedRequest, User, SystemSetting } from "../types";
 
 const router = express.Router();
 
@@ -42,7 +42,7 @@ interface CreateUserBody {
   password: string;
   firstName: string;
   lastName: string;
-  role?: 'user' | 'admin';
+  role?: "user" | "admin";
 }
 
 interface UpdateUserBody {
@@ -50,7 +50,7 @@ interface UpdateUserBody {
   password?: string;
   firstName?: string;
   lastName?: string;
-  role?: 'user' | 'admin';
+  role?: "user" | "admin";
 }
 
 interface UpdateSettingBody {
@@ -59,14 +59,17 @@ interface UpdateSettingBody {
 
 // Get all users with pagination and filtering
 router.get(
-  '/users',
+  "/users",
   [
-    query('page').optional().isInt({ min: 1 }).toInt(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
-    query('search').optional().trim(),
-    query('role').optional().isIn(['user', 'admin']),
+    query("page").optional().isInt({ min: 1 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("search").optional().trim(),
+    query("role").optional().isIn(["user", "admin"]),
   ],
-  async (req: AuthenticatedRequest<{}, {}, {}, AdminQueryParams>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, {}, AdminQueryParams>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -75,7 +78,7 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -84,7 +87,7 @@ router.get(
       const offset = (page - 1) * limit;
       const { search, role } = req.query;
 
-      let countQuery = 'SELECT COUNT(*) FROM users WHERE 1=1';
+      let countQuery = "SELECT COUNT(*) FROM users WHERE 1=1";
       let dataQuery = `
         SELECT id, email, first_name, last_name, role, created_at, updated_at
         FROM users 
@@ -110,7 +113,9 @@ router.get(
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+      dataQuery += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${
+        paramCount + 1
+      }`;
 
       const countParams = [...params];
       const dataParams = [...params, limit, offset];
@@ -146,29 +151,29 @@ router.get(
         },
       });
     } catch (error) {
-      console.error('Get users error:', error);
-      res.status(500).json({ message: 'Server error fetching users' });
+      console.error("Get users error:", error);
+      res.status(500).json({ message: "Server error fetching users" });
     }
   }
 );
 
 // Get single user
-router.get('/users/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/users/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
     const { id } = req.params;
 
     const result = await db.query<UserRow>(
-      'SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users WHERE id = $1',
+      "SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users WHERE id = $1",
       [id]
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
       return;
     }
 
@@ -183,20 +188,20 @@ router.get('/users/:id', async (req: AuthenticatedRequest, res: Response) => {
       updated_at: user.updated_at,
     });
   } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ message: 'Server error fetching user' });
+    console.error("Get user error:", error);
+    res.status(500).json({ message: "Server error fetching user" });
   }
 });
 
 // Create user
 router.post(
-  '/users',
+  "/users",
   [
-    body('email').isEmail().normalizeEmail(),
-    body('password').isLength({ min: 6 }),
-    body('firstName').trim().isLength({ min: 1 }),
-    body('lastName').trim().isLength({ min: 1 }),
-    body('role').optional().isIn(['user', 'admin']),
+    body("email").isEmail().normalizeEmail(),
+    body("password").isLength({ min: 6 }),
+    body("firstName").trim().isLength({ min: 1 }),
+    body("lastName").trim().isLength({ min: 1 }),
+    body("role").optional().isIn(["user", "admin"]),
   ],
   async (req: AuthenticatedRequest<{}, {}, CreateUserBody>, res: Response) => {
     try {
@@ -207,20 +212,20 @@ router.post(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
-      const { email, password, firstName, lastName, role = 'user' } = req.body;
+      const { email, password, firstName, lastName, role = "user" } = req.body;
 
       // Check if user exists
       const existingUser = await db.query<{ id: string }>(
-        'SELECT id FROM users WHERE email = $1',
+        "SELECT id FROM users WHERE email = $1",
         [email]
       );
 
       if (existingUser.rows.length > 0) {
-        res.status(400).json({ message: 'User already exists' });
+        res.status(400).json({ message: "User already exists" });
         return;
       }
 
@@ -230,7 +235,7 @@ router.post(
 
       // Create user
       const result = await db.query<UserRow>(
-        'INSERT INTO users (email, password, first_name, last_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, first_name, last_name, role, created_at, updated_at',
+        "INSERT INTO users (email, password, first_name, last_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, first_name, last_name, role, created_at, updated_at",
         [email, hashedPassword, firstName, lastName, role]
       );
 
@@ -245,23 +250,26 @@ router.post(
         updated_at: user.updated_at,
       });
     } catch (error) {
-      console.error('Create user error:', error);
-      res.status(500).json({ message: 'Server error creating user' });
+      console.error("Create user error:", error);
+      res.status(500).json({ message: "Server error creating user" });
     }
   }
 );
 
 // Update user
 router.put(
-  '/users/:id',
+  "/users/:id",
   [
-    body('email').optional().isEmail().normalizeEmail(),
-    body('password').optional().isLength({ min: 6 }),
-    body('firstName').optional().trim().isLength({ min: 1 }),
-    body('lastName').optional().trim().isLength({ min: 1 }),
-    body('role').optional().isIn(['user', 'admin']),
+    body("email").optional().isEmail().normalizeEmail(),
+    body("password").optional().isLength({ min: 6 }),
+    body("firstName").optional().trim().isLength({ min: 1 }),
+    body("lastName").optional().trim().isLength({ min: 1 }),
+    body("role").optional().isIn(["user", "admin"]),
   ],
-  async (req: AuthenticatedRequest<{ id: string }, {}, UpdateUserBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{ id: string }, {}, UpdateUserBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -270,7 +278,7 @@ router.put(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -279,19 +287,19 @@ router.put(
 
       // Check if user exists
       const existingUser = await db.query<{ id: string }>(
-        'SELECT id FROM users WHERE id = $1',
+        "SELECT id FROM users WHERE id = $1",
         [id]
       );
 
       if (existingUser.rows.length === 0) {
-        res.status(404).json({ message: 'User not found' });
+        res.status(404).json({ message: "User not found" });
         return;
       }
 
       // Prevent admin from demoting themselves
-      if (req.user.userId === id && updates.role === 'user') {
+      if (req.user.userId === id && updates.role === "user") {
         res.status(400).json({
-          message: 'Cannot change your own admin role',
+          message: "Cannot change your own admin role",
         });
         return;
       }
@@ -299,12 +307,12 @@ router.put(
       // Check if email is already taken by another user
       if (updates.email) {
         const emailCheck = await db.query<{ id: string }>(
-          'SELECT id FROM users WHERE email = $1 AND id != $2',
+          "SELECT id FROM users WHERE email = $1 AND id != $2",
           [updates.email, id]
         );
 
         if (emailCheck.rows.length > 0) {
-          res.status(400).json({ message: 'Email already in use' });
+          res.status(400).json({ message: "Email already in use" });
           return;
         }
       }
@@ -315,7 +323,7 @@ router.put(
       let paramCount = 1;
 
       for (const [key, value] of Object.entries(updates)) {
-        if (key === 'password') {
+        if (key === "password") {
           // Hash password if provided
           const saltRounds = 12;
           const hashedPassword = await bcrypt.hash(value as string, saltRounds);
@@ -323,10 +331,10 @@ router.put(
           values.push(hashedPassword);
         } else {
           const dbField =
-            key === 'firstName'
-              ? 'first_name'
-              : key === 'lastName'
-              ? 'last_name'
+            key === "firstName"
+              ? "first_name"
+              : key === "lastName"
+              ? "last_name"
               : key;
           fields.push(`${dbField} = $${paramCount}`);
           values.push(value);
@@ -335,16 +343,16 @@ router.put(
       }
 
       if (fields.length === 0) {
-        res.status(400).json({ message: 'No valid fields to update' });
+        res.status(400).json({ message: "No valid fields to update" });
         return;
       }
 
-      fields.push('updated_at = CURRENT_TIMESTAMP');
+      fields.push("updated_at = CURRENT_TIMESTAMP");
       values.push(id);
 
       const query = `
         UPDATE users 
-        SET ${fields.join(', ')} 
+        SET ${fields.join(", ")} 
         WHERE id = $${paramCount} 
         RETURNING id, email, first_name, last_name, role, created_at, updated_at
       `;
@@ -362,57 +370,60 @@ router.put(
         updated_at: user.updated_at,
       });
     } catch (error) {
-      console.error('Update user error:', error);
-      res.status(500).json({ message: 'Server error updating user' });
+      console.error("Update user error:", error);
+      res.status(500).json({ message: "Server error updating user" });
     }
   }
 );
 
 // Delete user
-router.delete('/users/:id', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
-      return;
+router.delete(
+  "/users/:id",
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: "User not authenticated" });
+        return;
+      }
+
+      const { id } = req.params;
+
+      // Prevent admin from deleting themselves
+      if (req.user.userId === id) {
+        res.status(400).json({
+          message: "Cannot delete your own account",
+        });
+        return;
+      }
+
+      const result = await db.query<{ id: string }>(
+        "DELETE FROM users WHERE id = $1 RETURNING id",
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).json({ message: "Server error deleting user" });
     }
-
-    const { id } = req.params;
-
-    // Prevent admin from deleting themselves
-    if (req.user.userId === id) {
-      res.status(400).json({
-        message: 'Cannot delete your own account',
-      });
-      return;
-    }
-
-    const result = await db.query<{ id: string }>(
-      'DELETE FROM users WHERE id = $1 RETURNING id',
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-
-    res.json({ message: 'User deleted successfully' });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({ message: 'Server error deleting user' });
   }
-});
+);
 
 // Get system settings
-router.get('/settings', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/settings", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
     const result = await db.query<SystemSetting>(
-      'SELECT setting_key, setting_value, description FROM system_settings ORDER BY setting_key'
+      "SELECT setting_key, setting_value, description FROM system_settings ORDER BY setting_key"
     );
 
     // Convert to object format for easier frontend consumption
@@ -420,22 +431,25 @@ router.get('/settings', async (req: AuthenticatedRequest, res: Response) => {
     result.rows.forEach((row: any) => {
       settings[row.setting_key] = {
         value: row.setting_value,
-        description: row.description || '',
+        description: row.description || "",
       };
     });
 
     res.json({ settings });
   } catch (error) {
-    console.error('Get system settings error:', error);
-    res.status(500).json({ message: 'Server error fetching system settings' });
+    console.error("Get system settings error:", error);
+    res.status(500).json({ message: "Server error fetching system settings" });
   }
 });
 
 // Update system setting
 router.put(
-  '/settings/:key',
-  [body('value').notEmpty().withMessage('Setting value is required')],
-  async (req: AuthenticatedRequest<{ key: string }, {}, UpdateSettingBody>, res: Response) => {
+  "/settings/:key",
+  [body("value").notEmpty().withMessage("Setting value is required")],
+  async (
+    req: AuthenticatedRequest<{ key: string }, {}, UpdateSettingBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -444,7 +458,7 @@ router.put(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -453,8 +467,8 @@ router.put(
 
       // Validate specific setting types
       if (
-        key === 'registration_enabled' &&
-        !['true', 'false'].includes(value)
+        key === "registration_enabled" &&
+        !["true", "false"].includes(value)
       ) {
         res.status(400).json({
           message: "registration_enabled must be 'true' or 'false'",
@@ -462,9 +476,12 @@ router.put(
         return;
       }
 
-      if (key === 'max_users' && (isNaN(Number(value)) || parseInt(value) < 0)) {
+      if (
+        key === "max_users" &&
+        (isNaN(Number(value)) || parseInt(value) < 0)
+      ) {
         res.status(400).json({
-          message: 'max_users must be a non-negative number',
+          message: "max_users must be a non-negative number",
         });
         return;
       }
@@ -479,7 +496,7 @@ router.put(
       );
 
       if (result.rows.length === 0) {
-        res.status(404).json({ message: 'Setting not found' });
+        res.status(404).json({ message: "Setting not found" });
         return;
       }
 
@@ -490,41 +507,50 @@ router.put(
         description: setting.description,
       });
     } catch (error) {
-      console.error('Update system setting error:', error);
-      res.status(500).json({ message: 'Server error updating system setting' });
+      console.error("Update system setting error:", error);
+      res.status(500).json({ message: "Server error updating system setting" });
     }
   }
 );
 
 // Get user statistics
-router.get('/users/stats/overview', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
-      return;
-    }
+router.get(
+  "/users/stats/overview",
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: "User not authenticated" });
+        return;
+      }
 
-    const stats = await Promise.all([
-      db.query<UserStatsRow>('SELECT COUNT(*) as total FROM users'),
-      db.query<UserStatsRow>("SELECT COUNT(*) as admins FROM users WHERE role = 'admin'"),
-      db.query<UserStatsRow>("SELECT COUNT(*) as regular_users FROM users WHERE role = 'user'"),
-      db.query<UserStatsRow>(`
+      const stats = await Promise.all([
+        db.query<UserStatsRow>("SELECT COUNT(*) as total FROM users"),
+        db.query<UserStatsRow>(
+          "SELECT COUNT(*) as admins FROM users WHERE role = 'admin'"
+        ),
+        db.query<UserStatsRow>(
+          "SELECT COUNT(*) as regular_users FROM users WHERE role = 'user'"
+        ),
+        db.query<UserStatsRow>(`
         SELECT COUNT(*) as new_this_month 
         FROM users 
         WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)
       `),
-    ]);
+      ]);
 
-    res.json({
-      total: parseInt(stats[0].rows[0].total || '0', 10),
-      admins: parseInt(stats[1].rows[0].admins || '0', 10),
-      regularUsers: parseInt(stats[2].rows[0].regular_users || '0', 10),
-      newThisMonth: parseInt(stats[3].rows[0].new_this_month || '0', 10),
-    });
-  } catch (error) {
-    console.error('Get user stats error:', error);
-    res.status(500).json({ message: 'Server error fetching user statistics' });
+      res.json({
+        total: parseInt(stats[0].rows[0].total || "0", 10),
+        admins: parseInt(stats[1].rows[0].admins || "0", 10),
+        regularUsers: parseInt(stats[2].rows[0].regular_users || "0", 10),
+        newThisMonth: parseInt(stats[3].rows[0].new_this_month || "0", 10),
+      });
+    } catch (error) {
+      console.error("Get user stats error:", error);
+      res
+        .status(500)
+        .json({ message: "Server error fetching user statistics" });
+    }
   }
-});
+);
 
 export default router;
