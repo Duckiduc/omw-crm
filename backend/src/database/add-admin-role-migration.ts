@@ -1,6 +1,6 @@
-const db = require("../config/database");
+import db from "../config/database";
 
-const addAdminRole = async () => {
+export const addAdminRole = async (): Promise<void> => {
   try {
     console.log("🔨 Adding admin role to users table...");
 
@@ -12,7 +12,7 @@ const addAdminRole = async () => {
     `);
 
     // Create an admin user if none exists
-    const adminCheck = await db.query(
+    const adminCheck = await db.query<{ id: string }>(
       "SELECT id FROM users WHERE role = 'admin' LIMIT 1"
     );
 
@@ -27,8 +27,4 @@ const addAdminRole = async () => {
     console.error("❌ Error adding admin role:", error);
     throw error;
   }
-};
-
-module.exports = {
-  addAdminRole,
 };

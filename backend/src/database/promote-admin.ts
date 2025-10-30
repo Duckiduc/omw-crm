@@ -1,18 +1,23 @@
-require("dotenv").config();
-const db = require("../config/database");
+import dotenv from "dotenv";
+import db from "../config/database";
+import { User } from "../types";
 
-const promoteUserToAdmin = async () => {
+dotenv.config();
+
+export const promoteUserToAdmin = async (): Promise<void> => {
   try {
     const email = process.argv[2];
 
     if (!email) {
-      console.log("Usage: node promote-admin.js <user-email>");
+      console.log("Usage: ts-node promote-admin.ts <user-email>");
       process.exit(1);
     }
 
     console.log(`🔍 Looking for user: ${email}`);
 
-    const result = await db.query(
+    const result = await db.query<
+      Pick<User, "id" | "email" | "first_name" | "last_name" | "role">
+    >(
       "UPDATE users SET role = $1 WHERE email = $2 RETURNING id, email, first_name, last_name, role",
       ["admin", email]
     );
@@ -35,4 +40,7 @@ const promoteUserToAdmin = async () => {
   }
 };
 
-promoteUserToAdmin();
+// Run if called directly
+if (require.main === module) {
+  promoteUserToAdmin();
+}

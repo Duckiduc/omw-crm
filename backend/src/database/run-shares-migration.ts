@@ -1,7 +1,9 @@
-require("dotenv").config();
-const { createSharesTable } = require("./add-shares-migration");
+import dotenv from "dotenv";
+import { createSharesTable } from "./add-shares-migration";
 
-const runMigration = async () => {
+dotenv.config();
+
+const runMigration = async (): Promise<void> => {
   try {
     await createSharesTable();
     console.log("✅ Shares migration completed successfully!");

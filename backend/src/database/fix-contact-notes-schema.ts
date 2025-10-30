@@ -1,11 +1,17 @@
-const db = require("../config/database");
+import db from "../config/database";
 
-const fixContactNotesSchema = async () => {
+interface ColumnInfo {
+  column_name: string;
+  is_nullable: string;
+  data_type: string;
+}
+
+export const fixContactNotesSchema = async (): Promise<void> => {
   try {
     console.log("🔨 Fixing contact_notes table schema...");
 
     // Check if title column exists and is NOT NULL
-    const columnCheck = await db.query(`
+    const columnCheck = await db.query<ColumnInfo>(`
       SELECT column_name, is_nullable, data_type
       FROM information_schema.columns 
       WHERE table_name = 'contact_notes' AND column_name = 'title'
@@ -42,10 +48,8 @@ if (require.main === module) {
       console.log("Schema fix completed");
       process.exit(0);
     })
-    .catch((error) => {
+    .catch((error: Error) => {
       console.error("Schema fix failed:", error);
       process.exit(1);
     });
 }
-
-module.exports = { fixContactNotesSchema };

@@ -1,6 +1,6 @@
-const db = require("../config/database");
+import db from "../config/database";
 
-const createSystemSettingsTable = async () => {
+export const createSystemSettingsTable = async (): Promise<void> => {
   try {
     console.log("🔨 Creating system_settings table...");
 
@@ -45,10 +45,8 @@ if (require.main === module) {
       console.log("🎉 System settings migration completed!");
       process.exit(0);
     })
-    .catch((error) => {
+    .catch((error: Error) => {
       console.error("💥 Migration failed:", error);
       process.exit(1);
     });
 }
-
-module.exports = { createSystemSettingsTable };

@@ -1,11 +1,11 @@
-const db = require("../config/database");
+import db from "../config/database";
 
-const addTagsToContacts = async () => {
+export const addTagsToContacts = async (): Promise<void> => {
   try {
     console.log("🔨 Adding tags column to contacts table...");
 
     // Check if tags column already exists
-    const columnCheck = await db.query(`
+    const columnCheck = await db.query<{ column_name: string }>(`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'contacts' AND column_name = 'tags'
@@ -40,10 +40,8 @@ if (require.main === module) {
       console.log("Migration completed");
       process.exit(0);
     })
-    .catch((error) => {
+    .catch((error: Error) => {
       console.error("Migration failed:", error);
       process.exit(1);
     });
 }
-
-module.exports = { addTagsToContacts };

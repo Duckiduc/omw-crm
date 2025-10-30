@@ -1,6 +1,6 @@
-const db = require("../config/database");
+import db from "../config/database";
 
-const createSharesTable = async () => {
+export const createSharesTable = async (): Promise<void> => {
   try {
     console.log("🔨 Creating shares table...");
 
@@ -35,8 +35,4 @@ const createSharesTable = async () => {
     console.error("❌ Error creating shares table:", error);
     throw error;
   }
-};
-
-module.exports = {
-  createSharesTable,
 };
