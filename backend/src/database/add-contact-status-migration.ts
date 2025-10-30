@@ -1,11 +1,11 @@
-const db = require("../config/database");
+import db from "../config/database";
 
-const addContactStatus = async () => {
+export const addContactStatus = async (): Promise<void> => {
   try {
     console.log("🔨 Adding status column to contacts table...");
 
     // Check if status column already exists
-    const columnCheck = await db.query(`
+    const columnCheck = await db.query<{ column_name: string }>(`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'contacts' AND column_name = 'status'
@@ -41,10 +41,8 @@ if (require.main === module) {
       console.log("Status migration completed");
       process.exit(0);
     })
-    .catch((error) => {
+    .catch((error: Error) => {
       console.error("Status migration failed:", error);
       process.exit(1);
     });
 }
-
-module.exports = { addContactStatus };

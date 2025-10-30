@@ -1,7 +1,9 @@
-require("dotenv").config();
-const { addAdminRole } = require("./add-admin-role-migration");
+import dotenv from "dotenv";
+import { addAdminRole } from "./add-admin-role-migration";
 
-const runMigration = async () => {
+dotenv.config();
+
+const runMigration = async (): Promise<void> => {
   try {
     await addAdminRole();
     console.log("✅ Admin role migration completed successfully!");
