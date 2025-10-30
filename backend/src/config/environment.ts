@@ -1,5 +1,17 @@
+import * as fs from "fs";
+import { EnvironmentConfig, CorsConfig } from "../types";
+
+interface ConfigEnvironments {
+  local: EnvironmentConfig;
+  docker: EnvironmentConfig;
+  production: EnvironmentConfig;
+}
+
 // Simple environment configuration - just local and docker
-const config = {
+const config: ConfigEnvironments & {
+  getCurrentConfig(): EnvironmentConfig;
+  getCorsConfig(): CorsConfig;
+} = {
   // Local development (no Docker)
   local: {
     corsOrigins: [
@@ -18,15 +30,18 @@ const config = {
   // Production deployment
   production: {
     corsOrigins: process.env.CORS_ORIGINS
-      ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
+      ? process.env.CORS_ORIGINS.split(",").map((origin: string) =>
+          origin.trim()
+        )
       : [],
   },
 
   // Get current environment configuration
-  getCurrentConfig() {
+  getCurrentConfig(): EnvironmentConfig {
     // Environment variable override
     if (process.env.CONFIG_ENV) {
-      const customConfig = this[process.env.CONFIG_ENV];
+      const customConfig =
+        this[process.env.CONFIG_ENV as keyof ConfigEnvironments];
       if (customConfig) return customConfig;
     }
 
@@ -39,7 +54,7 @@ const config = {
     const isDocker = !!(
       process.env.DOCKER_CONTAINER ||
       process.env.DB_HOST === "db" ||
-      require("fs").existsSync("/.dockerenv")
+      fs.existsSync("/.dockerenv")
     );
 
     if (isDocker) {
@@ -51,13 +66,13 @@ const config = {
   },
 
   // Get CORS configuration
-  getCorsConfig() {
+  getCorsConfig(): CorsConfig {
     const currentConfig = this.getCurrentConfig();
 
     // Always allow environment variable override
     if (process.env.CORS_ORIGINS) {
-      const envOrigins = process.env.CORS_ORIGINS.split(",").map((origin) =>
-        origin.trim()
+      const envOrigins = process.env.CORS_ORIGINS.split(",").map(
+        (origin: string) => origin.trim()
       );
       return {
         origin: envOrigins,
@@ -72,4 +87,4 @@ const config = {
   },
 };
 
-module.exports = config;
+export default config;
