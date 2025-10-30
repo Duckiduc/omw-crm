@@ -71,7 +71,7 @@ router.get(
       const activityCheck = await db.query<ActivityCheckRow>(
         `SELECT a.id 
          FROM activities a 
-         LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $2
+         LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
          WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
         [activityId, req.user.userId]
       );
@@ -134,9 +134,9 @@ router.post(
 
       // Verify activity exists and user has access (owned or shared with edit permission)
       const activityCheck = await db.query<ActivityCheckRow>(
-        `SELECT a.id, a.user_id, s.permission
+        `SELECT a.id, a.user_id, s.permissions as permission
          FROM activities a 
-         LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $2
+         LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
          WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
         [activityId, req.user.userId]
       );
