@@ -26,10 +26,8 @@ export const authenticateToken = async (
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
 
     // Verify user still exists
-    const userResult = await db.query<
-      Pick<User, "id" | "email" | "first_name" | "last_name" | "role">
-    >(
-      "SELECT id, email, first_name, last_name, role FROM users WHERE id = $1",
+    const userResult = await db.query<User>(
+      "SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users WHERE id = $1",
       [decoded.userId]
     );
 
@@ -40,9 +38,14 @@ export const authenticateToken = async (
 
     const user = userResult.rows[0];
     req.user = {
+      id: user.id,
       userId: user.id,
       email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
       role: user.role,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
     };
 
     next();
