@@ -409,7 +409,11 @@ router.put(
         if (key === "tags") {
           // Process tags - filter out empty strings and duplicates
           const processedTags = Array.isArray(value)
-            ? [...new Set((value as string[]).filter((tag) => tag && tag.trim()))]
+            ? [
+                ...new Set(
+                  (value as string[]).filter((tag) => tag && tag.trim())
+                ),
+              ]
             : [];
           fields.push(`tags = $${paramCount}`);
           values.push(processedTags);

@@ -1,8 +1,8 @@
-import express, { Response } from 'express';
-import { body, validationResult, param } from 'express-validator';
-import db from '../config/database';
-import { authenticateToken } from '../middleware/auth';
-import { AuthenticatedRequest } from '../types';
+import express, { Response } from "express";
+import { body, validationResult, param } from "express-validator";
+import db from "../config/database";
+import { authenticateToken } from "../middleware/auth";
+import { AuthenticatedRequest } from "../types";
 
 const router = express.Router();
 
@@ -44,8 +44,8 @@ interface ContactNoteResponse {
 
 // Get all notes for a specific contact
 router.get(
-  '/contact/:contactId',
-  [param('contactId').isInt({ min: 1 })],
+  "/contact/:contactId",
+  [param("contactId").isInt({ min: 1 })],
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const errors = validationResult(req);
@@ -55,7 +55,7 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -63,12 +63,12 @@ router.get(
 
       // Verify contact belongs to user
       const contactCheck = await db.query<{ id: string }>(
-        'SELECT id FROM contacts WHERE id = $1 AND user_id = $2',
+        "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
         [contactId, req.user.userId]
       );
 
       if (contactCheck.rows.length === 0) {
-        res.status(404).json({ message: 'Contact not found' });
+        res.status(404).json({ message: "Contact not found" });
         return;
       }
 
@@ -92,20 +92,23 @@ router.get(
 
       res.json({ notes });
     } catch (error) {
-      console.error('Get contact notes error:', error);
-      res.status(500).json({ message: 'Server error fetching notes' });
+      console.error("Get contact notes error:", error);
+      res.status(500).json({ message: "Server error fetching notes" });
     }
   }
 );
 
 // Create a new note for a contact
 router.post(
-  '/',
+  "/",
   [
-    body('contactId').isInt({ min: 1 }),
-    body('content').trim().notEmpty().withMessage('Note content is required'),
+    body("contactId").isInt({ min: 1 }),
+    body("content").trim().notEmpty().withMessage("Note content is required"),
   ],
-  async (req: AuthenticatedRequest<{}, {}, CreateContactNoteBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, CreateContactNoteBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -114,7 +117,7 @@ router.post(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -122,12 +125,12 @@ router.post(
 
       // Verify contact belongs to user
       const contactCheck = await db.query<{ id: string }>(
-        'SELECT id FROM contacts WHERE id = $1 AND user_id = $2',
+        "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
         [contactId, req.user.userId]
       );
 
       if (contactCheck.rows.length === 0) {
-        res.status(404).json({ message: 'Contact not found' });
+        res.status(404).json({ message: "Contact not found" });
         return;
       }
 
@@ -139,12 +142,14 @@ router.post(
       );
 
       const note = result.rows[0];
-      
+
       // Get user name for response
-      const userResult = await db.query<{ first_name: string; last_name: string }>(
-        'SELECT first_name, last_name FROM users WHERE id = $1',
-        [req.user.userId]
-      );
+      const userResult = await db.query<{
+        first_name: string;
+        last_name: string;
+      }>("SELECT first_name, last_name FROM users WHERE id = $1", [
+        req.user.userId,
+      ]);
       const user = userResult.rows[0];
 
       res.status(201).json({
@@ -156,20 +161,23 @@ router.post(
         updatedAt: note.updated_at,
       });
     } catch (error) {
-      console.error('Create note error:', error);
-      res.status(500).json({ message: 'Server error creating note' });
+      console.error("Create note error:", error);
+      res.status(500).json({ message: "Server error creating note" });
     }
   }
 );
 
 // Update a note
 router.put(
-  '/:id',
+  "/:id",
   [
-    param('id').isInt({ min: 1 }),
-    body('content').trim().notEmpty().withMessage('Note content is required'),
+    param("id").isInt({ min: 1 }),
+    body("content").trim().notEmpty().withMessage("Note content is required"),
   ],
-  async (req: AuthenticatedRequest<{ id: string }, {}, UpdateContactNoteBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{ id: string }, {}, UpdateContactNoteBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -178,7 +186,7 @@ router.put(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -187,12 +195,12 @@ router.put(
 
       // Check if note exists and belongs to user
       const existingNote = await db.query<{ id: string }>(
-        'SELECT id FROM contact_notes WHERE id = $1 AND user_id = $2',
+        "SELECT id FROM contact_notes WHERE id = $1 AND user_id = $2",
         [id, req.user.userId]
       );
 
       if (existingNote.rows.length === 0) {
-        res.status(404).json({ message: 'Note not found' });
+        res.status(404).json({ message: "Note not found" });
         return;
       }
 
@@ -205,12 +213,14 @@ router.put(
       );
 
       const note = result.rows[0];
-      
+
       // Get user name for response
-      const userResult = await db.query<{ first_name: string; last_name: string }>(
-        'SELECT first_name, last_name FROM users WHERE id = $1',
-        [req.user.userId]
-      );
+      const userResult = await db.query<{
+        first_name: string;
+        last_name: string;
+      }>("SELECT first_name, last_name FROM users WHERE id = $1", [
+        req.user.userId,
+      ]);
       const user = userResult.rows[0];
 
       res.json({
@@ -222,16 +232,16 @@ router.put(
         updatedAt: note.updated_at,
       });
     } catch (error) {
-      console.error('Update note error:', error);
-      res.status(500).json({ message: 'Server error updating note' });
+      console.error("Update note error:", error);
+      res.status(500).json({ message: "Server error updating note" });
     }
   }
 );
 
 // Delete a note
 router.delete(
-  '/:id',
-  [param('id').isInt({ min: 1 })],
+  "/:id",
+  [param("id").isInt({ min: 1 })],
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       const errors = validationResult(req);
@@ -241,26 +251,26 @@ router.delete(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
       const { id } = req.params;
 
       const result = await db.query<{ id: string }>(
-        'DELETE FROM contact_notes WHERE id = $1 AND user_id = $2 RETURNING id',
+        "DELETE FROM contact_notes WHERE id = $1 AND user_id = $2 RETURNING id",
         [id, req.user.userId]
       );
 
       if (result.rows.length === 0) {
-        res.status(404).json({ message: 'Note not found' });
+        res.status(404).json({ message: "Note not found" });
         return;
       }
 
-      res.json({ message: 'Note deleted successfully' });
+      res.json({ message: "Note deleted successfully" });
     } catch (error) {
-      console.error('Delete note error:', error);
-      res.status(500).json({ message: 'Server error deleting note' });
+      console.error("Delete note error:", error);
+      res.status(500).json({ message: "Server error deleting note" });
     }
   }
 );

@@ -1,8 +1,8 @@
-import express, { Response } from 'express';
-import { body, validationResult, query } from 'express-validator';
-import db from '../config/database';
-import { authenticateToken } from '../middleware/auth';
-import { AuthenticatedRequest, Deal } from '../types';
+import express, { Response } from "express";
+import { body, validationResult, query } from "express-validator";
+import db from "../config/database";
+import { authenticateToken } from "../middleware/auth";
+import { AuthenticatedRequest, Deal } from "../types";
 
 const router = express.Router();
 
@@ -79,35 +79,38 @@ interface ExistingDealRow {
 }
 
 // Get deal stages
-router.get('/stages', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/stages", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
     const result = await db.query<DealStage>(
-      'SELECT * FROM deal_stages WHERE user_id = $1 ORDER BY order_index',
+      "SELECT * FROM deal_stages WHERE user_id = $1 ORDER BY order_index",
       [req.user.userId]
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Get deal stages error:', error);
-    res.status(500).json({ message: 'Server error fetching deal stages' });
+    console.error("Get deal stages error:", error);
+    res.status(500).json({ message: "Server error fetching deal stages" });
   }
 });
 
 // Get all deals with pagination and filtering
 router.get(
-  '/',
+  "/",
   [
-    query('page').optional().isInt({ min: 1 }).toInt(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
-    query('search').optional().trim(),
-    query('stageId').optional().isInt(),
-    query('companyId').optional().isInt(),
+    query("page").optional().isInt({ min: 1 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("search").optional().trim(),
+    query("stageId").optional().isInt(),
+    query("companyId").optional().isInt(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, {}, DealsQueryParams>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, {}, DealsQueryParams>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -116,7 +119,7 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -131,7 +134,7 @@ router.get(
         LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $1
         WHERE (d.user_id = $1 OR s.id IS NOT NULL)
       `;
-      
+
       let dataQuery = `
         SELECT d.*, 
           ds.name as stage_name,
@@ -146,7 +149,7 @@ router.get(
         LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $1
         WHERE (d.user_id = $1 OR s.id IS NOT NULL)
       `;
-      
+
       const params: any[] = [req.user.userId];
       let paramCount = 2;
 
@@ -175,7 +178,9 @@ router.get(
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY d.created_at DESC LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+      dataQuery += ` ORDER BY d.created_at DESC LIMIT $${paramCount} OFFSET $${
+        paramCount + 1
+      }`;
 
       const countParams = [...params];
       const dataParams = [...params, limit, offset];
@@ -200,22 +205,22 @@ router.get(
         },
       });
     } catch (error) {
-      console.error('Get deals error:', error);
-      res.status(500).json({ message: 'Server error fetching deals' });
+      console.error("Get deals error:", error);
+      res.status(500).json({ message: "Server error fetching deals" });
     }
   }
 );
 
 // Get deals by stage (for kanban board)
-router.get('/by-stage', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/by-stage", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
     const stagesResult = await db.query<DealStage>(
-      'SELECT * FROM deal_stages WHERE user_id = $1 ORDER BY order_index',
+      "SELECT * FROM deal_stages WHERE user_id = $1 ORDER BY order_index",
       [req.user.userId]
     );
 
@@ -242,16 +247,16 @@ router.get('/by-stage', async (req: AuthenticatedRequest, res: Response) => {
 
     res.json(dealsByStage);
   } catch (error) {
-    console.error('Get deals by stage error:', error);
-    res.status(500).json({ message: 'Server error fetching deals by stage' });
+    console.error("Get deals by stage error:", error);
+    res.status(500).json({ message: "Server error fetching deals by stage" });
   }
 });
 
 // Get single deal
-router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
@@ -274,30 +279,30 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ message: 'Deal not found' });
+      res.status(404).json({ message: "Deal not found" });
       return;
     }
 
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Get deal error:', error);
-    res.status(500).json({ message: 'Server error fetching deal' });
+    console.error("Get deal error:", error);
+    res.status(500).json({ message: "Server error fetching deal" });
   }
 });
 
 // Create deal
 router.post(
-  '/',
+  "/",
   [
-    body('title').trim().notEmpty(),
-    body('value').optional().isFloat({ min: 0 }),
-    body('currency').optional().isLength({ min: 3, max: 3 }),
-    body('stageId').optional().isInt(),
-    body('contactId').optional().isInt(),
-    body('companyId').optional().isInt(),
-    body('expectedCloseDate').optional().isISO8601(),
-    body('probability').optional().isInt({ min: 0, max: 100 }),
-    body('notes').optional().trim(),
+    body("title").trim().notEmpty(),
+    body("value").optional().isFloat({ min: 0 }),
+    body("currency").optional().isLength({ min: 3, max: 3 }),
+    body("stageId").optional().isInt(),
+    body("contactId").optional().isInt(),
+    body("companyId").optional().isInt(),
+    body("expectedCloseDate").optional().isISO8601(),
+    body("probability").optional().isInt({ min: 0, max: 100 }),
+    body("notes").optional().trim(),
   ],
   async (req: AuthenticatedRequest<{}, {}, CreateDealBody>, res: Response) => {
     try {
@@ -308,7 +313,7 @@ router.post(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -327,33 +332,33 @@ router.post(
       // Validate foreign keys belong to user
       if (stageId) {
         const stageCheck = await db.query<ValidationRow>(
-          'SELECT id FROM deal_stages WHERE id = $1 AND user_id = $2',
+          "SELECT id FROM deal_stages WHERE id = $1 AND user_id = $2",
           [stageId, req.user.userId]
         );
         if (stageCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid stage ID' });
+          res.status(400).json({ message: "Invalid stage ID" });
           return;
         }
       }
 
       if (contactId) {
         const contactCheck = await db.query<ValidationRow>(
-          'SELECT id FROM contacts WHERE id = $1 AND user_id = $2',
+          "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
           [contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid contact ID' });
+          res.status(400).json({ message: "Invalid contact ID" });
           return;
         }
       }
 
       if (companyId) {
         const companyCheck = await db.query<ValidationRow>(
-          'SELECT id FROM companies WHERE id = $1 AND user_id = $2',
+          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
           [companyId, req.user.userId]
         );
         if (companyCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid company ID' });
+          res.status(400).json({ message: "Invalid company ID" });
           return;
         }
       }
@@ -368,7 +373,7 @@ router.post(
         [
           title,
           value || 0,
-          currency || 'USD',
+          currency || "USD",
           stageId || null,
           contactId || null,
           companyId || null,
@@ -381,27 +386,30 @@ router.post(
 
       res.status(201).json(result.rows[0]);
     } catch (error) {
-      console.error('Create deal error:', error);
-      res.status(500).json({ message: 'Server error creating deal' });
+      console.error("Create deal error:", error);
+      res.status(500).json({ message: "Server error creating deal" });
     }
   }
 );
 
 // Update deal
 router.put(
-  '/:id',
+  "/:id",
   [
-    body('title').optional().trim().notEmpty(),
-    body('value').optional().isFloat({ min: 0 }),
-    body('currency').optional().isLength({ min: 3, max: 3 }),
-    body('stageId').optional().isInt(),
-    body('contactId').optional().isInt(),
-    body('companyId').optional().isInt(),
-    body('expectedCloseDate').optional().isISO8601(),
-    body('probability').optional().isInt({ min: 0, max: 100 }),
-    body('notes').optional().trim(),
+    body("title").optional().trim().notEmpty(),
+    body("value").optional().isFloat({ min: 0 }),
+    body("currency").optional().isLength({ min: 3, max: 3 }),
+    body("stageId").optional().isInt(),
+    body("contactId").optional().isInt(),
+    body("companyId").optional().isInt(),
+    body("expectedCloseDate").optional().isISO8601(),
+    body("probability").optional().isInt({ min: 0, max: 100 }),
+    body("notes").optional().trim(),
   ],
-  async (req: AuthenticatedRequest<{ id: string }, {}, UpdateDealBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{ id: string }, {}, UpdateDealBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -410,7 +418,7 @@ router.put(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -427,7 +435,7 @@ router.put(
       );
 
       if (existingDeal.rows.length === 0) {
-        res.status(404).json({ message: 'Deal not found' });
+        res.status(404).json({ message: "Deal not found" });
         return;
       }
 
@@ -435,42 +443,44 @@ router.put(
       // Check if user is owner or has write permission
       if (
         dealPermissions.user_id !== req.user.userId &&
-        dealPermissions.permissions !== 'write'
+        dealPermissions.permissions !== "write"
       ) {
-        res.status(403).json({ message: "You don't have permission to edit this deal" });
+        res
+          .status(403)
+          .json({ message: "You don't have permission to edit this deal" });
         return;
       }
 
       // Validate foreign keys
       if (updates.stageId) {
         const stageCheck = await db.query<ValidationRow>(
-          'SELECT id FROM deal_stages WHERE id = $1 AND user_id = $2',
+          "SELECT id FROM deal_stages WHERE id = $1 AND user_id = $2",
           [updates.stageId, req.user.userId]
         );
         if (stageCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid stage ID' });
+          res.status(400).json({ message: "Invalid stage ID" });
           return;
         }
       }
 
       if (updates.contactId) {
         const contactCheck = await db.query<ValidationRow>(
-          'SELECT id FROM contacts WHERE id = $1 AND user_id = $2',
+          "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
           [updates.contactId, req.user.userId]
         );
         if (contactCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid contact ID' });
+          res.status(400).json({ message: "Invalid contact ID" });
           return;
         }
       }
 
       if (updates.companyId) {
         const companyCheck = await db.query<ValidationRow>(
-          'SELECT id FROM companies WHERE id = $1 AND user_id = $2',
+          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
           [updates.companyId, req.user.userId]
         );
         if (companyCheck.rows.length === 0) {
-          res.status(400).json({ message: 'Invalid company ID' });
+          res.status(400).json({ message: "Invalid company ID" });
           return;
         }
       }
@@ -482,14 +492,14 @@ router.put(
 
       Object.entries(updates).forEach(([key, value]) => {
         const dbField =
-          key === 'stageId'
-            ? 'stage_id'
-            : key === 'contactId'
-            ? 'contact_id'
-            : key === 'companyId'
-            ? 'company_id'
-            : key === 'expectedCloseDate'
-            ? 'expected_close_date'
+          key === "stageId"
+            ? "stage_id"
+            : key === "contactId"
+            ? "contact_id"
+            : key === "companyId"
+            ? "company_id"
+            : key === "expectedCloseDate"
+            ? "expected_close_date"
             : key;
         fields.push(`${dbField} = $${paramCount}`);
         values.push(value);
@@ -497,16 +507,16 @@ router.put(
       });
 
       if (fields.length === 0) {
-        res.status(400).json({ message: 'No valid fields to update' });
+        res.status(400).json({ message: "No valid fields to update" });
         return;
       }
 
-      fields.push('updated_at = CURRENT_TIMESTAMP');
+      fields.push("updated_at = CURRENT_TIMESTAMP");
       values.push(id, req.user.userId);
 
       const query = `
         UPDATE deals 
-        SET ${fields.join(', ')} 
+        SET ${fields.join(", ")} 
         WHERE id = $${paramCount} AND user_id = $${paramCount + 1} 
         RETURNING *
       `;
@@ -514,17 +524,17 @@ router.put(
       const result = await db.query<Deal>(query, values);
       res.json(result.rows[0]);
     } catch (error) {
-      console.error('Update deal error:', error);
-      res.status(500).json({ message: 'Server error updating deal' });
+      console.error("Update deal error:", error);
+      res.status(500).json({ message: "Server error updating deal" });
     }
   }
 );
 
 // Delete deal
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
@@ -532,21 +542,21 @@ router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
 
     // Only allow owner to delete (not shared users)
     const result = await db.query<{ id: string }>(
-      'DELETE FROM deals WHERE id = $1 AND user_id = $2 RETURNING id',
+      "DELETE FROM deals WHERE id = $1 AND user_id = $2 RETURNING id",
       [id, req.user.userId]
     );
 
     if (result.rows.length === 0) {
       res.status(404).json({
-        message: 'Deal not found or you don\'t have permission to delete it',
+        message: "Deal not found or you don't have permission to delete it",
       });
       return;
     }
 
-    res.json({ message: 'Deal deleted successfully' });
+    res.json({ message: "Deal deleted successfully" });
   } catch (error) {
-    console.error('Delete deal error:', error);
-    res.status(500).json({ message: 'Server error deleting deal' });
+    console.error("Delete deal error:", error);
+    res.status(500).json({ message: "Server error deleting deal" });
   }
 });
 

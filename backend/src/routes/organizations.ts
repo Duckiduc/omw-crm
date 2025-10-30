@@ -1,8 +1,8 @@
-import express, { Response } from 'express';
-import { body, validationResult, query } from 'express-validator';
-import db from '../config/database';
-import { authenticateToken } from '../middleware/auth';
-import { AuthenticatedRequest, Organization, Contact, Deal } from '../types';
+import express, { Response } from "express";
+import { body, validationResult, query } from "express-validator";
+import db from "../config/database";
+import { authenticateToken } from "../middleware/auth";
+import { AuthenticatedRequest, Organization, Contact, Deal } from "../types";
 
 const router = express.Router();
 
@@ -51,13 +51,16 @@ interface UpdateOrganizationBody {
 
 // Get all organizations with pagination and search
 router.get(
-  '/',
+  "/",
   [
-    query('page').optional().isInt({ min: 1 }).toInt(),
-    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
-    query('search').optional().trim(),
+    query("page").optional().isInt({ min: 1 }).toInt(),
+    query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
+    query("search").optional().trim(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, {}, OrganizationsQueryParams>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, {}, OrganizationsQueryParams>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -66,7 +69,7 @@ router.get(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -75,7 +78,7 @@ router.get(
       const offset = (page - 1) * limit;
       const search = req.query.search;
 
-      let countQuery = 'SELECT COUNT(*) FROM companies';
+      let countQuery = "SELECT COUNT(*) FROM companies";
       let dataQuery = `
         SELECT c.*, 
           (SELECT COUNT(*) FROM contacts WHERE company_id = c.id) as contact_count,
@@ -91,15 +94,15 @@ router.get(
           c.email ILIKE $1 OR 
           c.website ILIKE $1
         )`;
-        countQuery += ' ' + searchCondition;
-        dataQuery += ' ' + searchCondition;
+        countQuery += " " + searchCondition;
+        dataQuery += " " + searchCondition;
         params.push(`%${search}%`);
       }
 
       dataQuery +=
-        ' ORDER BY c.created_at DESC LIMIT $' +
+        " ORDER BY c.created_at DESC LIMIT $" +
         (params.length + 1) +
-        ' OFFSET $' +
+        " OFFSET $" +
         (params.length + 2);
       params.push(limit, offset);
 
@@ -123,26 +126,26 @@ router.get(
         },
       });
     } catch (error) {
-      console.error('Get organizations error:', error);
-      res.status(500).json({ message: 'Server error fetching organizations' });
+      console.error("Get organizations error:", error);
+      res.status(500).json({ message: "Server error fetching organizations" });
     }
   }
 );
 
 // Get single organization with contacts and deals
-router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
     const { id } = req.params;
 
     const [companyResult, contactsResult, dealsResult] = await Promise.all([
-      db.query<Organization>('SELECT * FROM companies WHERE id = $1', [id]),
+      db.query<Organization>("SELECT * FROM companies WHERE id = $1", [id]),
       db.query<Contact>(
-        'SELECT * FROM contacts WHERE company_id = $1 AND user_id = $2 ORDER BY created_at DESC',
+        "SELECT * FROM contacts WHERE company_id = $1 AND user_id = $2 ORDER BY created_at DESC",
         [id, req.user.userId]
       ),
       db.query<Deal & { stage_name?: string }>(
@@ -156,7 +159,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
     ]);
 
     if (companyResult.rows.length === 0) {
-      res.status(404).json({ message: 'Organization not found' });
+      res.status(404).json({ message: "Organization not found" });
       return;
     }
 
@@ -168,24 +171,27 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 
     res.json(organization);
   } catch (error) {
-    console.error('Get organization error:', error);
-    res.status(500).json({ message: 'Server error fetching organization' });
+    console.error("Get organization error:", error);
+    res.status(500).json({ message: "Server error fetching organization" });
   }
 });
 
 // Create organization
 router.post(
-  '/',
+  "/",
   [
-    body('name').trim().notEmpty(),
-    body('industry').optional().trim(),
-    body('website').optional().isURL(),
-    body('phone').optional().trim(),
-    body('email').optional().isEmail().normalizeEmail(),
-    body('address').optional().trim(),
-    body('notes').optional().trim(),
+    body("name").trim().notEmpty(),
+    body("industry").optional().trim(),
+    body("website").optional().isURL(),
+    body("phone").optional().trim(),
+    body("email").optional().isEmail().normalizeEmail(),
+    body("address").optional().trim(),
+    body("notes").optional().trim(),
   ],
-  async (req: AuthenticatedRequest<{}, {}, CreateOrganizationBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{}, {}, CreateOrganizationBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -194,11 +200,12 @@ router.post(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
-      const { name, industry, website, phone, email, address, notes } = req.body;
+      const { name, industry, website, phone, email, address, notes } =
+        req.body;
 
       const result = await db.query<Organization>(
         `INSERT INTO companies (name, industry, website, phone, email, address, notes, user_id) 
@@ -218,25 +225,28 @@ router.post(
 
       res.status(201).json(result.rows[0]);
     } catch (error) {
-      console.error('Create organization error:', error);
-      res.status(500).json({ message: 'Server error creating organization' });
+      console.error("Create organization error:", error);
+      res.status(500).json({ message: "Server error creating organization" });
     }
   }
 );
 
 // Update organization
 router.put(
-  '/:id',
+  "/:id",
   [
-    body('name').optional().trim().notEmpty(),
-    body('industry').optional().trim(),
-    body('website').optional().isURL(),
-    body('phone').optional().trim(),
-    body('email').optional().isEmail().normalizeEmail(),
-    body('address').optional().trim(),
-    body('notes').optional().trim(),
+    body("name").optional().trim().notEmpty(),
+    body("industry").optional().trim(),
+    body("website").optional().isURL(),
+    body("phone").optional().trim(),
+    body("email").optional().isEmail().normalizeEmail(),
+    body("address").optional().trim(),
+    body("notes").optional().trim(),
   ],
-  async (req: AuthenticatedRequest<{ id: string }, {}, UpdateOrganizationBody>, res: Response) => {
+  async (
+    req: AuthenticatedRequest<{ id: string }, {}, UpdateOrganizationBody>,
+    res: Response
+  ) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -245,7 +255,7 @@ router.put(
       }
 
       if (!req.user) {
-        res.status(401).json({ message: 'User not authenticated' });
+        res.status(401).json({ message: "User not authenticated" });
         return;
       }
 
@@ -254,12 +264,12 @@ router.put(
 
       // Check if organization exists and belongs to user
       const existingCompany = await db.query<{ id: string }>(
-        'SELECT id FROM companies WHERE id = $1 AND user_id = $2',
+        "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
         [id, req.user.userId]
       );
 
       if (existingCompany.rows.length === 0) {
-        res.status(404).json({ message: 'Organization not found' });
+        res.status(404).json({ message: "Organization not found" });
         return;
       }
 
@@ -275,16 +285,16 @@ router.put(
       });
 
       if (fields.length === 0) {
-        res.status(400).json({ message: 'No valid fields to update' });
+        res.status(400).json({ message: "No valid fields to update" });
         return;
       }
 
-      fields.push('updated_at = CURRENT_TIMESTAMP');
+      fields.push("updated_at = CURRENT_TIMESTAMP");
       values.push(id, req.user.userId);
 
       const query = `
         UPDATE companies 
-        SET ${fields.join(', ')} 
+        SET ${fields.join(", ")} 
         WHERE id = $${paramCount} AND user_id = $${paramCount + 1} 
         RETURNING *
       `;
@@ -292,36 +302,36 @@ router.put(
       const result = await db.query<Organization>(query, values);
       res.json(result.rows[0]);
     } catch (error) {
-      console.error('Update organization error:', error);
-      res.status(500).json({ message: 'Server error updating organization' });
+      console.error("Update organization error:", error);
+      res.status(500).json({ message: "Server error updating organization" });
     }
   }
 );
 
 // Delete organization
-router.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
   try {
     if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
+      res.status(401).json({ message: "User not authenticated" });
       return;
     }
 
     const { id } = req.params;
 
     const result = await db.query<{ id: string }>(
-      'DELETE FROM companies WHERE id = $1 AND user_id = $2 RETURNING id',
+      "DELETE FROM companies WHERE id = $1 AND user_id = $2 RETURNING id",
       [id, req.user.userId]
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ message: 'Organization not found' });
+      res.status(404).json({ message: "Organization not found" });
       return;
     }
 
-    res.json({ message: 'Organization deleted successfully' });
+    res.json({ message: "Organization deleted successfully" });
   } catch (error) {
-    console.error('Delete organization error:', error);
-    res.status(500).json({ message: 'Server error deleting organization' });
+    console.error("Delete organization error:", error);
+    res.status(500).json({ message: "Server error deleting organization" });
   }
 });
 
