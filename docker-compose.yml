@@ -60,6 +60,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
+        # Override environment detection for Docker deployment
+        VITE_CONFIG_ENV: docker
         VITE_API_URL: http://localhost:3002/api
     container_name: omw-crm-frontend
     restart: unless-stopped

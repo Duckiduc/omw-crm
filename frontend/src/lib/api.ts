@@ -1,5 +1,6 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3002/api";
+import environmentConfig from '../config/environment';
+
+const API_BASE_URL = environmentConfig.getApiUrl();
 
 export interface ApiResponse<T> {
   data?: T;

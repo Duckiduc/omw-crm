@@ -26,33 +26,12 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(limiter);
-// CORS configuration: allow specifying origins via CORS_ORIGINS env var (comma-separated)
-// Fallback to FRONTEND_URL or sensible localhost defaults for development
-const rawCorsOrigins =
-  process.env.CORS_ORIGINS || process.env.FRONTEND_URL || "";
-const defaultLocalOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "http://localhost:5174",
-];
-const allowedOrigins = rawCorsOrigins
-  ? rawCorsOrigins
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-  : defaultLocalOrigins;
+// CORS configuration using environment-aware config
+const environmentConfig = require("./config/environment");
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // allow requests with no origin (e.g., server-to-server, curl, mobile)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"), false);
-    },
-    credentials: true,
-  })
-);
+console.log("🌍 Environment Configuration: CORS enabled for Docker/Local setup");
+
+app.use(cors(environmentConfig.getCorsConfig()));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
