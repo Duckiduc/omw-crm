@@ -1,4 +1,4 @@
-import environmentConfig from '../config/environment';
+import environmentConfig from "../config/environment";
 
 const API_BASE_URL = environmentConfig.getApiUrl();
 

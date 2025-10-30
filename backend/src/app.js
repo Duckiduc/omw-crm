@@ -29,7 +29,9 @@ app.use(limiter);
 // CORS configuration using environment-aware config
 const environmentConfig = require("./config/environment");
 
-console.log("🌍 Environment Configuration: CORS enabled for Docker/Local setup");
+console.log(
+  "🌍 Environment Configuration: CORS enabled for Docker/Local setup"
+);
 
 app.use(cors(environmentConfig.getCorsConfig()));
 app.use(express.json({ limit: "10mb" }));
