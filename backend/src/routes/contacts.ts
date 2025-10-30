@@ -78,17 +78,17 @@ router.get(
         SELECT COUNT(*) 
         FROM contacts c 
         LEFT JOIN companies comp ON c.company_id = comp.id 
-        LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $1
+        LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $1
         WHERE (c.user_id = $1 OR s.id IS NOT NULL)
       `;
 
       let dataQuery = `
         SELECT c.*, comp.name as company_name,
                CASE WHEN c.user_id = $1 THEN false ELSE true END as is_shared_with_me,
-               s.permission
+               s.permissions as permission
         FROM contacts c 
         LEFT JOIN companies comp ON c.company_id = comp.id 
-        LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $1
+        LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $1
         WHERE (c.user_id = $1 OR s.id IS NOT NULL)
       `;
 
@@ -294,10 +294,10 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const result = await db.query<ContactRow>(
       `SELECT c.*, comp.name as company_name,
               CASE WHEN c.user_id = $1 THEN false ELSE true END as is_shared_with_me,
-              s.permission
+              s.permissions as permission
        FROM contacts c 
        LEFT JOIN companies comp ON c.company_id = comp.id 
-       LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $1
+       LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $1
        WHERE c.id = $2 AND (c.user_id = $1 OR s.id IS NOT NULL)`,
       [req.user.userId, contactId]
     );
@@ -366,9 +366,9 @@ router.put(
         user_id: string;
         permission?: string;
       }>(
-        `SELECT c.id, c.user_id, s.permission 
+        `SELECT c.id, c.user_id, s.permissions as permission 
          FROM contacts c 
-         LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $2
+         LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $2
          WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
         [id, req.user.userId]
       );

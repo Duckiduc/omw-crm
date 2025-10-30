@@ -101,7 +101,7 @@ router.get(
       let countQuery = `
         SELECT COUNT(*) 
         FROM activities a 
-        LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $1
+        LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $1
         WHERE (a.user_id = $1 OR s.id IS NOT NULL)
       `;
 
@@ -109,14 +109,12 @@ router.get(
         SELECT a.*, 
           c.first_name || ' ' || c.last_name as contact_name,
           comp.name as company_name,
-          d.title as deal_title,
-          CASE WHEN a.user_id = $1 THEN false ELSE true END as is_shared_with_me,
-          s.permission
+          d.title as deal_name
         FROM activities a 
         LEFT JOIN contacts c ON a.contact_id = c.id
         LEFT JOIN companies comp ON a.company_id = comp.id
         LEFT JOIN deals d ON a.deal_id = d.id
-        LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $1
+        LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $1
         WHERE (a.user_id = $1 OR s.id IS NOT NULL)
       `;
 
@@ -264,7 +262,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
       LEFT JOIN contacts c ON a.contact_id = c.id
       LEFT JOIN companies comp ON a.company_id = comp.id
       LEFT JOIN deals d ON a.deal_id = d.id
-      LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $2
+      LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
       WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
       [id, req.user.userId]
     );
@@ -323,7 +321,7 @@ router.post(
       if (contactId) {
         const contactCheck = await db.query<ValidationRow>(
           `SELECT c.id FROM contacts c 
-           LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $2
+           LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $2
            WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
           [contactId, req.user.userId]
         );
@@ -347,7 +345,7 @@ router.post(
       if (dealId) {
         const dealCheck = await db.query<ValidationRow>(
           `SELECT d.id FROM deals d 
-           LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $2
+           LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $2
            WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
           [dealId, req.user.userId]
         );
@@ -417,9 +415,9 @@ router.put(
 
       // Check if activity exists and user has edit permission
       const existingActivity = await db.query<ExistingActivityRow>(
-        `SELECT a.id, a.user_id, s.permission 
+        `SELECT a.id, a.user_id, s.permissions as permission 
          FROM activities a 
-         LEFT JOIN shares s ON s.resource_type = 'activity' AND s.resource_id = a.id AND s.shared_with = $2
+         LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
          WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
         [id, req.user.userId]
       );
@@ -445,7 +443,7 @@ router.put(
       if (updates.contactId) {
         const contactCheck = await db.query<ValidationRow>(
           `SELECT c.id FROM contacts c 
-           LEFT JOIN shares s ON s.resource_type = 'contact' AND s.resource_id = c.id AND s.shared_with = $2
+           LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $2
            WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
           [updates.contactId, req.user.userId]
         );
@@ -469,7 +467,7 @@ router.put(
       if (updates.dealId) {
         const dealCheck = await db.query<ValidationRow>(
           `SELECT d.id FROM deals d 
-           LEFT JOIN shares s ON s.resource_type = 'deal' AND s.resource_id = d.id AND s.shared_with = $2
+           LEFT JOIN shares s ON s.item_type = 'deal' AND s.item_id = d.id AND s.shared_with_user_id = $2
            WHERE d.id = $1 AND (d.user_id = $2 OR s.id IS NOT NULL)`,
           [updates.dealId, req.user.userId]
         );
