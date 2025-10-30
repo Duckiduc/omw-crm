@@ -21,6 +21,8 @@ interface ContactRow extends Contact {
   company_name?: string;
   is_shared_with_me: boolean;
   permissions?: string;
+  user_id: string;
+  owner_id: string;
 }
 
 interface CountRow {
