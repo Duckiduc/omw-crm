@@ -148,7 +148,7 @@ router.get(
         phone: contact.phone,
         position: contact.position,
         companyId: contact.company_id,
-        companyName: contact.company_name,
+        company_name: contact.company_name,
         notes: contact.notes,
         tags: contact.tags || [],
         status: contact.status,
