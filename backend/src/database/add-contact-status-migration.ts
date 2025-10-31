@@ -5,10 +5,10 @@ export const addContactStatus = async (): Promise<void> => {
     console.log("🔨 Adding status column to contacts table...");
 
     // Check if status column already exists
-    const columnCheck = await db.query<{ columnName: string }>(`
-      SELECT columnName 
+    const columnCheck = await db.query<{ column_name: string }>(`
+      SELECT column_name 
       FROM information_schema.columns 
-      WHERE tableName = 'contacts' AND columnName = 'status'
+      WHERE table_name = 'contacts' AND column_name = 'status'
     `);
 
     if (columnCheck.rows.length === 0) {

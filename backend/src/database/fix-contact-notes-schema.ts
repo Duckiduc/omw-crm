@@ -1,7 +1,7 @@
 import db from "../config/database";
 
 interface ColumnInfo {
-  columnName: string;
+  column_name: string;
   is_nullable: string;
   data_type: string;
 }
@@ -12,9 +12,9 @@ export const fixContactNotesSchema = async (): Promise<void> => {
 
     // Check if title column exists and is NOT NULL
     const columnCheck = await db.query<ColumnInfo>(`
-      SELECT columnName, is_nullable, data_type
+      SELECT column_name, is_nullable, data_type
       FROM information_schema.columns 
-      WHERE tableName = 'contactNotes' AND columnName = 'title'
+      WHERE table_name = 'contactnotes' AND column_name = 'title'
     `);
 
     if (

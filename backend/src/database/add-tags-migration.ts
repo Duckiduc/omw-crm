@@ -5,10 +5,10 @@ export const addTagsToContacts = async (): Promise<void> => {
     console.log("🔨 Adding tags column to contacts table...");
 
     // Check if tags column already exists
-    const columnCheck = await db.query<{ columnName: string }>(`
-      SELECT columnName 
+    const columnCheck = await db.query<{ column_name: string }>(`
+      SELECT column_name 
       FROM information_schema.columns 
-      WHERE tableName = 'contacts' AND columnName = 'tags'
+      WHERE table_name = 'contacts' AND column_name = 'tags'
     `);
 
     if (columnCheck.rows.length === 0) {

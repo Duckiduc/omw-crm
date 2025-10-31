@@ -6,9 +6,9 @@ export const createSharesTable = async (): Promise<void> => {
 
     // Check if shares table exists
     const tableCheck = await db.query(`
-      SELECT tableName 
+      SELECT table_name 
       FROM information_schema.tables 
-      WHERE tableName = 'shares'
+      WHERE table_name = 'shares'
     `);
 
     if (tableCheck.rows.length === 0) {

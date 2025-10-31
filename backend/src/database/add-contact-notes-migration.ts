@@ -5,10 +5,10 @@ export const addContactNotesTable = async (): Promise<void> => {
     console.log("🔨 Adding contactNotes table...");
 
     // Check if table already exists
-    const tableCheck = await db.query<{ tableName: string }>(`
-      SELECT tableName 
+    const tableCheck = await db.query<{ table_name: string }>(`
+      SELECT table_name 
       FROM information_schema.tables 
-      WHERE tableName = 'contactNotes'
+      WHERE table_name = 'contactnotes'
     `);
 
     if (tableCheck.rows.length === 0) {
