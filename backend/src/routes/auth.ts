@@ -41,6 +41,8 @@ interface UserRow {
   first_name: string;
   last_name: string;
   role: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface NewUserRow {
@@ -218,15 +220,35 @@ router.get(
       return;
     }
 
-    res.json({
-      user: {
-        id: req.user.userId,
-        email: req.user.email,
-        firstName: req.user.userId, // Note: Need to fetch full user data
-        lastName: req.user.userId, // Note: Need to fetch full user data
-        role: req.user.role || "user",
-      },
-    });
+    try {
+      // Fetch full user data from database
+      const userResult = await db.query<UserRow>(
+        "SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users WHERE id = $1",
+        [req.user.userId]
+      );
+
+      if (userResult.rows.length === 0) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      const user = userResult.rows[0];
+
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role || "user",
+          created_at: user.created_at,
+          updated_at: user.updated_at,
+        },
+      });
+    } catch (error) {
+      console.error("Get current user error:", error);
+      res.status(500).json({ message: "Server error fetching user data" });
+    }
   }
 );
 
@@ -286,11 +308,9 @@ router.put(
       // Check if new password is different from current
       const isSamePassword = await bcrypt.compare(newPassword, user.password);
       if (isSamePassword) {
-        res
-          .status(400)
-          .json({
-            message: "New password must be different from current password",
-          });
+        res.status(400).json({
+          message: "New password must be different from current password",
+        });
         return;
       }
 
