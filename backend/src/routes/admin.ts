@@ -385,14 +385,14 @@ router.get("/settings", async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const result = await db.query<SystemSetting>(
-      "SELECT settingKey, settingValue, description FROM systemSettings ORDER BY settingKey"
+      "SELECT settingkey, settingvalue, description FROM systemSettings ORDER BY settingkey"
     );
 
     // Convert to object format for easier frontend consumption
     const settings: Record<string, { value: string; description: string }> = {};
     result.rows.forEach((row: any) => {
-      settings[row.settingKey] = {
-        value: row.settingValue,
+      settings[row.settingkey] = {
+        value: row.settingvalue,
         description: row.description || "",
       };
     });
@@ -445,9 +445,9 @@ router.put(
       // Update setting
       const result = await db.query<SystemSetting>(
         `UPDATE systemSettings 
-         SET settingValue = $1, updatedAt = CURRENT_TIMESTAMP 
-         WHERE settingKey = $2 
-         RETURNING settingKey, settingValue, description`,
+         SET settingvalue = $1, updatedat = CURRENT_TIMESTAMP 
+         WHERE settingkey = $2 
+         RETURNING settingkey, settingvalue, description`,
         [value, key]
       );
 
@@ -457,7 +457,11 @@ router.put(
       }
 
       const setting = result.rows[0] as any;
-      res.json(setting);
+      res.json({
+        settingKey: setting.settingkey,
+        settingValue: setting.settingvalue,
+        description: setting.description,
+      });
     } catch (error) {
       console.error("Update system setting error:", error);
       res.status(500).json({ message: "Server error updating system setting" });

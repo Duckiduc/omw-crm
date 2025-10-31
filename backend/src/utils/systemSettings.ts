@@ -1,7 +1,7 @@
 import db from "../config/database";
 
 interface SystemSettingRow {
-  settingValue: string;
+  settingvalue: string;
 }
 
 interface UserCountRow {
@@ -20,7 +20,7 @@ export const getSystemSetting = async (
 ): Promise<string | null> => {
   try {
     const result = await db.query<SystemSettingRow>(
-      "SELECT settingValue FROM systemSettings WHERE settingKey = $1",
+      "SELECT settingvalue FROM systemSettings WHERE settingkey = $1",
       [settingKey]
     );
 
@@ -28,7 +28,7 @@ export const getSystemSetting = async (
       return defaultValue;
     }
 
-    return result.rows[0].settingValue;
+    return result.rows[0].settingvalue;
   } catch (error) {
     console.error(`Error getting system setting ${settingKey}:`, error);
     return defaultValue;
