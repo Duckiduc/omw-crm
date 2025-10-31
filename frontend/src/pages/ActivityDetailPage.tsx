@@ -97,7 +97,6 @@ export default function ActivityDetailPage() {
           const activityData = activityRes.data;
           setActivity(activityData);
 
-          // Handle snake_case to camelCase mapping from backend
           const actData = activityData as ActivityWithDetails & {
             dueDate?: string;
             contactId?: number;

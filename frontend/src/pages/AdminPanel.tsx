@@ -192,8 +192,8 @@ export default function AdminPanel() {
   const handleEdit = (user: User) => {
     setEditingUser(user);
     setFormData({
-      firstName: user.firstName || user.firstName || "",
-      lastName: user.lastName || user.lastName || "",
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
       email: user.email,
       password: "",
       role: user.role || "user",
@@ -559,8 +559,7 @@ export default function AdminPanel() {
                         <td className="p-4">
                           <div>
                             <div className="font-medium">
-                              {user.firstName || user.firstName}{" "}
-                              {user.lastName || user.lastName}
+                              {user.firstName} {user.lastName}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               ID: {user.id}

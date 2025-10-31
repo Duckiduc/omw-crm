@@ -230,7 +230,6 @@ export default function ActivitiesPage() {
   const handleEdit = (activity: ActivityWithDetails) => {
     setEditingActivity(activity);
 
-    // Handle snake_case to camelCase mapping from backend
     const activityData = activity as ActivityWithDetails & {
       dueDate?: string;
       contactId?: number;

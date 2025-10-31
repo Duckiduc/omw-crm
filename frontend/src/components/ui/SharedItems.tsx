@@ -11,7 +11,7 @@ import {
 } from "./Table";
 import { Badge } from "./Badge";
 import { apiClient } from "../../lib/api";
-import type { Share, Contact, Activity, Deal } from "../../lib/api";
+import type { Share } from "../../lib/api";
 import {
   Share2,
   Eye,
@@ -29,23 +29,6 @@ interface SharedItemsProps {
   showSharedWithMe?: boolean;
 }
 
-const getResourceTitle = (
-  resourceData: Contact | Activity | Deal,
-  resourceType: string
-): string => {
-  if (resourceType === "contact") {
-    const contact = resourceData as Contact;
-    return `${contact.firstName} ${contact.lastName}`.trim();
-  } else if (resourceType === "activity") {
-    const activity = resourceData as Activity;
-    return activity.type || "Activity";
-  } else if (resourceType === "deal") {
-    const deal = resourceData as Deal;
-    return deal.title || "Deal";
-  }
-  return "Unknown";
-};
-
 export default function SharedItems({
   resourceType,
   showOwned = true,
@@ -61,32 +44,16 @@ export default function SharedItems({
       setError(null);
       const response = await apiClient.getShares(resourceType);
       if (response.data) {
-        // Transform the data to add computed properties
-        const transformedShares = response.data.map(
-          (share: Partial<Share>) => ({
-            ...share,
-            // Backend already provides camelCase versions, just add fallbacks for other fields
-            resourceType: share.resourceType || share.resourceType,
-            resourceId: share.resourceId || share.resourceId,
-            createdAt: share.createdAt || share.createdAt,
-            resourceTitle:
-              share.resourceTitle ||
-              (share.resourceData
-                ? getResourceTitle(share.resourceData, share.resourceType!)
-                : `${share.resourceType} #${share.resourceId}`),
-          })
-        ) as Share[];
-
-        let filteredShares = transformedShares;
+        let filteredShares = response.data;
 
         if (!showOwned && !showSharedWithMe) {
           filteredShares = [];
         } else if (!showOwned) {
-          filteredShares = transformedShares.filter(
+          filteredShares = response.data.filter(
             (share: Share) => share.isSharedWithMe
           );
         } else if (!showSharedWithMe) {
-          filteredShares = transformedShares.filter(
+          filteredShares = response.data.filter(
             (share: Share) => !share.isSharedWithMe
           );
         }
@@ -209,16 +176,11 @@ export default function SharedItems({
                   <TableRow key={share.id}>
                     <TableCell>
                       <Badge variant="outline">
-                        {getResourceTypeDisplay(
-                          share.resourceType || share.resourceType
-                        )}
+                        {getResourceTypeDisplay(share.resourceType)}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">
-                      {share.resourceTitle ||
-                        `${share.resourceType || share.resourceType} #${
-                          share.resourceId || share.resourceId
-                        }`}
+                      {share.resourceTitle}
                     </TableCell>
                     <TableCell>
                       {share.isSharedWithMe ? (
@@ -242,10 +204,7 @@ export default function SharedItems({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(
-                        new Date(share.createdAt || share.createdAt),
-                        "MMM d, yyyy"
-                      )}
+                      {format(new Date(share.createdAt), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell>
                       {share.message ? (
@@ -269,17 +228,13 @@ export default function SharedItems({
                           variant="ghost"
                           onClick={() => {
                             // Navigate to the resource (this would be implemented based on your routing)
-                            const resourceType =
-                              share.resourceType || share.resourceType;
-                            const resourceId =
-                              share.resourceId || share.resourceId;
                             const baseUrl =
-                              resourceType === "contact"
+                              share.resourceType === "contact"
                                 ? "/contacts"
-                                : resourceType === "activity"
+                                : share.resourceType === "activity"
                                 ? "/activities"
                                 : "/deals";
-                            window.location.href = `${baseUrl}/${resourceId}`;
+                            window.location.href = `${baseUrl}/${share.resourceId}`;
                           }}
                           title="View item"
                         >
