@@ -41,6 +41,8 @@ const navigation = [
   { name: "Shared Items", href: "/shared", icon: Share2 },
 ];
 
+const userNavigation = [{ name: "Profile", href: "/profile", icon: User }];
+
 const adminNavigation = [{ name: "Admin Panel", href: "/admin", icon: Shield }];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -116,6 +118,32 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </SidebarGroupContent>
               </SidebarGroup>
             )}
+
+            {/* User Navigation */}
+            <SidebarGroup>
+              <SidebarGroupLabel>Account</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {userNavigation.map((item) => {
+                    const isActive = location.pathname === item.href;
+                    return (
+                      <SidebarMenuItem key={item.name}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          tooltip={item.name}
+                        >
+                          <Link to={item.href}>
+                            <item.icon />
+                            <span>{item.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </SidebarContent>
 
           <SidebarFooter>
