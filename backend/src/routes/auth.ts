@@ -25,6 +25,11 @@ interface LoginRequestBody {
   password: string;
 }
 
+interface ChangePasswordRequestBody {
+  currentPassword: string;
+  newPassword: string;
+}
+
 interface UserExistsRow {
   id: string;
 }
@@ -210,6 +215,90 @@ router.get(
         role: req.user.role || "user",
       },
     });
+  }
+);
+
+// Change password
+router.post(
+  "/change-password",
+  [
+    body("currentPassword")
+      .exists()
+      .notEmpty()
+      .withMessage("Current password is required"),
+    body("newPassword")
+      .isLength({ min: 6 })
+      .withMessage("New password must be at least 6 characters long"),
+  ],
+  authenticateToken,
+  async (
+    req: AuthenticatedRequest<{}, {}, ChangePasswordRequestBody>,
+    res: Response
+  ) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      if (!req.user) {
+        res.status(401).json({ message: "User not authenticated" });
+        return;
+      }
+
+      const { currentPassword, newPassword } = req.body;
+      const userId = req.user.userId;
+
+      // Get current user with password
+      const userResult = await db.query<UserRow>(
+        "SELECT id, email, password FROM users WHERE id = $1",
+        [userId]
+      );
+
+      if (userResult.rows.length === 0) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      const user = userResult.rows[0];
+
+      // Verify current password
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password
+      );
+      if (!isCurrentPasswordValid) {
+        res.status(400).json({ message: "Current password is incorrect" });
+        return;
+      }
+
+      // Check if new password is different from current
+      const isSamePassword = await bcrypt.compare(newPassword, user.password);
+      if (isSamePassword) {
+        res
+          .status(400)
+          .json({
+            message: "New password must be different from current password",
+          });
+        return;
+      }
+
+      // Hash new password
+      const saltRounds = 12;
+      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update password in database
+      await db.query(
+        "UPDATE users SET password = $1, updatedAt = CURRENT_TIMESTAMP WHERE id = $2",
+        [hashedNewPassword, userId]
+      );
+
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({ message: "Server error during password change" });
+    }
   }
 );
 
