@@ -50,13 +50,11 @@ interface CreateShareBody {
   resourceType: "contact" | "activity" | "deal";
   resourceId: number;
   sharedWithUserId: number;
-  permission?: "view" | "edit";
-  message?: string;
+  permission?: "read" | "write";
 }
 
 interface UpdateShareBody {
-  permission: "view" | "edit";
-  message?: string;
+  permission: "read" | "write";
 }
 
 // Get all items shared with the current user
@@ -247,8 +245,7 @@ router.post(
     body("resourceType").isIn(["contact", "activity", "deal"]),
     body("resourceId").isInt({ min: 1 }),
     body("sharedWithUserId").isInt({ min: 1 }),
-    body("permission").optional().isIn(["view", "edit"]),
-    body("message").optional().trim(),
+    body("permission").optional().isIn(["read", "write"]),
   ],
   async (req: AuthenticatedRequest<{}, {}, CreateShareBody>, res: Response) => {
     try {
@@ -267,8 +264,7 @@ router.post(
         resourceType,
         resourceId,
         sharedWithUserId,
-        permission = "view",
-        message,
+        permission = "read",
       } = req.body;
 
       // Verify the user exists
@@ -326,8 +322,8 @@ router.post(
 
       // Create the share
       const result = await db.query<ShareRow>(
-        `INSERT INTO shares (shared_by_user_id, shared_with_user_id, item_type, item_id, permissions, message)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO shares (shared_by_user_id, shared_with_user_id, item_type, item_id, permissions)
+         VALUES ($1, $2, $3, $4, $5)
          RETURNING *`,
         [
           req.user.userId,
@@ -335,7 +331,6 @@ router.post(
           resourceType,
           resourceId,
           permission,
-          message,
         ]
       );
 
@@ -350,10 +345,7 @@ router.post(
 // Update share permissions
 router.put(
   "/:id",
-  [
-    body("permission").isIn(["view", "edit"]),
-    body("message").optional().trim(),
-  ],
+  [body("permission").isIn(["read", "write"])],
   async (
     req: AuthenticatedRequest<{ id: string }, {}, UpdateShareBody>,
     res: Response
@@ -371,7 +363,7 @@ router.put(
       }
 
       const { id } = req.params;
-      const { permission, message } = req.body;
+      const { permission } = req.body;
 
       // Check if share exists and belongs to current user
       const shareCheck = await db.query<{ id: string }>(
@@ -388,8 +380,8 @@ router.put(
 
       // Update the share
       const result = await db.query<ShareRow>(
-        "UPDATE shares SET permission = $1, message = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *",
-        [permission, message, id]
+        "UPDATE shares SET permissions = $1 WHERE id = $2 RETURNING *",
+        [permission, id]
       );
 
       res.json(result.rows[0]);

@@ -428,10 +428,10 @@ router.put(
       }
 
       const activityPermissions = existingActivity.rows[0];
-      // Check if user is owner or has edit permission
+      // Check if user is owner or has write permission
       if (
         activityPermissions.user_id !== req.user.userId &&
-        activityPermissions.permission !== "edit"
+        activityPermissions.permission !== "write"
       ) {
         res
           .status(403)

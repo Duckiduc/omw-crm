@@ -379,10 +379,10 @@ router.put(
       }
 
       const contactPermissions = existingContact.rows[0];
-      // Check if user is owner or has edit permission
+      // Check if user is owner or has write permission
       if (
         contactPermissions.user_id !== req.user.userId &&
-        contactPermissions.permission !== "edit"
+        contactPermissions.permission !== "write"
       ) {
         res
           .status(403)
