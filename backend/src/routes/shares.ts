@@ -544,10 +544,19 @@ router.get("/users", async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const result = await db.query<UserRow>(
-      "SELECT id, firstName, lastName, email FROM users WHERE id != $1 ORDER BY firstName, lastName",
+      "SELECT id, firstname, lastname, email FROM users WHERE id != $1 ORDER BY firstname, lastname",
       [req.user.userId]
     );
-    res.json(result.rows);
+
+    // Map to camelCase for frontend consistency
+    const users = result.rows.map((user: any) => ({
+      id: user.id,
+      firstName: user.firstname,
+      lastName: user.lastname,
+      email: user.email,
+    }));
+
+    res.json(users);
   } catch (error) {
     console.error("Get users for sharing error:", error);
     res.status(500).json({ message: "Server error fetching users" });

@@ -89,7 +89,7 @@ router.get(
 
       let countQuery = "SELECT COUNT(*) FROM users WHERE 1=1";
       let dataQuery = `
-        SELECT id, email, firstName, lastName, role, createdAt, updatedAt
+        SELECT id, email, firstname, lastname, role, createdat, updatedat
         FROM users 
         WHERE 1=1
       `;
@@ -98,7 +98,7 @@ router.get(
 
       // Add filters
       if (search) {
-        const searchCondition = ` AND (firstName ILIKE $${paramCount} OR lastName ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
+        const searchCondition = ` AND (firstname ILIKE $${paramCount} OR lastname ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
         countQuery += searchCondition;
         dataQuery += searchCondition;
         params.push(`%${search}%`);
@@ -113,7 +113,7 @@ router.get(
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY createdAt DESC LIMIT $${paramCount} OFFSET $${
+      dataQuery += ` ORDER BY createdat DESC LIMIT $${paramCount} OFFSET $${
         paramCount + 1
       }`;
 
@@ -128,8 +128,19 @@ router.get(
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
 
+      // Map to camelCase for frontend consistency
+      const users = dataResult.rows.map((user: any) => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstname,
+        lastName: user.lastname,
+        role: user.role,
+        createdAt: user.createdat,
+        updatedAt: user.updatedat,
+      }));
+
       res.json({
-        users: dataResult.rows,
+        users,
         pagination: {
           page,
           limit,
@@ -157,7 +168,7 @@ router.get("/users/:id", async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
 
     const result = await db.query<UserRow>(
-      "SELECT id, email, firstName, lastName, role, createdAt, updatedAt FROM users WHERE id = $1",
+      "SELECT id, email, firstname, lastname, role, createdat, updatedat FROM users WHERE id = $1",
       [id]
     );
 
@@ -166,7 +177,16 @@ router.get("/users/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    res.json(result.rows[0]);
+    const user = result.rows[0] as any;
+    res.json({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstname,
+      lastName: user.lastname,
+      role: user.role,
+      createdAt: user.createdat,
+      updatedAt: user.updatedat,
+    });
   } catch (error) {
     console.error("Get user error:", error);
     res.status(500).json({ message: "Server error fetching user" });
@@ -215,11 +235,20 @@ router.post(
 
       // Create user
       const result = await db.query<UserRow>(
-        "INSERT INTO users (email, password, firstName, lastName, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, firstName, lastName, role, createdAt, updatedAt",
+        "INSERT INTO users (email, password, firstname, lastname, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, firstname, lastname, role, createdat, updatedat",
         [email, hashedPassword, firstName, lastName, role]
       );
 
-      res.status(201).json(result.rows[0]);
+      const user = result.rows[0] as any;
+      res.status(201).json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstname,
+        lastName: user.lastname,
+        role: user.role,
+        createdAt: user.createdat,
+        updatedAt: user.updatedat,
+      });
     } catch (error) {
       console.error("Create user error:", error);
       res.status(500).json({ message: "Server error creating user" });
@@ -303,9 +332,9 @@ router.put(
         } else {
           const dbField =
             key === "firstName"
-              ? "firstName"
+              ? "firstname"
               : key === "lastName"
-              ? "lastName"
+              ? "lastname"
               : key;
           fields.push(`${dbField} = $${paramCount}`);
           values.push(value);
@@ -318,19 +347,28 @@ router.put(
         return;
       }
 
-      fields.push("updatedAt = CURRENT_TIMESTAMP");
+      fields.push("updatedat = CURRENT_TIMESTAMP");
       values.push(id);
 
       const query = `
         UPDATE users 
         SET ${fields.join(", ")} 
         WHERE id = $${paramCount} 
-        RETURNING id, email, firstName, lastName, role, createdAt, updatedAt
+        RETURNING id, email, firstname, lastname, role, createdat, updatedat
       `;
 
       const result = await db.query<UserRow>(query, values);
 
-      res.json(result.rows[0]);
+      const user = result.rows[0] as any;
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstname,
+        lastName: user.lastname,
+        role: user.role,
+        createdAt: user.createdat,
+        updatedAt: user.updatedat,
+      });
     } catch (error) {
       console.error("Update user error:", error);
       res.status(500).json({ message: "Server error updating user" });

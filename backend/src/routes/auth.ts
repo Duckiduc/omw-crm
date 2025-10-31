@@ -105,11 +105,17 @@ router.post(
 
       // Create user
       const result = await db.query<NewUserRow>(
-        "INSERT INTO users (email, password, firstName, lastName) VALUES ($1, $2, $3, $4) RETURNING id, email, firstName, lastName",
+        "INSERT INTO users (email, password, firstname, lastname) VALUES ($1, $2, $3, $4) RETURNING id, email, firstname, lastname",
         [email, hashedPassword, firstName, lastName]
       );
 
-      const user = result.rows[0];
+      const userRow = result.rows[0] as any;
+      const user = {
+        id: userRow.id,
+        email: userRow.email,
+        firstName: userRow.firstname,
+        lastName: userRow.lastname,
+      };
 
       // Seed default data for new user
       await seedDefaultData(user.id);
@@ -154,7 +160,7 @@ router.post(
 
       // Find user
       const result = await db.query<UserRow>(
-        "SELECT id, email, password, firstName, lastName, role FROM users WHERE email = $1",
+        "SELECT id, email, password, firstname, lastname, role FROM users WHERE email = $1",
         [email]
       );
 
@@ -163,7 +169,15 @@ router.post(
         return;
       }
 
-      const user = result.rows[0];
+      const userRow = result.rows[0] as any;
+      const user = {
+        id: userRow.id,
+        email: userRow.email,
+        password: userRow.password,
+        firstName: userRow.firstname,
+        lastName: userRow.lastname,
+        role: userRow.role,
+      };
 
       // Check password
       const isValidPassword = await bcrypt.compare(password, user.password);
@@ -276,11 +290,9 @@ router.post(
       // Check if new password is different from current
       const isSamePassword = await bcrypt.compare(newPassword, user.password);
       if (isSamePassword) {
-        res
-          .status(400)
-          .json({
-            message: "New password must be different from current password",
-          });
+        res.status(400).json({
+          message: "New password must be different from current password",
+        });
         return;
       }
 
