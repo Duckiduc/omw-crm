@@ -68,6 +68,10 @@ interface AuthContextType extends AuthState {
     firstName: string;
     lastName: string;
   }) => Promise<boolean>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string
+  ) => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
 }
@@ -158,6 +162,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "AUTH_LOGOUT" });
   };
 
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> => {
+    const response = await apiClient.changePassword(
+      currentPassword,
+      newPassword
+    );
+    return response.data !== undefined;
+  };
+
   const clearError = () => {
     dispatch({ type: "CLEAR_ERROR" });
   };
@@ -166,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ...state,
     login,
     register,
+    changePassword,
     logout,
     clearError,
   };
