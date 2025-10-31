@@ -222,11 +222,11 @@ router.post(
         status = "all_good",
       } = req.body;
 
-      // If companyId provided, verify it belongs to user
+      // If companyId provided, verify it exists
       if (companyId) {
         const companyCheck = await db.query<{ id: string }>(
-          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
-          [companyId, req.user.userId]
+          "SELECT id FROM companies WHERE id = $1",
+          [companyId]
         );
         if (companyCheck.rows.length === 0) {
           res.status(400).json({ message: "Invalid company ID" });
@@ -390,11 +390,11 @@ router.put(
         return;
       }
 
-      // If companyId provided, verify it belongs to user
+      // If companyId provided, verify it exists
       if (updates.companyId) {
         const companyCheck = await db.query<{ id: string }>(
-          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
-          [updates.companyId, req.user.userId]
+          "SELECT id FROM companies WHERE id = $1",
+          [updates.companyId]
         );
         if (companyCheck.rows.length === 0) {
           res.status(400).json({ message: "Invalid company ID" });
