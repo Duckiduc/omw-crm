@@ -20,6 +20,7 @@ import DealsPage from "./pages/DealsPage.tsx";
 import ActivitiesPage from "./pages/ActivitiesPage.tsx";
 import AdminPanel from "./pages/AdminPanel.tsx";
 import SharedItemsPage from "./pages/SharedItemsPage.tsx";
+import UserProfilePage from "./pages/UserProfilePage.tsx";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -165,6 +166,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout>
               <SharedItemsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <UserProfilePage />
             </DashboardLayout>
           </ProtectedRoute>
         }
