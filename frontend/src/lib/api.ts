@@ -92,6 +92,13 @@ class ApiClient {
     return this.request<{ user: User }>("/auth/me");
   }
 
+  async changePassword(currentPassword: string, newPassword: string) {
+    return this.request<{ message: string }>("/auth/change-password", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
   // Contacts endpoints
   async getContacts(params?: {
     page?: number;

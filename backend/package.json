@@ -21,7 +21,19 @@
     "migrate:system-settings": "ts-node src/database/add-system-settings-migration.ts",
     "create-admin": "ts-node src/database/create-default-admin.ts",
     "db:migrate": "ts-node src/database/migrate.ts",
-    "db:seed": "ts-node src/database/seed.ts"
+    "db:seed": "ts-node src/database/seed.ts",
+    "prod:setup": "node dist/database/setup.js",
+    "prod:migrate": "node dist/database/migrate.js",
+    "prod:migrate:all": "node dist/database/run-all-migrations.js",
+    "prod:migrate:admin": "node dist/database/run-admin-migration.js",
+    "prod:migrate:shares": "node dist/database/run-shares-migration.js",
+    "prod:migrate:contact-notes": "node dist/database/add-contact-notes-migration.js",
+    "prod:migrate:activity-notes": "node dist/database/add-activity-notes-migration.js",
+    "prod:migrate:contact-status": "node dist/database/add-contact-status-migration.js",
+    "prod:migrate:tags": "node dist/database/add-tags-migration.js",
+    "prod:migrate:fix-schema": "node dist/database/fix-contact-notes-schema.js",
+    "prod:migrate:system-settings": "node dist/database/add-system-settings-migration.js",
+    "prod:create-admin": "node dist/database/create-default-admin.js"
   },
   "dependencies": {
     "express": "^4.18.2",

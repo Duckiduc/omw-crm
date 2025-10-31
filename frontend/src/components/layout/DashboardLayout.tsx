@@ -11,6 +11,7 @@ import {
   User,
   Shield,
   Share2,
+  Settings,
 } from "lucide-react";
 import {
   Sidebar,
@@ -135,6 +136,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     </p>
                   </div>
                 </div>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location.pathname === "/profile"}
+                  tooltip="Profile Settings"
+                >
+                  <Link to="/profile">
+                    <Settings className="h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
