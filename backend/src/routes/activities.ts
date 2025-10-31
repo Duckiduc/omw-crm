@@ -257,7 +257,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
         comp.name as company_name,
         d.title as deal_title,
         CASE WHEN a.user_id = $2 THEN false ELSE true END as is_shared_with_me,
-        s.permission
+        s.permissions as permission
       FROM activities a 
       LEFT JOIN contacts c ON a.contact_id = c.id
       LEFT JOIN companies comp ON a.company_id = comp.id
