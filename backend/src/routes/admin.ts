@@ -128,19 +128,8 @@ router.get(
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
 
-      // Map field names to camelCase for frontend consistency
-      const users = dataResult.rows.map((user) => ({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      }));
-
       res.json({
-        users,
+        users: dataResult.rows,
         pagination: {
           page,
           limit,
@@ -177,16 +166,7 @@ router.get("/users/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    const user = result.rows[0];
-    res.json({
-      id: user.id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    });
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("Get user error:", error);
     res.status(500).json({ message: "Server error fetching user" });
@@ -239,16 +219,7 @@ router.post(
         [email, hashedPassword, firstName, lastName, role]
       );
 
-      const user = result.rows[0];
-      res.status(201).json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      });
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error("Create user error:", error);
       res.status(500).json({ message: "Server error creating user" });
@@ -359,16 +330,7 @@ router.put(
 
       const result = await db.query<UserRow>(query, values);
 
-      const user = result.rows[0];
-      res.json({
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      });
+      res.json(result.rows[0]);
     } catch (error) {
       console.error("Update user error:", error);
       res.status(500).json({ message: "Server error updating user" });
@@ -495,11 +457,7 @@ router.put(
       }
 
       const setting = result.rows[0] as any;
-      res.json({
-        settingKey: setting.settingKey,
-        settingValue: setting.settingValue,
-        description: setting.description,
-      });
+      res.json(setting);
     } catch (error) {
       console.error("Update system setting error:", error);
       res.status(500).json({ message: "Server error updating system setting" });

@@ -124,13 +124,7 @@ router.post(
       res.status(201).json({
         message: "User created successfully",
         token,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: "user",
-        },
+        user: user,
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -188,13 +182,7 @@ router.post(
       res.json({
         message: "Login successful",
         token,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role || "user",
-        },
+        user: user,
       });
     } catch (error) {
       console.error("Login error:", error);

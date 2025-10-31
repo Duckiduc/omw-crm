@@ -139,28 +139,8 @@ router.get(
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
 
-      // Transform to camelCase for frontend compatibility
-      const contacts = dataResult.rows.map((contact) => ({
-        id: contact.id,
-        firstName: contact.firstName,
-        lastName: contact.lastName,
-        email: contact.email,
-        phone: contact.phone,
-        position: contact.position,
-        companyId: contact.companyId,
-        companyName: contact.companyName,
-        notes: contact.notes,
-        tags: contact.tags || [],
-        status: contact.status,
-        isSharedWithMe: contact.isSharedWithMe,
-        permission: contact.permissions,
-        createdAt: contact.createdAt,
-        updatedAt: contact.updatedAt,
-        userId: contact.userId,
-      }));
-
       res.json({
-        contacts,
+        contacts: dataResult.rows,
         pagination: {
           page,
           limit,
@@ -258,22 +238,7 @@ router.post(
         ]
       );
 
-      const newContact = result.rows[0];
-
-      res.status(201).json({
-        id: newContact.id,
-        firstName: newContact.firstName,
-        lastName: newContact.lastName,
-        email: newContact.email,
-        phone: newContact.phone,
-        position: newContact.position,
-        companyId: newContact.companyId,
-        notes: newContact.notes,
-        tags: newContact.tags || [],
-        status: newContact.status || "allGood",
-        createdAt: newContact.createdAt,
-        updatedAt: newContact.updatedAt,
-      });
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error("Create contact error:", error);
       res.status(500).json({ message: "Server error creating contact" });
@@ -307,23 +272,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    const contact = result.rows[0];
-
-    res.json({
-      id: contact.id,
-      firstName: contact.firstName,
-      lastName: contact.lastName,
-      email: contact.email,
-      phone: contact.phone,
-      position: contact.position,
-      companyId: contact.companyId,
-      notes: contact.notes,
-      tags: contact.tags || [],
-      status: contact.status || "allGood",
-      createdAt: contact.createdAt,
-      updatedAt: contact.updatedAt,
-      companyName: contact.companyName,
-    });
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("Get contact error:", error);
     res.status(500).json({ message: "Server error fetching contact" });
@@ -459,20 +408,7 @@ router.put(
         return;
       }
 
-      res.json({
-        id: updatedContact.id,
-        firstName: updatedContact.firstName,
-        lastName: updatedContact.lastName,
-        email: updatedContact.email,
-        phone: updatedContact.phone,
-        position: updatedContact.position,
-        companyId: updatedContact.companyId,
-        notes: updatedContact.notes,
-        tags: updatedContact.tags || [],
-        status: updatedContact.status || "allGood",
-        createdAt: updatedContact.createdAt,
-        updatedAt: updatedContact.updatedAt,
-      });
+      res.json(updatedContact);
     } catch (error) {
       console.error("Update contact error:", error);
       res.status(500).json({ message: "Server error updating contact" });

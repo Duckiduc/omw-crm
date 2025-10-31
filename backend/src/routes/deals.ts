@@ -29,28 +29,10 @@ interface CountRow {
   count: string;
 }
 
-interface TransformedDeal {
-  id: number;
-  title: string;
-  value: number;
-  currency: string;
-  stageId: number;
-  contactId?: number;
-  companyId?: number;
-  expectedCloseDate?: string;
-  probability: number;
-  notes?: string;
-  contactName?: string;
-  companyName?: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: number;
-}
-
 interface DealsByStageResponse {
   [stageId: string]: {
     stage: DealStage;
-    deals: TransformedDeal[];
+    deals: DealRow[];
   };
 }
 
@@ -211,30 +193,8 @@ router.get(
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
 
-      // Transform to camelCase for frontend compatibility
-      const deals = dataResult.rows.map((deal: any) => ({
-        id: deal.id,
-        title: deal.title,
-        value: deal.value,
-        currency: deal.currency,
-        stageId: deal.stageId,
-        contactId: deal.contactId,
-        companyId: deal.companyId,
-        expectedCloseDate: deal.expectedCloseDate,
-        probability: deal.probability,
-        notes: deal.notes,
-        contactName: deal.contactName,
-        companyName: deal.companyName,
-        stageName: deal.stageName,
-        isSharedWithMe: deal.isSharedWithMe,
-        permission: deal.permissions,
-        createdAt: deal.createdAt,
-        updatedAt: deal.updatedAt,
-        userId: deal.userId,
-      }));
-
       res.json({
-        deals,
+        deals: dataResult.rows,
         pagination: {
           page,
           limit,
@@ -279,28 +239,9 @@ router.get("/by-stage", async (req: AuthenticatedRequest, res: Response) => {
         [stage.id, req.user.userId]
       );
 
-      // Transform deals to camelCase for frontend compatibility
-      const deals = dealsResult.rows.map((deal: any) => ({
-        id: deal.id,
-        title: deal.title,
-        value: deal.value,
-        currency: deal.currency,
-        stageId: deal.stageId,
-        contactId: deal.contactId,
-        companyId: deal.companyId,
-        expectedCloseDate: deal.expectedCloseDate,
-        probability: deal.probability,
-        notes: deal.notes,
-        contactName: deal.contactName,
-        companyName: deal.companyName,
-        createdAt: deal.createdAt,
-        updatedAt: deal.updatedAt,
-        userId: deal.userId,
-      }));
-
       dealsByStage[stage.id] = {
         stage: stage,
-        deals: deals,
+        deals: dealsResult.rows,
       };
     }
 
@@ -342,30 +283,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    // Transform to camelCase for frontend compatibility
-    const deal: any = result.rows[0];
-    const transformedDeal = {
-      id: deal.id,
-      title: deal.title,
-      value: deal.value,
-      currency: deal.currency,
-      stageId: deal.stageId,
-      contactId: deal.contactId,
-      companyId: deal.companyId,
-      expectedCloseDate: deal.expectedCloseDate,
-      probability: deal.probability,
-      notes: deal.notes,
-      contactName: deal.contactName,
-      companyName: deal.companyName,
-      stageName: deal.stageName,
-      isSharedWithMe: deal.isSharedWithMe,
-      permission: deal.permissions,
-      createdAt: deal.createdAt,
-      updatedAt: deal.updatedAt,
-      userId: deal.userId,
-    };
-
-    res.json(transformedDeal);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("Get deal error:", error);
     res.status(500).json({ message: "Server error fetching deal" });
@@ -466,25 +384,7 @@ router.post(
         ]
       );
 
-      // Transform to camelCase for frontend compatibility
-      const deal: any = result.rows[0];
-      const transformedDeal = {
-        id: deal.id,
-        title: deal.title,
-        value: deal.value,
-        currency: deal.currency,
-        stageId: deal.stageId,
-        contactId: deal.contactId,
-        companyId: deal.companyId,
-        expectedCloseDate: deal.expectedCloseDate,
-        probability: deal.probability,
-        notes: deal.notes,
-        createdAt: deal.createdAt,
-        updatedAt: deal.updatedAt,
-        userId: deal.userId,
-      };
-
-      res.status(201).json(transformedDeal);
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error("Create deal error:", error);
       res.status(500).json({ message: "Server error creating deal" });
@@ -623,25 +523,7 @@ router.put(
 
       const result = await db.query<Deal>(query, values);
 
-      // Transform to camelCase for frontend compatibility
-      const deal: any = result.rows[0];
-      const transformedDeal = {
-        id: deal.id,
-        title: deal.title,
-        value: deal.value,
-        currency: deal.currency,
-        stageId: deal.stageId,
-        contactId: deal.contactId,
-        companyId: deal.companyId,
-        expectedCloseDate: deal.expectedCloseDate,
-        probability: deal.probability,
-        notes: deal.notes,
-        createdAt: deal.createdAt,
-        updatedAt: deal.updatedAt,
-        userId: deal.userId,
-      };
-
-      res.json(transformedDeal);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error("Update deal error:", error);
       res.status(500).json({ message: "Server error updating deal" });

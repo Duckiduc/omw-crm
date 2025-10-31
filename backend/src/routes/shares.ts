@@ -508,14 +508,11 @@ router.get(
 
       const result = await db.query<ShareRow>(query, params);
 
-      // Map data to include computed properties for frontend
+      // Add computed properties for frontend
       const shares = result.rows.map((share) => ({
         ...share,
         resourceType: share.itemType,
         resourceId: share.itemId,
-        createdAt: share.createdAt,
-        sharedWithFirstName: share.sharedWithFirstName,
-        sharedWithLastName: share.sharedWithLastName,
         ownerFirstName: share.sharedByFirstName,
         ownerLastName: share.sharedByLastName,
         isSharedWithMe: share.sharedWithUserId === req.user?.userId,
@@ -550,16 +547,7 @@ router.get("/users", async (req: AuthenticatedRequest, res: Response) => {
       "SELECT id, firstName, lastName, email FROM users WHERE id != $1 ORDER BY firstName, lastName",
       [req.user.userId]
     );
-
-    // Map to camelCase for frontend consistency
-    const users = result.rows.map((user) => ({
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-    }));
-
-    res.json(users);
+    res.json(result.rows);
   } catch (error) {
     console.error("Get users for sharing error:", error);
     res.status(500).json({ message: "Server error fetching users" });

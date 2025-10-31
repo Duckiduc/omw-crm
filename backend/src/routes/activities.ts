@@ -190,27 +190,8 @@ router.get(
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
 
-      // Transform to camelCase for frontend compatibility
-      const activities = dataResult.rows.map((activity: any) => ({
-        id: activity.id,
-        subject: activity.subject,
-        description: activity.description,
-        type: activity.type,
-        dueDate: activity.dueDate,
-        completed: activity.completed,
-        contactId: activity.contactId,
-        companyId: activity.companyId,
-        dealId: activity.dealId,
-        contactName: activity.contactName,
-        companyName: activity.companyName,
-        dealName: activity.dealName,
-        createdAt: activity.createdAt,
-        updatedAt: activity.updatedAt,
-        userId: activity.userId,
-      }));
-
       res.json({
-        activities,
+        activities: dataResult.rows,
         pagination: {
           page,
           limit,
@@ -251,26 +232,7 @@ router.get("/upcoming", async (req: AuthenticatedRequest, res: Response) => {
       [req.user.userId]
     );
 
-    // Transform to camelCase for frontend compatibility
-    const activities = result.rows.map((activity: any) => ({
-      id: activity.id,
-      subject: activity.subject,
-      description: activity.description,
-      type: activity.type,
-      dueDate: activity.dueDate,
-      completed: activity.completed,
-      contactId: activity.contactId,
-      companyId: activity.companyId,
-      dealId: activity.dealId,
-      contactName: activity.contactName,
-      companyName: activity.companyName,
-      dealName: activity.dealName,
-      createdAt: activity.createdAt,
-      updatedAt: activity.updatedAt,
-      userId: activity.userId,
-    }));
-
-    res.json(activities);
+    res.json(result.rows);
   } catch (error) {
     console.error("Get upcoming activities error:", error);
     res
@@ -310,29 +272,7 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    // Transform to camelCase for frontend compatibility
-    const activity: any = result.rows[0];
-    const transformedActivity = {
-      id: activity.id,
-      subject: activity.subject,
-      description: activity.description,
-      type: activity.type,
-      dueDate: activity.dueDate,
-      completed: activity.completed,
-      contactId: activity.contactId,
-      companyId: activity.companyId,
-      dealId: activity.dealId,
-      contactName: activity.contactName,
-      companyName: activity.companyName,
-      dealName: activity.dealName,
-      isSharedWithMe: activity.isSharedWithMe,
-      permission: activity.permissions,
-      createdAt: activity.createdAt,
-      updatedAt: activity.updatedAt,
-      userId: activity.userId,
-    };
-
-    res.json(transformedActivity);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error("Get activity error:", error);
     res.status(500).json({ message: "Server error fetching activity" });
@@ -433,24 +373,7 @@ router.post(
         ]
       );
 
-      // Transform to camelCase for frontend compatibility
-      const activity: any = result.rows[0];
-      const transformedActivity = {
-        id: activity.id,
-        subject: activity.subject,
-        description: activity.description,
-        type: activity.type,
-        dueDate: activity.dueDate,
-        completed: activity.completed,
-        contactId: activity.contactId,
-        companyId: activity.companyId,
-        dealId: activity.dealId,
-        createdAt: activity.createdAt,
-        updatedAt: activity.updatedAt,
-        userId: activity.userId,
-      };
-
-      res.status(201).json(transformedActivity);
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error("Create activity error:", error);
       res.status(500).json({ message: "Server error creating activity" });
@@ -592,24 +515,9 @@ router.put(
 
       const result = await db.query<Activity>(query, values);
 
-      // Transform to camelCase for frontend compatibility
       const activity: any = result.rows[0];
-      const transformedActivity = {
-        id: activity.id,
-        subject: activity.subject,
-        description: activity.description,
-        type: activity.type,
-        dueDate: activity.dueDate,
-        completed: activity.completed,
-        contactId: activity.contactId,
-        companyId: activity.companyId,
-        dealId: activity.dealId,
-        createdAt: activity.createdAt,
-        updatedAt: activity.updatedAt,
-        userId: activity.userId,
-      };
 
-      res.json(transformedActivity);
+      res.json(activity);
     } catch (error) {
       console.error("Update activity error:", error);
       res.status(500).json({ message: "Server error updating activity" });
@@ -642,24 +550,7 @@ router.patch(
         return;
       }
 
-      // Transform to camelCase for frontend compatibility
-      const activity: any = result.rows[0];
-      const transformedActivity = {
-        id: activity.id,
-        subject: activity.subject,
-        description: activity.description,
-        type: activity.type,
-        dueDate: activity.dueDate,
-        completed: activity.completed,
-        contactId: activity.contactId,
-        companyId: activity.companyId,
-        dealId: activity.dealId,
-        createdAt: activity.createdAt,
-        updatedAt: activity.updatedAt,
-        userId: activity.userId,
-      };
-
-      res.json(transformedActivity);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error("Toggle activity complete error:", error);
       res.status(500).json({ message: "Server error updating activity" });
