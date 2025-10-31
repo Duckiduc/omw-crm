@@ -8,13 +8,13 @@ interface ColumnInfo {
 
 export const fixContactNotesSchema = async (): Promise<void> => {
   try {
-    console.log("🔨 Fixing contactNotes table schema...");
+    console.log("🔨 Fixing contact_notes table schema...");
 
     // Check if title column exists and is NOT NULL
     const columnCheck = await db.query<ColumnInfo>(`
       SELECT column_name, is_nullable, data_type
       FROM information_schema.columns 
-      WHERE table_name = 'contactnotes' AND column_name = 'title'
+      WHERE table_name = 'contact_notes' AND column_name = 'title'
     `);
 
     if (
@@ -25,7 +25,7 @@ export const fixContactNotesSchema = async (): Promise<void> => {
 
       // Make title column nullable
       await db.query(`
-        ALTER TABLE contactNotes 
+        ALTER TABLE contact_notes 
         ALTER COLUMN title DROP NOT NULL;
       `);
 

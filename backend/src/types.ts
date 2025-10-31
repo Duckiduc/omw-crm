@@ -31,11 +31,11 @@ export interface User {
   id: string;
   userId: string; // Alias for id for backward compatibility
   email: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   role: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface AuthenticatedRequest<
@@ -50,19 +50,19 @@ export interface AuthenticatedRequest<
 // Business entity types
 export interface Contact {
   id: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email?: string;
   phone?: string;
-  companyId?: string;
-  companyName?: string;
+  company_id?: string;
+  company_name?: string;
   position?: string;
   status: string;
   tags?: string[];
   notes?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Organization {
@@ -75,9 +75,9 @@ export interface Organization {
   industry?: string;
   size?: string;
   notes?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Deal {
@@ -87,13 +87,13 @@ export interface Deal {
   currency?: string;
   stage: string;
   probability?: number;
-  expectedCloseDate?: Date;
-  contactId?: string;
-  organizationId?: string;
+  expected_close_date?: Date;
+  contact_id?: string;
+  organization_id?: string;
   notes?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Activity {
@@ -101,55 +101,55 @@ export interface Activity {
   type: string;
   title: string;
   description?: string;
-  dueDate?: Date;
+  due_date?: Date;
   completed: boolean;
-  contactId?: string;
-  organizationId?: string;
-  dealId?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  contact_id?: string;
+  organization_id?: string;
+  deal_id?: string;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Share {
   id: string;
-  resourceType: string;
-  resourceId: string;
-  sharedBy: string;
-  sharedWith: string;
+  resource_type: string;
+  resource_id: string;
+  shared_by: string;
+  shared_with: string;
   permission: "view" | "edit";
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface SystemSetting {
   id: string;
-  settingKey: string;
-  settingValue: string;
+  setting_key: string;
+  setting_value: string;
   description?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // Database row types (for internal database operations)
 export interface ContactRow {
   id: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email?: string;
   phone?: string;
-  companyId?: string;
+  company_id?: string;
   position?: string;
   status: string;
   tags?: string;
   notes?: string;
-  ownerId: string;
-  userId: string; // Alias for ownerId for backward compatibility
-  createdAt: Date;
-  updatedAt: Date;
+  owner_id: string;
+  user_id: string; // Alias for owner_id for backward compatibility
+  created_at: Date;
+  updated_at: Date;
   // Additional fields from JOIN queries
-  companyName?: string;
-  isSharedWithMe?: boolean;
+  company_name?: string;
+  is_shared_with_me?: boolean;
   permission?: string;
   permissions?: string;
 }
@@ -164,9 +164,9 @@ export interface OrganizationRow {
   industry?: string;
   size?: string;
   notes?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface ActivityRow {
@@ -174,14 +174,14 @@ export interface ActivityRow {
   type: string;
   title: string;
   description?: string;
-  dueDate?: Date;
+  due_date?: Date;
   completed: boolean;
-  contactId?: string;
-  organizationId?: string;
-  dealId?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  contact_id?: string;
+  organization_id?: string;
+  deal_id?: string;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface DealRow {
@@ -191,13 +191,13 @@ export interface DealRow {
   currency?: string;
   stage: string;
   probability?: number;
-  expectedCloseDate?: Date;
-  contactId?: string;
-  organizationId?: string;
+  expected_close_date?: Date;
+  contact_id?: string;
+  organization_id?: string;
   notes?: string;
-  ownerId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  owner_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // API Response types
@@ -221,11 +221,11 @@ export interface PaginatedResponse<T = any> {
 
 // Request body types for validation
 export interface CreateContactRequest {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email?: string;
   phone?: string;
-  companyId?: string;
+  company_id?: string;
   position?: string;
   status?: string;
   tags?: string[];
@@ -233,11 +233,11 @@ export interface CreateContactRequest {
 }
 
 export interface UpdateContactRequest {
-  firstName?: string;
-  lastName?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
   phone?: string;
-  companyId?: string;
+  company_id?: string;
   position?: string;
   status?: string;
   tags?: string[];
@@ -270,21 +270,21 @@ export interface CreateActivityRequest {
   type: string;
   title: string;
   description?: string;
-  dueDate?: string;
-  contactId?: string;
-  organizationId?: string;
-  dealId?: string;
+  due_date?: string;
+  contact_id?: string;
+  organization_id?: string;
+  deal_id?: string;
 }
 
 export interface UpdateActivityRequest {
   type?: string;
   title?: string;
   description?: string;
-  dueDate?: string;
+  due_date?: string;
   completed?: boolean;
-  contactId?: string;
-  organizationId?: string;
-  dealId?: string;
+  contact_id?: string;
+  organization_id?: string;
+  deal_id?: string;
 }
 
 export interface CreateDealRequest {
@@ -293,9 +293,9 @@ export interface CreateDealRequest {
   currency?: string;
   stage?: string;
   probability?: number;
-  expectedCloseDate?: string;
-  contactId?: string;
-  organizationId?: string;
+  expected_close_date?: string;
+  contact_id?: string;
+  organization_id?: string;
   notes?: string;
 }
 
@@ -305,8 +305,8 @@ export interface UpdateDealRequest {
   currency?: string;
   stage?: string;
   probability?: number;
-  expectedCloseDate?: string;
-  contactId?: string;
-  organizationId?: string;
+  expected_close_date?: string;
+  contact_id?: string;
+  organization_id?: string;
   notes?: string;
 }

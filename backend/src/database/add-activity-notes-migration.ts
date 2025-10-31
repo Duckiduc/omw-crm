@@ -2,35 +2,35 @@ import db from "../config/database";
 
 export const addActivityNotesTable = async (): Promise<void> => {
   try {
-    console.log("🔨 Adding activityNotes table...");
+    console.log("🔨 Adding activity_notes table...");
 
     // Check if table already exists
     const tableCheck = await db.query<{ table_name: string }>(`
       SELECT table_name 
       FROM information_schema.tables 
-      WHERE table_name = 'activitynotes'
+      WHERE table_name = 'activity_notes'
     `);
 
     if (tableCheck.rows.length === 0) {
-      // Create activityNotes table
+      // Create activity_notes table
       await db.query(`
-        CREATE TABLE activityNotes (
+        CREATE TABLE activity_notes (
           id SERIAL PRIMARY KEY,
           title VARCHAR(255) NOT NULL,
           content TEXT NOT NULL,
-          activityId INTEGER REFERENCES activities(id) ON DELETE CASCADE,
-          userId INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          activity_id INTEGER REFERENCES activities(id) ON DELETE CASCADE,
+          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
 
       // Create indexes
       await db.query(`
-        CREATE INDEX idxActivityNotesUserId ON activityNotes(userId);
+        CREATE INDEX idx_activity_notes_user_id ON activity_notes(user_id);
       `);
       await db.query(`
-        CREATE INDEX idxActivityNotesActivityId ON activityNotes(activityId);
+        CREATE INDEX idx_activity_notes_activity_id ON activity_notes(activity_id);
       `);
 
       console.log("✅ Activity notes table created successfully!");

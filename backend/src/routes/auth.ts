@@ -38,16 +38,16 @@ interface UserRow {
   id: string;
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   role: string;
 }
 
 interface NewUserRow {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
 }
 
 // Register
@@ -105,7 +105,7 @@ router.post(
 
       // Create user
       const result = await db.query<NewUserRow>(
-        "INSERT INTO users (email, password, firstname, lastname) VALUES ($1, $2, $3, $4) RETURNING id, email, firstname, lastname",
+        "INSERT INTO users (email, password, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name",
         [email, hashedPassword, firstName, lastName]
       );
 
@@ -135,7 +135,13 @@ router.post(
       res.status(201).json({
         message: "User created successfully",
         token,
-        user: user,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: "user",
+        },
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -160,7 +166,7 @@ router.post(
 
       // Find user
       const result = await db.query<UserRow>(
-        "SELECT id, email, password, firstname, lastname, role FROM users WHERE email = $1",
+        "SELECT id, email, password, first_name, last_name, role FROM users WHERE email = $1",
         [email]
       );
 
@@ -201,7 +207,13 @@ router.post(
       res.json({
         message: "Login successful",
         token,
-        user: user,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          role: user.role || "user",
+        },
       });
     } catch (error) {
       console.error("Login error:", error);

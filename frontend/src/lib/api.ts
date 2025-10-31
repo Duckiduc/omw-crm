@@ -98,7 +98,7 @@ class ApiClient {
     limit?: number;
     search?: string;
     tags?: string;
-    status?: "hot" | "warm" | "cold" | "allGood";
+    status?: "hot" | "warm" | "cold" | "all_good";
   }) {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append("page", params.page.toString());
@@ -118,7 +118,7 @@ class ApiClient {
   }
 
   async createContact(
-    contact: Omit<Contact, "id" | "createdAt" | "updatedAt">
+    contact: Omit<Contact, "id" | "created_at" | "updated_at">
   ) {
     return this.request<Contact>("/contacts", {
       method: "POST",
@@ -219,7 +219,7 @@ class ApiClient {
   }
 
   async createOrganization(
-    organization: Omit<Organization, "id" | "createdAt" | "updatedAt">
+    organization: Omit<Organization, "id" | "created_at" | "updated_at">
   ) {
     return this.request<Organization>("/organizations", {
       method: "POST",
@@ -273,7 +273,7 @@ class ApiClient {
     return this.request<DealWithDetails>(`/deals/${id}`);
   }
 
-  async createDeal(deal: Omit<Deal, "id" | "createdAt" | "updatedAt">) {
+  async createDeal(deal: Omit<Deal, "id" | "created_at" | "updated_at">) {
     return this.request<Deal>("/deals", {
       method: "POST",
       body: JSON.stringify(deal),
@@ -332,7 +332,7 @@ class ApiClient {
   }
 
   async createActivity(
-    activity: Omit<Activity, "id" | "createdAt" | "updatedAt">
+    activity: Omit<Activity, "id" | "created_at" | "updated_at">
   ) {
     return this.request<Activity>("/activities", {
       method: "POST",
@@ -383,7 +383,7 @@ class ApiClient {
   }
 
   async createUser(
-    user: Omit<User, "id" | "createdAt" | "updatedAt"> & { password: string }
+    user: Omit<User, "id" | "created_at" | "updated_at"> & { password: string }
   ) {
     return this.request<User>("/admin/users", {
       method: "POST",
@@ -427,8 +427,8 @@ class ApiClient {
 
   async updateSystemSetting(key: string, value: string) {
     return this.request<{
-      settingKey: string;
-      settingValue: string;
+      setting_key: string;
+      setting_value: string;
       description: string;
     }>(`/admin/settings/${key}`, {
       method: "PUT",
@@ -503,7 +503,7 @@ class ApiClient {
 
   async getShares(resourceType?: string) {
     const url = resourceType
-      ? `/shares?resourceType=${resourceType}`
+      ? `/shares?resource_type=${resourceType}`
       : "/shares";
     return this.request<Share[]>(url);
   }
@@ -519,9 +519,12 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  // Backend also returns snake_case fields
+  first_name?: string;
+  last_name?: string;
   role?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Contact {
@@ -532,12 +535,12 @@ export interface Contact {
   phone?: string;
   position?: string;
   companyId?: number;
-  companyName?: string;
   notes?: string;
   tags?: string[];
-  status?: "hot" | "warm" | "cold" | "allGood";
-  createdAt: string;
-  updatedAt: string;
+  status?: "hot" | "warm" | "cold" | "all_good";
+  created_at: string;
+  updated_at: string;
+  company_name?: string;
 }
 
 export interface ContactNote {
@@ -567,10 +570,10 @@ export interface Organization {
   email?: string;
   address?: string;
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  contactCount?: number;
-  dealCount?: number;
+  created_at: string;
+  updated_at: string;
+  contact_count?: number;
+  deal_count?: number;
 }
 
 export interface OrganizationWithDetails extends Organization {
@@ -586,8 +589,8 @@ export type CompaniesResponse = OrganizationsResponse;
 export interface DealStage {
   id: number;
   name: string;
-  orderIndex: number;
-  createdAt: string;
+  order_index: number;
+  created_at: string;
 }
 
 export interface Deal {
@@ -601,14 +604,19 @@ export interface Deal {
   expectedCloseDate?: string;
   probability: number;
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DealWithDetails extends Deal {
-  stageName?: string;
-  contactName?: string;
-  companyName?: string;
+  // Database response includes both camelCase (for API) and snake_case (from DB)
+  stage_id?: number;
+  contact_id?: number;
+  company_id?: number;
+  expected_close_date?: string;
+  stage_name?: string;
+  contact_name?: string;
+  company_name?: string;
 }
 
 export interface Activity {
@@ -621,14 +629,14 @@ export interface Activity {
   contactId?: number;
   companyId?: number;
   dealId?: number;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ActivityWithDetails extends Activity {
-  contactName?: string;
-  companyName?: string;
-  dealName?: string;
+  contact_name?: string;
+  company_name?: string;
+  deal_title?: string;
 }
 
 export interface Pagination {
@@ -674,22 +682,27 @@ export interface UsersResponse {
 
 export interface Share {
   id: number;
-  sharedBy: number;
-  sharedWith: number;
-  resourceType: string;
-  resourceId: number;
+  shared_by: number;
+  shared_with: number;
+  resource_type: string;
+  resource_id: number;
   permission: string;
   message?: string;
-  createdAt: string;
-  sharedByFirstName?: string;
-  sharedByLastName?: string;
-  sharedByEmail?: string;
-  sharedWithFirstName?: string;
-  sharedWithLastName?: string;
-  sharedWithEmail?: string;
-  resourceData?: Contact | Activity | Deal | null;
+  created_at: string;
+  shared_by_first_name?: string;
+  shared_by_last_name?: string;
+  shared_by_email?: string;
+  shared_with_first_name?: string;
+  shared_with_last_name?: string;
+  shared_with_email?: string;
+  resource_data?: Contact | Activity | Deal | null;
 
   // Computed properties for frontend
+  resourceType?: string;
+  resourceId?: number;
+  createdAt?: string;
+  sharedWithFirstName?: string;
+  sharedWithLastName?: string;
   ownerFirstName?: string;
   ownerLastName?: string;
   isSharedWithMe?: boolean;

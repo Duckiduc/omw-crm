@@ -44,7 +44,23 @@ export default function SharedItems({
       setError(null);
       const response = await apiClient.getShares(resourceType);
       if (response.data) {
-        let filteredShares = response.data;
+        // Transform the data to add computed properties
+        const transformedShares = response.data.map(
+          (share: Partial<Share>) => ({
+            ...share,
+            // Backend already provides camelCase versions, just add fallbacks for other fields
+            resourceType: share.resourceType || share.resource_type,
+            resourceId: share.resourceId || share.resource_id,
+            createdAt: share.createdAt || share.created_at,
+            resourceTitle:
+              share.resourceTitle ||
+              (share.resource_data
+                ? getResourceTitle(share.resource_data, share.resource_type!)
+                : `${share.resource_type} #${share.resource_id}`),
+          })
+        ) as Share[];
+
+        let filteredShares = transformedShares;
 
         if (!showOwned && !showSharedWithMe) {
           filteredShares = [];
@@ -176,11 +192,16 @@ export default function SharedItems({
                   <TableRow key={share.id}>
                     <TableCell>
                       <Badge variant="outline">
-                        {getResourceTypeDisplay(share.resourceType)}
+                        {getResourceTypeDisplay(
+                          share.resourceType || share.resource_type
+                        )}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">
-                      {share.resourceTitle}
+                      {share.resourceTitle ||
+                        `${share.resourceType || share.resource_type} #${
+                          share.resourceId || share.resource_id
+                        }`}
                     </TableCell>
                     <TableCell>
                       {share.isSharedWithMe ? (
@@ -204,7 +225,10 @@ export default function SharedItems({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(share.createdAt), "MMM d, yyyy")}
+                      {format(
+                        new Date(share.createdAt || share.created_at),
+                        "MMM d, yyyy"
+                      )}
                     </TableCell>
                     <TableCell>
                       {share.message ? (
@@ -228,6 +252,10 @@ export default function SharedItems({
                           variant="ghost"
                           onClick={() => {
                             // Navigate to the resource (this would be implemented based on your routing)
+                            const resourceType =
+                              share.resourceType || share.resource_type;
+                            const resourceId =
+                              share.resourceId || share.resource_id;
                             const baseUrl =
                               share.resourceType === "contact"
                                 ? "/contacts"

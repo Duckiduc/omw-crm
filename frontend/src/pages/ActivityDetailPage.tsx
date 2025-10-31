@@ -98,15 +98,15 @@ export default function ActivityDetailPage() {
           setActivity(activityData);
 
           const actData = activityData as ActivityWithDetails & {
-            dueDate?: string;
-            contactId?: number;
-            companyId?: number;
-            dealId?: number;
+            due_date?: string;
+            contact_id?: number;
+            company_id?: number;
+            deal_id?: number;
           };
 
           // Better date handling
           let dueDateString = "";
-          const backendDueDate = actData.dueDate || activityData.dueDate;
+          const backendDueDate = actData.due_date || activityData.dueDate;
 
           if (backendDueDate) {
             try {
@@ -124,10 +124,10 @@ export default function ActivityDetailPage() {
             description: activityData.description || "",
             dueDate: dueDateString,
             contactId:
-              (actData.contactId || activityData.contactId)?.toString() || "",
+              (actData.contact_id || activityData.contactId)?.toString() || "",
             companyId:
-              (actData.companyId || activityData.companyId)?.toString() || "",
-            dealId: (actData.dealId || activityData.dealId)?.toString() || "",
+              (actData.company_id || activityData.companyId)?.toString() || "",
+            dealId: (actData.deal_id || activityData.dealId)?.toString() || "",
             completed: activityData.completed || false,
           });
 
@@ -359,7 +359,7 @@ export default function ActivityDetailPage() {
             </h1>
             <p className="text-muted-foreground">
               {activity.description && <span>{activity.description} • </span>}
-              Created {formatDateTime(activity.createdAt)}
+              Created {formatDateTime(activity.created_at)}
             </p>
           </div>
         </div>
@@ -593,28 +593,28 @@ export default function ActivityDetailPage() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-6">
-                    {activity.contactName && (
+                    {activity.contact_name && (
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">
                           Contact
                         </h4>
-                        <p className="mt-1">{activity.contactName}</p>
+                        <p className="mt-1">{activity.contact_name}</p>
                       </div>
                     )}
-                    {activity.companyName && (
+                    {activity.company_name && (
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">
                           Company
                         </h4>
-                        <p className="mt-1">{activity.companyName}</p>
+                        <p className="mt-1">{activity.company_name}</p>
                       </div>
                     )}
-                    {activity.dealName && (
+                    {activity.deal_title && (
                       <div>
                         <h4 className="text-sm font-medium text-muted-foreground">
                           Deal
                         </h4>
-                        <p className="mt-1">{activity.dealName}</p>
+                        <p className="mt-1">{activity.deal_title}</p>
                       </div>
                     )}
                   </div>

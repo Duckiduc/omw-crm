@@ -231,15 +231,15 @@ export default function ActivitiesPage() {
     setEditingActivity(activity);
 
     const activityData = activity as ActivityWithDetails & {
-      dueDate?: string;
-      contactId?: number;
-      companyId?: number;
-      dealId?: number;
+      due_date?: string;
+      contact_id?: number;
+      company_id?: number;
+      deal_id?: number;
     };
 
     // Better date handling - extract just the date part
     let dueDateString = "";
-    const backendDueDate = activityData.dueDate || activity.dueDate;
+    const backendDueDate = activityData.due_date || activity.dueDate;
 
     if (backendDueDate) {
       try {
@@ -258,10 +258,10 @@ export default function ActivitiesPage() {
       description: activity.description || "",
       dueDate: dueDateString,
       contactId:
-        (activityData.contactId || activity.contactId)?.toString() || "",
+        (activityData.contact_id || activity.contactId)?.toString() || "",
       companyId:
-        (activityData.companyId || activity.companyId)?.toString() || "",
-      dealId: (activityData.dealId || activity.dealId)?.toString() || "",
+        (activityData.company_id || activity.companyId)?.toString() || "",
+      dealId: (activityData.deal_id || activity.dealId)?.toString() || "",
     };
 
     setFormData(newFormData);
@@ -710,28 +710,28 @@ export default function ActivitiesPage() {
                         </div>
                       )}
 
-                      {activity.contactName && (
+                      {activity.contact_name && (
                         <div className="flex items-center">
                           <Users className="mr-1 h-4 w-4" />
-                          <span>{activity.contactName}</span>
+                          <span>{activity.contact_name}</span>
                         </div>
                       )}
 
-                      {activity.companyName && (
+                      {activity.company_name && (
                         <div className="flex items-center">
-                          <span>{activity.companyName}</span>
+                          <span>{activity.company_name}</span>
                         </div>
                       )}
 
-                      {activity.dealName && (
+                      {activity.deal_title && (
                         <div className="flex items-center">
-                          <span>Deal: {activity.dealName}</span>
+                          <span>Deal: {activity.deal_title}</span>
                         </div>
                       )}
 
                       <div className="flex items-center">
                         <span>
-                          Created: {formatDateTime(activity.createdAt)}
+                          Created: {formatDateTime(activity.created_at)}
                         </span>
                       </div>
                     </div>

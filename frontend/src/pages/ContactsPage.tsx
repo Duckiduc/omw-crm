@@ -48,7 +48,7 @@ interface ContactFormData {
   companyId: string;
   notes: string;
   tags: string[];
-  status: "hot" | "warm" | "cold" | "allGood";
+  status: "hot" | "warm" | "cold" | "all_good";
 }
 
 export default function ContactsPage() {
@@ -59,7 +59,7 @@ export default function ContactsPage() {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<
-    "hot" | "warm" | "cold" | "allGood" | ""
+    "hot" | "warm" | "cold" | "all_good" | ""
   >("");
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,7 +85,7 @@ export default function ContactsPage() {
     companyId: "",
     notes: "",
     tags: [],
-    status: "allGood",
+    status: "all_good",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [shareModal, setShareModal] = useState<{
@@ -233,7 +233,7 @@ export default function ContactsPage() {
       companyId: contact.companyId?.toString() || "",
       notes: contact.notes || "",
       tags: contact.tags || [],
-      status: contact.status || "allGood",
+      status: contact.status || "all_good",
     });
     setShowForm(true);
   };
@@ -259,7 +259,7 @@ export default function ContactsPage() {
       companyId: "",
       notes: "",
       tags: [],
-      status: "allGood",
+      status: "all_good",
     });
     setFormErrors({});
     setEditingContact(null);
@@ -364,7 +364,7 @@ export default function ContactsPage() {
                 value={selectedStatus}
                 onChange={(e) => {
                   setSelectedStatus(
-                    e.target.value as "hot" | "warm" | "cold" | "allGood" | ""
+                    e.target.value as "hot" | "warm" | "cold" | "all_good" | ""
                   );
                   setCurrentPage(1);
                 }}
@@ -373,7 +373,7 @@ export default function ContactsPage() {
                 <option value="hot">Hot</option>
                 <option value="warm">Warm</option>
                 <option value="cold">Cold</option>
-                <option value="allGood">All Good</option>
+                <option value="all_good">All Good</option>
               </Select>
               {selectedStatus && (
                 <Button
@@ -591,10 +591,10 @@ export default function ContactsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {contact.companyName ? (
+                      {contact.company_name ? (
                         <div className="flex items-center">
                           <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                          {contact.companyName}
+                          {contact.company_name}
                         </div>
                       ) : (
                         <span className="text-muted-foreground">-</span>
@@ -607,7 +607,7 @@ export default function ContactsPage() {
                     </TableCell>
                     <TableCell>
                       <ContactStatusBadge
-                        status={contact.status || "allGood"}
+                        status={contact.status || "all_good"}
                       />
                     </TableCell>
                     <TableCell>

@@ -18,11 +18,11 @@ interface ContactsQueryParams {
 }
 
 interface ContactRow extends Contact {
-  companyName?: string;
-  isSharedWithMe: boolean;
+  company_name?: string;
+  is_shared_with_me: boolean;
   permissions?: string;
-  userId: string;
-  ownerId: string;
+  user_id: string;
+  owner_id: string;
 }
 
 interface CountRow {
@@ -49,7 +49,7 @@ router.get(
     query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
     query("search").optional().trim(),
     query("tags").optional().trim(),
-    query("status").optional().isIn(["hot", "warm", "cold", "allGood"]),
+    query("status").optional().isIn(["hot", "warm", "cold", "all_good"]),
   ],
   async (
     req: AuthenticatedRequest<{}, {}, {}, ContactsQueryParams>,
@@ -77,27 +77,27 @@ router.get(
       let countQuery = `
         SELECT COUNT(*) 
         FROM contacts c 
-        LEFT JOIN companies comp ON c.companyId = comp.id 
-        LEFT JOIN shares s ON s.itemType = 'contact' AND s.itemId = c.id AND s.sharedWithUserId = $1
-        WHERE (c.userId = $1 OR s.id IS NOT NULL)
+        LEFT JOIN companies comp ON c.company_id = comp.id 
+        LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $1
+        WHERE (c.user_id = $1 OR s.id IS NOT NULL)
       `;
 
       let dataQuery = `
-        SELECT c.*, comp.name as companyName,
-               CASE WHEN c.userId = $1 THEN false ELSE true END as isSharedWithMe,
+        SELECT c.*, comp.name as company_name,
+               CASE WHEN c.user_id = $1 THEN false ELSE true END as is_shared_with_me,
                s.permissions as permission
         FROM contacts c 
-        LEFT JOIN companies comp ON c.companyId = comp.id 
-        LEFT JOIN shares s ON s.itemType = 'contact' AND s.itemId = c.id AND s.sharedWithUserId = $1
-        WHERE (c.userId = $1 OR s.id IS NOT NULL)
+        LEFT JOIN companies comp ON c.company_id = comp.id 
+        LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $1
+        WHERE (c.user_id = $1 OR s.id IS NOT NULL)
       `;
 
       const params: any[] = [req.user.userId];
 
       if (search) {
         const searchCondition = ` AND (
-          c.firstName ILIKE $2 OR 
-          c.lastName ILIKE $2 OR 
+          c.first_name ILIKE $2 OR 
+          c.last_name ILIKE $2 OR 
           c.email ILIKE $2 OR 
           c.phone ILIKE $2 OR 
           comp.name ILIKE $2 OR
@@ -126,7 +126,7 @@ router.get(
         params.push(status);
       }
 
-      dataQuery += ` ORDER BY c.createdAt DESC LIMIT $${
+      dataQuery += ` ORDER BY c.created_at DESC LIMIT $${
         params.length + 1
       } OFFSET $${params.length + 2}`;
       params.push(limit, offset);
@@ -138,6 +138,26 @@ router.get(
 
       const total = parseInt(countResult.rows[0].count, 10);
       const totalPages = Math.ceil(total / limit);
+
+      // Transform to camelCase for frontend compatibility
+      const contacts = dataResult.rows.map((contact) => ({
+        id: contact.id,
+        firstName: contact.first_name,
+        lastName: contact.last_name,
+        email: contact.email,
+        phone: contact.phone,
+        position: contact.position,
+        companyId: contact.company_id,
+        companyName: contact.company_name,
+        notes: contact.notes,
+        tags: contact.tags || [],
+        status: contact.status,
+        isSharedWithMe: contact.is_shared_with_me,
+        permission: contact.permissions,
+        createdAt: contact.created_at,
+        updatedAt: contact.updated_at,
+        userId: contact.user_id,
+      }));
 
       res.json({
         contacts: dataResult.rows,
@@ -171,7 +191,7 @@ router.post(
     body("tags").optional().isArray(),
     body("status")
       .optional()
-      .isIn(["hot", "warm", "cold", "allGood"])
+      .isIn(["hot", "warm", "cold", "all_good"])
       .withMessage("Invalid status"),
   ],
   async (
@@ -199,13 +219,13 @@ router.post(
         companyId,
         notes,
         tags,
-        status = "allGood",
+        status = "all_good",
       } = req.body;
 
       // If companyId provided, verify it belongs to user
       if (companyId) {
         const companyCheck = await db.query<{ id: string }>(
-          "SELECT id FROM companies WHERE id = $1 AND userId = $2",
+          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
           [companyId, req.user.userId]
         );
         if (companyCheck.rows.length === 0) {
@@ -221,7 +241,7 @@ router.post(
 
       const result = await db.query<Contact>(
         `INSERT INTO contacts 
-         (firstName, lastName, email, phone, position, companyId, notes, tags, status, userId) 
+         (first_name, last_name, email, phone, position, company_id, notes, tags, status, user_id) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
          RETURNING *`,
         [
@@ -238,7 +258,22 @@ router.post(
         ]
       );
 
-      res.status(201).json(result.rows[0]);
+      const newContact = result.rows[0];
+
+      res.status(201).json({
+        id: newContact.id,
+        firstName: newContact.first_name,
+        lastName: newContact.last_name,
+        email: newContact.email,
+        phone: newContact.phone,
+        position: newContact.position,
+        companyId: newContact.company_id,
+        notes: newContact.notes,
+        tags: newContact.tags || [],
+        status: newContact.status || "all_good",
+        created_at: newContact.created_at,
+        updated_at: newContact.updated_at,
+      });
     } catch (error) {
       console.error("Create contact error:", error);
       res.status(500).json({ message: "Server error creating contact" });
@@ -257,13 +292,13 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
     const contactId = req.params.id;
 
     const result = await db.query<ContactRow>(
-      `SELECT c.*, comp.name as companyName,
-              CASE WHEN c.userId = $1 THEN false ELSE true END as isSharedWithMe,
+      `SELECT c.*, comp.name as company_name,
+              CASE WHEN c.user_id = $1 THEN false ELSE true END as is_shared_with_me,
               s.permissions as permission
        FROM contacts c 
-       LEFT JOIN companies comp ON c.companyId = comp.id 
-       LEFT JOIN shares s ON s.itemType = 'contact' AND s.itemId = c.id AND s.sharedWithUserId = $1
-       WHERE c.id = $2 AND (c.userId = $1 OR s.id IS NOT NULL)`,
+       LEFT JOIN companies comp ON c.company_id = comp.id 
+       LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $1
+       WHERE c.id = $2 AND (c.user_id = $1 OR s.id IS NOT NULL)`,
       [req.user.userId, contactId]
     );
 
@@ -272,7 +307,23 @@ router.get("/:id", async (req: AuthenticatedRequest, res: Response) => {
       return;
     }
 
-    res.json(result.rows[0]);
+    const contact = result.rows[0];
+
+    res.json({
+      id: contact.id,
+      firstName: contact.first_name,
+      lastName: contact.last_name,
+      email: contact.email,
+      phone: contact.phone,
+      position: contact.position,
+      companyId: contact.company_id,
+      notes: contact.notes,
+      tags: contact.tags || [],
+      status: contact.status || "all_good",
+      created_at: contact.created_at,
+      updated_at: contact.updated_at,
+      company_name: contact.company_name,
+    });
   } catch (error) {
     console.error("Get contact error:", error);
     res.status(500).json({ message: "Server error fetching contact" });
@@ -291,7 +342,7 @@ router.put(
     body("companyId").optional().isInt(),
     body("notes").optional().trim(),
     body("tags").optional().isArray(),
-    body("status").optional().isIn(["hot", "warm", "cold", "allGood"]),
+    body("status").optional().isIn(["hot", "warm", "cold", "all_good"]),
   ],
   async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -312,13 +363,13 @@ router.put(
       // Check if contact exists and user has edit permission
       const existingContact = await db.query<{
         id: string;
-        userId: string;
+        user_id: string;
         permission?: string;
       }>(
-        `SELECT c.id, c.userId, s.permissions as permission 
+        `SELECT c.id, c.user_id, s.permissions as permission 
          FROM contacts c 
-         LEFT JOIN shares s ON s.itemType = 'contact' AND s.itemId = c.id AND s.sharedWithUserId = $2
-         WHERE c.id = $1 AND (c.userId = $2 OR s.id IS NOT NULL)`,
+         LEFT JOIN shares s ON s.item_type = 'contact' AND s.item_id = c.id AND s.shared_with_user_id = $2
+         WHERE c.id = $1 AND (c.user_id = $2 OR s.id IS NOT NULL)`,
         [id, req.user.userId]
       );
 
@@ -330,7 +381,7 @@ router.put(
       const contactPermissions = existingContact.rows[0];
       // Check if user is owner or has edit permission
       if (
-        contactPermissions.userId !== req.user.userId &&
+        contactPermissions.user_id !== req.user.userId &&
         contactPermissions.permission !== "edit"
       ) {
         res
@@ -342,7 +393,7 @@ router.put(
       // If companyId provided, verify it belongs to user
       if (updates.companyId) {
         const companyCheck = await db.query<{ id: string }>(
-          "SELECT id FROM companies WHERE id = $1 AND userId = $2",
+          "SELECT id FROM companies WHERE id = $1 AND user_id = $2",
           [updates.companyId, req.user.userId]
         );
         if (companyCheck.rows.length === 0) {
@@ -371,11 +422,11 @@ router.put(
         } else {
           const dbField =
             key === "firstName"
-              ? "firstName"
+              ? "first_name"
               : key === "lastName"
-              ? "lastName"
+              ? "last_name"
               : key === "companyId"
-              ? "companyId"
+              ? "company_id"
               : key;
           fields.push(`${dbField} = $${paramCount}`);
           values.push(value);
@@ -388,7 +439,7 @@ router.put(
         return;
       }
 
-      fields.push("updatedAt = CURRENT_TIMESTAMP");
+      fields.push("updated_at = CURRENT_TIMESTAMP");
       values.push(id);
 
       const query = `
@@ -408,7 +459,20 @@ router.put(
         return;
       }
 
-      res.json(updatedContact);
+      res.json({
+        id: updatedContact.id,
+        firstName: updatedContact.first_name,
+        lastName: updatedContact.last_name,
+        email: updatedContact.email,
+        phone: updatedContact.phone,
+        position: updatedContact.position,
+        companyId: updatedContact.company_id,
+        notes: updatedContact.notes,
+        tags: updatedContact.tags || [],
+        status: updatedContact.status || "all_good",
+        created_at: updatedContact.created_at,
+        updated_at: updatedContact.updated_at,
+      });
     } catch (error) {
       console.error("Update contact error:", error);
       res.status(500).json({ message: "Server error updating contact" });
@@ -428,7 +492,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
     // Only allow owner to delete (not shared users)
     const result = await db.query<{ id: string }>(
-      "DELETE FROM contacts WHERE id = $1 AND userId = $2 RETURNING id",
+      "DELETE FROM contacts WHERE id = $1 AND user_id = $2 RETURNING id",
       [id, req.user.userId]
     );
 
@@ -457,7 +521,7 @@ router.get("/tags/all", async (req: AuthenticatedRequest, res: Response) => {
     const result = await db.query<{ tag: string }>(
       `SELECT DISTINCT unnest(tags) as tag 
       FROM contacts 
-      WHERE userId = $1 AND tags IS NOT NULL 
+      WHERE user_id = $1 AND tags IS NOT NULL 
       ORDER BY tag`,
       [req.user.userId]
     );

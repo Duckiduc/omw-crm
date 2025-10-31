@@ -192,8 +192,8 @@ export default function AdminPanel() {
   const handleEdit = (user: User) => {
     setEditingUser(user);
     setFormData({
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
+      firstName: user.firstName || user.first_name || "",
+      lastName: user.lastName || user.last_name || "",
       email: user.email,
       password: "",
       role: user.role || "user",
@@ -559,7 +559,8 @@ export default function AdminPanel() {
                         <td className="p-4">
                           <div>
                             <div className="font-medium">
-                              {user.firstName} {user.lastName}
+                              {user.firstName || user.first_name}{" "}
+                              {user.lastName || user.last_name}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               ID: {user.id}
@@ -573,7 +574,7 @@ export default function AdminPanel() {
                           {getRoleBadge(user.role || "user")}
                         </td>
                         <td className="p-4 text-muted-foreground">
-                          {formatDate(user.createdAt)}
+                          {formatDate(user.created_at)}
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex justify-end space-x-2">
@@ -644,19 +645,19 @@ export default function AdminPanel() {
                     Allow User Registration
                   </label>
                   <p className="text-sm text-muted-foreground">
-                    {systemSettings.registrationEnabled?.description}
+                    {systemSettings.registration_enabled?.description}
                   </p>
                 </div>
                 <button
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    systemSettings.registrationEnabled?.value === "true"
+                    systemSettings.registration_enabled?.value === "true"
                       ? "bg-blue-600"
                       : "bg-gray-200"
                   }`}
                   onClick={() =>
                     updateSystemSetting(
-                      "registrationEnabled",
-                      systemSettings.registrationEnabled?.value === "true"
+                      "registration_enabled",
+                      systemSettings.registration_enabled?.value === "true"
                         ? "false"
                         : "true"
                     )
@@ -664,7 +665,7 @@ export default function AdminPanel() {
                 >
                   <span
                     className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-                      systemSettings.registrationEnabled?.value === "true"
+                      systemSettings.registration_enabled?.value === "true"
                         ? "translate-x-6"
                         : "translate-x-1"
                     }`}
@@ -675,16 +676,16 @@ export default function AdminPanel() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Maximum Users</label>
                 <p className="text-sm text-muted-foreground">
-                  {systemSettings.maxUsers?.description} (0 = unlimited)
+                  {systemSettings.max_users?.description} (0 = unlimited)
                 </p>
                 <Input
                   type="number"
                   min="0"
-                  value={systemSettings.maxUsers?.value || "0"}
+                  value={systemSettings.max_users?.value || "0"}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === "" || parseInt(value) >= 0) {
-                      updateSystemSetting("maxUsers", value);
+                      updateSystemSetting("max_users", value);
                     }
                   }}
                   className="w-32"
@@ -701,9 +702,9 @@ export default function AdminPanel() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Application Name</label>
                 <Input
-                  value={systemSettings.appName?.value || "OMW CRM"}
+                  value={systemSettings.app_name?.value || "OMW CRM"}
                   onChange={(e) => {
-                    updateSystemSetting("appName", e.target.value);
+                    updateSystemSetting("app_name", e.target.value);
                   }}
                 />
               </div>

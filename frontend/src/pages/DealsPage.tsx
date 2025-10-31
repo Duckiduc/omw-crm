@@ -29,17 +29,17 @@ import {
   DollarSign,
   Calendar,
   Building2,
-  Users,
+  User,
   Share2,
 } from "lucide-react";
 
 interface DealFormData {
   title: string;
   value: string;
-  stageId: string;
-  companyId: string;
-  contactId: string;
-  expectedCloseDate: string;
+  stage_id: string;
+  company_id: string;
+  contact_id: string;
+  expected_close_date: string;
   notes: string;
 }
 
@@ -69,10 +69,10 @@ export default function DealsPage() {
   const [formData, setFormData] = useState<DealFormData>({
     title: "",
     value: "",
-    stageId: "",
-    companyId: "",
-    contactId: "",
-    expectedCloseDate: "",
+    stage_id: "",
+    company_id: "",
+    contact_id: "",
+    expected_close_date: "",
     notes: "",
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -194,8 +194,8 @@ export default function DealsPage() {
     if (!formData.value || parseFloat(formData.value) < 0) {
       errors.value = "Valid deal value is required";
     }
-    if (!formData.stageId) {
-      errors.stageId = "Deal stage is required";
+    if (!formData.stage_id) {
+      errors.stage_id = "Deal stage is required";
     }
 
     setFormErrors(errors);
@@ -212,14 +212,14 @@ export default function DealsPage() {
         title: formData.title,
         value: parseFloat(formData.value),
         currency: "USD",
-        stageId: parseInt(formData.stageId),
-        companyId: formData.companyId
-          ? parseInt(formData.companyId)
+        stageId: parseInt(formData.stage_id),
+        companyId: formData.company_id
+          ? parseInt(formData.company_id)
           : undefined,
-        contactId: formData.contactId
-          ? parseInt(formData.contactId)
+        contactId: formData.contact_id
+          ? parseInt(formData.contact_id)
           : undefined,
-        expectedCloseDate: formData.expectedCloseDate || undefined,
+        expectedCloseDate: formData.expected_close_date || undefined,
         probability: 50, // Default probability
         notes: formData.notes || undefined,
       };
@@ -242,12 +242,12 @@ export default function DealsPage() {
     setFormData({
       title: deal.title,
       value: deal.value.toString(),
-      stageId: deal.stageId?.toString() || "",
-      companyId: deal.companyId?.toString() || "",
-      contactId: deal.contactId?.toString() || "",
-      expectedCloseDate: deal.expectedCloseDate
+      stage_id: deal.stage_id?.toString() || "",
+      company_id: deal.company_id?.toString() || "",
+      contact_id: deal.contact_id?.toString() || "",
+      expected_close_date: deal.expected_close_date
         ? (() => {
-            const date = new Date(deal.expectedCloseDate);
+            const date = new Date(deal.expected_close_date);
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, "0");
             const day = String(date.getDate()).padStart(2, "0");
@@ -274,10 +274,10 @@ export default function DealsPage() {
     setFormData({
       title: "",
       value: "",
-      stageId: "",
-      companyId: "",
-      contactId: "",
-      expectedCloseDate: "",
+      stage_id: "",
+      company_id: "",
+      contact_id: "",
+      expected_close_date: "",
       notes: "",
     });
     setFormErrors({});
@@ -434,11 +434,13 @@ export default function DealsPage() {
                   <div>
                     <label className="text-sm font-medium">Stage *</label>
                     <Select
-                      value={formData.stageId}
+                      value={formData.stage_id}
                       onChange={(e) =>
-                        handleInputChange("stageId", e.target.value)
+                        handleInputChange("stage_id", e.target.value)
                       }
-                      className={formErrors.stageId ? "border-destructive" : ""}
+                      className={
+                        formErrors.stage_id ? "border-destructive" : ""
+                      }
                     >
                       <option value="">Select Stage</option>
                       {dealStages.map((stage) => (
@@ -447,9 +449,9 @@ export default function DealsPage() {
                         </option>
                       ))}
                     </Select>
-                    {formErrors.stageId && (
+                    {formErrors.stage_id && (
                       <p className="text-sm text-destructive mt-1">
-                        {formErrors.stageId}
+                        {formErrors.stage_id}
                       </p>
                     )}
                   </div>
@@ -459,9 +461,9 @@ export default function DealsPage() {
                   <div>
                     <label className="text-sm font-medium">Organization</label>
                     <Select
-                      value={formData.companyId}
+                      value={formData.company_id}
                       onChange={(e) =>
-                        handleInputChange("companyId", e.target.value)
+                        handleInputChange("company_id", e.target.value)
                       }
                     >
                       <option value="">Select Company</option>
@@ -475,9 +477,9 @@ export default function DealsPage() {
                   <div>
                     <label className="text-sm font-medium">Contact</label>
                     <Select
-                      value={formData.contactId}
+                      value={formData.contact_id}
                       onChange={(e) =>
-                        handleInputChange("contactId", e.target.value)
+                        handleInputChange("contact_id", e.target.value)
                       }
                     >
                       <option value="">Select Contact</option>
@@ -498,10 +500,10 @@ export default function DealsPage() {
                     <Input
                       type="text"
                       value={(() => {
-                        if (formData.expectedCloseDate) {
+                        if (formData.expected_close_date) {
                           try {
                             const displayDate = new Date(
-                              formData.expectedCloseDate + "T00:00:00"
+                              formData.expected_close_date + "T00:00:00"
                             ).toLocaleDateString();
                             return displayDate;
                           } catch (error) {
@@ -509,7 +511,7 @@ export default function DealsPage() {
                               "Error formatting date for display:",
                               error
                             );
-                            return formData.expectedCloseDate;
+                            return formData.expected_close_date;
                           }
                         }
                         return "";
@@ -528,9 +530,9 @@ export default function DealsPage() {
                         <CalendarComponent
                           mode="single"
                           selected={
-                            formData.expectedCloseDate
+                            formData.expected_close_date
                               ? new Date(
-                                  formData.expectedCloseDate + "T00:00:00"
+                                  formData.expected_close_date + "T00:00:00"
                                 )
                               : undefined
                           }
@@ -547,11 +549,11 @@ export default function DealsPage() {
                               );
                               const localDateString = `${year}-${month}-${day}`;
                               handleInputChange(
-                                "expectedCloseDate",
+                                "expected_close_date",
                                 localDateString
                               );
                             } else {
-                              handleInputChange("expectedCloseDate", "");
+                              handleInputChange("expected_close_date", "");
                             }
                             setShowCalendar(false);
                           }}
@@ -611,8 +613,8 @@ export default function DealsPage() {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h3 className="text-lg font-semibold">{deal.title}</h3>
-                      <Badge variant={getStageColor(deal.stageName || "")}>
-                        {deal.stageName}
+                      <Badge variant={getStageColor(deal.stage_name || "")}>
+                        {deal.stage_name}
                       </Badge>
                     </div>
 
@@ -624,25 +626,25 @@ export default function DealsPage() {
                         </span>
                       </div>
 
-                      {deal.companyName && (
+                      {deal.company_name && (
                         <div className="flex items-center">
                           <Building2 className="mr-1 h-4 w-4" />
-                          <span>{deal.companyName}</span>
+                          <span>{deal.company_name}</span>
                         </div>
                       )}
 
-                      {deal.contactName && (
+                      {deal.contact_name && (
                         <div className="flex items-center">
-                          <Users className="mr-1 h-4 w-4" />
-                          <span>{deal.contactName}</span>
+                          <User className="mr-1 h-4 w-4" />
+                          <span>{deal.contact_name}</span>
                         </div>
                       )}
 
-                      {deal.expectedCloseDate && (
+                      {deal.expected_close_date && (
                         <div className="flex items-center">
                           <Calendar className="mr-1 h-4 w-4" />
                           <span>
-                            Close: {formatDate(deal.expectedCloseDate)}
+                            Close: {formatDate(deal.expected_close_date)}
                           </span>
                         </div>
                       )}

@@ -11,21 +11,21 @@ router.use(authenticateToken);
 
 interface ShareRow {
   id: string;
-  sharedByUserId: string;
-  sharedWithUserId: string;
-  itemType: "contact" | "activity" | "deal";
-  itemId: string;
+  shared_by_user_id: string;
+  shared_with_user_id: string;
+  item_type: "contact" | "activity" | "deal";
+  item_id: string;
   permissions: string;
   message?: string;
-  createdAt: Date;
-  updatedAt?: Date;
-  sharedByFirstName?: string;
-  sharedByLastName?: string;
-  sharedByEmail?: string;
-  sharedWithFirstName?: string;
-  sharedWithLastName?: string;
-  sharedWithEmail?: string;
-  resourceData?: any;
+  created_at: Date;
+  updated_at?: Date;
+  shared_by_first_name?: string;
+  shared_by_last_name?: string;
+  shared_by_email?: string;
+  shared_with_first_name?: string;
+  shared_with_last_name?: string;
+  shared_with_email?: string;
+  resource_data?: any;
 }
 
 interface CountRow {
@@ -34,14 +34,14 @@ interface CountRow {
 
 interface UserRow {
   id: string;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
 }
 
 interface SharesQueryParams {
   type?: "contact" | "activity" | "deal";
-  resourceType?: "contact" | "activity" | "deal";
+  resource_type?: "contact" | "activity" | "deal";
   page?: number;
   limit?: number;
 }
@@ -88,12 +88,12 @@ router.get(
       const offset = (page - 1) * limit;
       const { type } = req.query;
 
-      let whereClause = "WHERE s.sharedWithUserId = $1";
+      let whereClause = "WHERE s.shared_with_user_id = $1";
       const params: any[] = [req.user.userId];
       let paramCount = 2;
 
       if (type) {
-        whereClause += ` AND s.itemType = $${paramCount}`;
+        whereClause += ` AND s.item_type = $${paramCount}`;
         params.push(type);
         paramCount++;
       }
@@ -101,28 +101,28 @@ router.get(
       const query = `
         SELECT 
           s.*,
-          u.firstName as sharedByFirstName,
-          u.lastName as sharedByLastName,
-          u.email as sharedByEmail,
+          u.first_name as shared_by_first_name,
+          u.last_name as shared_by_last_name,
+          u.email as shared_by_email,
           CASE 
-            WHEN s.itemType = 'contact' THEN 
+            WHEN s.item_type = 'contact' THEN 
               (SELECT json_build_object(
-                'id', id, 'firstName', firstName, 'lastName', lastName, 
-                'email', email, 'phone', phone, 'companyName', (SELECT name FROM companies WHERE id = contacts.companyId)
-              ) FROM contacts WHERE id = s.itemId)
-            WHEN s.itemType = 'activity' THEN 
+                'id', id, 'first_name', first_name, 'last_name', last_name, 
+                'email', email, 'phone', phone, 'company_name', (SELECT name FROM companies WHERE id = contacts.company_id)
+              ) FROM contacts WHERE id = s.item_id)
+            WHEN s.item_type = 'activity' THEN 
               (SELECT json_build_object(
-                'id', id, 'subject', subject, 'description', description, 'dueDate', dueDate
-              ) FROM activities WHERE id = s.itemId)
-            WHEN s.itemType = 'deal' THEN 
+                'id', id, 'subject', subject, 'description', description, 'due_date', due_date
+              ) FROM activities WHERE id = s.item_id)
+            WHEN s.item_type = 'deal' THEN 
               (SELECT json_build_object(
                 'id', id, 'title', title, 'value', value, 'currency', currency, 'probability', probability, 'notes', notes
-              ) FROM deals WHERE id = s.itemId)
-          END as resourceData
+              ) FROM deals WHERE id = s.item_id)
+          END as resource_data
         FROM shares s
-        JOIN users u ON s.sharedByUserId = u.id
+        JOIN users u ON s.shared_by_user_id = u.id
         ${whereClause}
-        ORDER BY s.createdAt DESC
+        ORDER BY s.created_at DESC
         LIMIT $${paramCount} OFFSET $${paramCount + 1}
       `;
 
@@ -185,12 +185,12 @@ router.get(
       const offset = (page - 1) * limit;
       const { type } = req.query;
 
-      let whereClause = "WHERE s.sharedByUserId = $1";
+      let whereClause = "WHERE s.shared_by_user_id = $1";
       const params: any[] = [req.user.userId];
       let paramCount = 2;
 
       if (type) {
-        whereClause += ` AND s.itemType = $${paramCount}`;
+        whereClause += ` AND s.item_type = $${paramCount}`;
         params.push(type);
         paramCount++;
       }
@@ -198,13 +198,13 @@ router.get(
       const query = `
         SELECT 
           s.*,
-          u.firstName as sharedWithFirstName,
-          u.lastName as sharedWithLastName,
-          u.email as sharedWithEmail
+          u.first_name as shared_with_first_name,
+          u.last_name as shared_with_last_name,
+          u.email as shared_with_email
         FROM shares s
-        JOIN users u ON s.sharedWithUserId = u.id
+        JOIN users u ON s.shared_with_user_id = u.id
         ${whereClause}
-        ORDER BY s.createdAt DESC
+        ORDER BY s.created_at DESC
         LIMIT $${paramCount} OFFSET $${paramCount + 1}
       `;
 
@@ -300,7 +300,7 @@ router.post(
       }
 
       const resourceCheck = await db.query<{ id: string }>(
-        `SELECT id FROM ${resourceTable} WHERE id = $1 AND userId = $2`,
+        `SELECT id FROM ${resourceTable} WHERE id = $1 AND user_id = $2`,
         [resourceId, req.user.userId]
       );
 
@@ -313,7 +313,7 @@ router.post(
 
       // Check if already shared with this user
       const existingShare = await db.query<{ id: string }>(
-        "SELECT id FROM shares WHERE sharedWithUserId = $1 AND itemType = $2 AND itemId = $3",
+        "SELECT id FROM shares WHERE shared_with_user_id = $1 AND item_type = $2 AND item_id = $3",
         [sharedWithUserId, resourceType, resourceId]
       );
 
@@ -326,7 +326,7 @@ router.post(
 
       // Create the share
       const result = await db.query<ShareRow>(
-        `INSERT INTO shares (sharedByUserId, sharedWithUserId, itemType, itemId, permissions, message)
+        `INSERT INTO shares (shared_by_user_id, shared_with_user_id, item_type, item_id, permissions, message)
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
         [
@@ -375,7 +375,7 @@ router.put(
 
       // Check if share exists and belongs to current user
       const shareCheck = await db.query<{ id: string }>(
-        "SELECT id FROM shares WHERE id = $1 AND sharedByUserId = $2",
+        "SELECT id FROM shares WHERE id = $1 AND shared_by_user_id = $2",
         [id, req.user.userId]
       );
 
@@ -388,7 +388,7 @@ router.put(
 
       // Update the share
       const result = await db.query<ShareRow>(
-        "UPDATE shares SET permission = $1, message = $2, updatedAt = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *",
+        "UPDATE shares SET permission = $1, message = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *",
         [permission, message, id]
       );
 
@@ -412,7 +412,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
 
     // Check if share exists and belongs to current user
     const result = await db.query<{ id: string }>(
-      "DELETE FROM shares WHERE id = $1 AND sharedByUserId = $2 RETURNING id",
+      "DELETE FROM shares WHERE id = $1 AND shared_by_user_id = $2 RETURNING id",
       [id, req.user.userId]
     );
 
@@ -434,7 +434,7 @@ router.delete("/:id", async (req: AuthenticatedRequest, res: Response) => {
 router.get(
   "/",
   [
-    query("resourceType").optional().isIn(["contact", "activity", "deal"]),
+    query("resource_type").optional().isIn(["contact", "activity", "deal"]),
     query("page").optional().isInt({ min: 1 }).toInt(),
     query("limit").optional().isInt({ min: 1, max: 100 }).toInt(),
   ],
@@ -457,50 +457,50 @@ router.get(
       const page = Number(req.query.page) || 1;
       const limit = Number(req.query.limit) || 20;
       const offset = (page - 1) * limit;
-      const { resourceType } = req.query;
+      const { resource_type } = req.query;
 
       let whereClause =
-        "WHERE (s.sharedWithUserId = $1 OR s.sharedByUserId = $1)";
+        "WHERE (s.shared_with_user_id = $1 OR s.shared_by_user_id = $1)";
       const params: any[] = [req.user.userId];
       let paramCount = 2;
 
-      if (resourceType) {
-        whereClause += ` AND s.itemType = $${paramCount}`;
-        params.push(resourceType);
+      if (resource_type) {
+        whereClause += ` AND s.item_type = $${paramCount}`;
+        params.push(resource_type);
         paramCount++;
       }
 
       const query = `
         SELECT 
           s.*,
-          uSharedBy.firstName as sharedByFirstName,
-          uSharedBy.lastName as sharedByLastName,
-          uSharedBy.email as sharedByEmail,
-          uSharedWith.firstName as sharedWithFirstName,
-          uSharedWith.lastName as sharedWithLastName,
-          uSharedWith.email as sharedWithEmail,
+          u_shared_by.first_name as shared_by_first_name,
+          u_shared_by.last_name as shared_by_last_name,
+          u_shared_by.email as shared_by_email,
+          u_shared_with.first_name as shared_with_first_name,
+          u_shared_with.last_name as shared_with_last_name,
+          u_shared_with.email as shared_with_email,
           CASE 
-            WHEN s.itemType = 'contact' THEN 
+            WHEN s.item_type = 'contact' THEN 
               (SELECT row_to_json(c) FROM (
-                SELECT id, firstName, lastName, email, phone, position, status
-                FROM contacts WHERE id = s.itemId
+                SELECT id, first_name, last_name, email, phone, position, status
+                FROM contacts WHERE id = s.item_id
               ) c)
-            WHEN s.itemType = 'activity' THEN 
+            WHEN s.item_type = 'activity' THEN 
               (SELECT row_to_json(a) FROM (
-                SELECT id, type, subject, description, dueDate, completed as status
-                FROM activities WHERE id = s.itemId
+                SELECT id, type, subject, description, due_date, completed as status
+                FROM activities WHERE id = s.item_id
               ) a)
-            WHEN s.itemType = 'deal' THEN 
+            WHEN s.item_type = 'deal' THEN 
               (SELECT row_to_json(d) FROM (
-                SELECT id, title, value, currency, probability, stageId, contactId, companyId
-                FROM deals WHERE id = s.itemId
+                SELECT id, title, value, currency, probability, stage_id, contact_id, company_id
+                FROM deals WHERE id = s.item_id
               ) d)
-          END as resourceData
+          END as resource_data
         FROM shares s
-        LEFT JOIN users uSharedBy ON s.sharedByUserId = uSharedBy.id
-        LEFT JOIN users uSharedWith ON s.sharedWithUserId = uSharedWith.id
+        LEFT JOIN users u_shared_by ON s.shared_by_user_id = u_shared_by.id
+        LEFT JOIN users u_shared_with ON s.shared_with_user_id = u_shared_with.id
         ${whereClause}
-        ORDER BY s.createdAt DESC
+        ORDER BY s.created_at DESC
         LIMIT $${paramCount} OFFSET $${paramCount + 1}
       `;
 
@@ -511,20 +511,23 @@ router.get(
       // Add computed properties for frontend
       const shares = result.rows.map((share) => ({
         ...share,
-        resourceType: share.itemType,
-        resourceId: share.itemId,
-        ownerFirstName: share.sharedByFirstName,
-        ownerLastName: share.sharedByLastName,
-        isSharedWithMe: share.sharedWithUserId === req.user?.userId,
-        resourceTitle: share.resourceData
-          ? share.itemType === "contact"
-            ? `${share.resourceData.firstName} ${share.resourceData.lastName}`
-            : share.itemType === "activity"
-            ? share.resourceData.subject || share.resourceData.type
-            : share.itemType === "deal"
-            ? share.resourceData.title
+        resourceType: share.item_type,
+        resourceId: share.item_id,
+        createdAt: share.created_at,
+        sharedWithFirstName: share.shared_with_first_name,
+        sharedWithLastName: share.shared_with_last_name,
+        ownerFirstName: share.shared_by_first_name,
+        ownerLastName: share.shared_by_last_name,
+        isSharedWithMe: share.shared_with_user_id === req.user?.userId,
+        resourceTitle: share.resource_data
+          ? share.item_type === "contact"
+            ? `${share.resource_data.first_name} ${share.resource_data.last_name}`
+            : share.item_type === "activity"
+            ? share.resource_data.subject || share.resource_data.type
+            : share.item_type === "deal"
+            ? share.resource_data.title
             : "Unknown"
-          : `${share.itemType} #${share.itemId}`,
+          : `${share.item_type} #${share.item_id}`,
       }));
 
       res.json(shares);
@@ -544,15 +547,15 @@ router.get("/users", async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const result = await db.query<UserRow>(
-      "SELECT id, firstname, lastname, email FROM users WHERE id != $1 ORDER BY firstname, lastname",
+      "SELECT id, first_name, last_name, email FROM users WHERE id != $1 ORDER BY first_name, last_name",
       [req.user.userId]
     );
 
     // Map to camelCase for frontend consistency
     const users = result.rows.map((user: any) => ({
       id: user.id,
-      firstName: user.firstname,
-      lastName: user.lastname,
+      firstName: user.first_name,
+      lastName: user.last_name,
       email: user.email,
     }));
 

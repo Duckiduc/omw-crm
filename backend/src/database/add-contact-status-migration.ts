@@ -15,13 +15,13 @@ export const addContactStatus = async (): Promise<void> => {
       // Add status column if it doesn't exist
       await db.query(`
         ALTER TABLE contacts 
-        ADD COLUMN status VARCHAR(20) DEFAULT 'allGood' 
-        CHECK (status IN ('hot', 'warm', 'cold', 'allGood'));
+        ADD COLUMN status VARCHAR(20) DEFAULT 'all_good' 
+        CHECK (status IN ('hot', 'warm', 'cold', 'all_good'));
       `);
 
       // Create index for better filtering performance
       await db.query(`
-        CREATE INDEX IF NOT EXISTS idxContactsStatus ON contacts(status);
+        CREATE INDEX IF NOT EXISTS idx_contacts_status ON contacts(status);
       `);
 
       console.log("✅ Status column added successfully!");

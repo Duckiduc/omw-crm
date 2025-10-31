@@ -11,17 +11,17 @@ router.use(authenticateToken);
 
 interface ContactNote {
   id: string;
-  contactId: string;
+  contact_id: string;
   content: string;
   title?: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  user_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface ContactNoteRow extends ContactNote {
-  authorFirstName?: string;
-  authorLastName?: string;
+  author_first_name?: string;
+  author_last_name?: string;
 }
 
 interface CreateContactNoteBody {
@@ -63,7 +63,7 @@ router.get(
 
       // Verify contact belongs to user
       const contactCheck = await db.query<{ id: string }>(
-        "SELECT id FROM contacts WHERE id = $1 AND userId = $2",
+        "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
         [contactId, req.user.userId]
       );
 
@@ -73,21 +73,21 @@ router.get(
       }
 
       const result = await db.query<ContactNoteRow>(
-        `SELECT cn.*, u.firstName as authorFirstName, u.lastName as authorLastName
-        FROM contactNotes cn
-        JOIN users u ON cn.userId = u.id
-        WHERE cn.contactId = $1 AND cn.userId = $2
-        ORDER BY cn.createdAt DESC`,
+        `SELECT cn.*, u.first_name as author_first_name, u.last_name as author_last_name
+        FROM contact_notes cn
+        JOIN users u ON cn.user_id = u.id
+        WHERE cn.contact_id = $1 AND cn.user_id = $2
+        ORDER BY cn.created_at DESC`,
         [contactId, req.user.userId]
       );
 
       const notes: ContactNoteResponse[] = result.rows.map((note) => ({
         id: note.id,
         content: note.content,
-        contactId: note.contactId,
-        authorName: `${note.authorFirstName} ${note.authorLastName}`,
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt,
+        contactId: note.contact_id,
+        authorName: `${note.author_first_name} ${note.author_last_name}`,
+        createdAt: note.created_at,
+        updatedAt: note.updated_at,
       }));
 
       res.json({ notes });
@@ -125,7 +125,7 @@ router.post(
 
       // Verify contact belongs to user
       const contactCheck = await db.query<{ id: string }>(
-        "SELECT id FROM contacts WHERE id = $1 AND userId = $2",
+        "SELECT id FROM contacts WHERE id = $1 AND user_id = $2",
         [contactId, req.user.userId]
       );
 
@@ -135,7 +135,7 @@ router.post(
       }
 
       const result = await db.query<ContactNote>(
-        `INSERT INTO contactNotes (contactId, content, userId, title)
+        `INSERT INTO contact_notes (contact_id, content, user_id, title)
         VALUES ($1, $2, $3, $4)
         RETURNING *`,
         [contactId, content, req.user.userId, null]
@@ -145,9 +145,9 @@ router.post(
 
       // Get user name for response
       const userResult = await db.query<{
-        firstName: string;
-        lastName: string;
-      }>("SELECT firstName, lastName FROM users WHERE id = $1", [
+        first_name: string;
+        last_name: string;
+      }>("SELECT first_name, last_name FROM users WHERE id = $1", [
         req.user.userId,
       ]);
       const user = userResult.rows[0];
@@ -155,10 +155,10 @@ router.post(
       res.status(201).json({
         id: note.id,
         content: note.content,
-        contactId: note.contactId,
-        authorName: `${user.firstName} ${user.lastName}`,
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt,
+        contactId: note.contact_id,
+        authorName: `${user.first_name} ${user.last_name}`,
+        createdAt: note.created_at,
+        updatedAt: note.updated_at,
       });
     } catch (error) {
       console.error("Create note error:", error);
@@ -195,7 +195,7 @@ router.put(
 
       // Check if note exists and belongs to user
       const existingNote = await db.query<{ id: string }>(
-        "SELECT id FROM contactNotes WHERE id = $1 AND userId = $2",
+        "SELECT id FROM contact_notes WHERE id = $1 AND user_id = $2",
         [id, req.user.userId]
       );
 
@@ -205,9 +205,9 @@ router.put(
       }
 
       const result = await db.query<ContactNote>(
-        `UPDATE contactNotes 
-        SET content = $1, updatedAt = CURRENT_TIMESTAMP
-        WHERE id = $2 AND userId = $3
+        `UPDATE contact_notes 
+        SET content = $1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2 AND user_id = $3
         RETURNING *`,
         [content, id, req.user.userId]
       );
@@ -216,9 +216,9 @@ router.put(
 
       // Get user name for response
       const userResult = await db.query<{
-        firstName: string;
-        lastName: string;
-      }>("SELECT firstName, lastName FROM users WHERE id = $1", [
+        first_name: string;
+        last_name: string;
+      }>("SELECT first_name, last_name FROM users WHERE id = $1", [
         req.user.userId,
       ]);
       const user = userResult.rows[0];
@@ -226,10 +226,10 @@ router.put(
       res.json({
         id: note.id,
         content: note.content,
-        contactId: note.contactId,
-        authorName: `${user.firstName} ${user.lastName}`,
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt,
+        contactId: note.contact_id,
+        authorName: `${user.first_name} ${user.last_name}`,
+        createdAt: note.created_at,
+        updatedAt: note.updated_at,
       });
     } catch (error) {
       console.error("Update note error:", error);
@@ -258,7 +258,7 @@ router.delete(
       const { id } = req.params;
 
       const result = await db.query<{ id: string }>(
-        "DELETE FROM contactNotes WHERE id = $1 AND userId = $2 RETURNING id",
+        "DELETE FROM contact_notes WHERE id = $1 AND user_id = $2 RETURNING id",
         [id, req.user.userId]
       );
 

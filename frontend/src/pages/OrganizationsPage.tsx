@@ -466,7 +466,7 @@ export default function OrganizationsPage() {
                       <div className="flex items-center">
                         <Users className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {organization.contactCount || 0}
+                          {organization.contact_count || 0}
                         </span>
                         <span className="text-muted-foreground ml-1">
                           contacts

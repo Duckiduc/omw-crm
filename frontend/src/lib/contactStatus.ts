@@ -1,4 +1,4 @@
-export type ContactStatus = "hot" | "warm" | "cold" | "allGood";
+export type ContactStatus = "hot" | "warm" | "cold" | "all_good";
 
 export const CONTACT_STATUS_OPTIONS = [
   {
@@ -17,7 +17,7 @@ export const CONTACT_STATUS_OPTIONS = [
     color: "bg-blue-100 text-blue-800 border-blue-200",
   },
   {
-    value: "allGood",
+    value: "all_good",
     label: "All Good",
     color: "bg-green-100 text-green-800 border-green-200",
   },

@@ -214,7 +214,7 @@ The system uses PostgreSQL with the following main tables:
 - **companies** - Company profiles and information
 - **contacts** - Individual contact records
 - **deals** - Sales opportunities and pipeline
-- **dealStages** - Configurable deal pipeline stages
+- **deal_stages** - Configurable deal pipeline stages
 - **activities** - Tasks, meetings, and other activities
 
 ## Security Features

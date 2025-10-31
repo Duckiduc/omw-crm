@@ -16,9 +16,9 @@ export const promoteUserToAdmin = async (): Promise<void> => {
     console.log(`🔍 Looking for user: ${email}`);
 
     const result = await db.query<
-      Pick<User, "id" | "email" | "firstName" | "lastName" | "role">
+      Pick<User, "id" | "email" | "first_name" | "last_name" | "role">
     >(
-      "UPDATE users SET role = $1 WHERE email = $2 RETURNING id, email, firstname, lastname, role",
+      "UPDATE users SET role = $1 WHERE email = $2 RETURNING id, email, first_name, last_name, role",
       ["admin", email]
     );
 
@@ -36,7 +36,7 @@ export const promoteUserToAdmin = async (): Promise<void> => {
       role: userRow.role,
     };
     console.log(`✅ User promoted to admin:`);
-    console.log(`   Name: ${user.firstName} ${user.lastName}`);
+    console.log(`   Name: ${user.first_name} ${user.last_name}`);
     console.log(`   Email: ${user.email}`);
     console.log(`   Role: ${user.role}`);
 

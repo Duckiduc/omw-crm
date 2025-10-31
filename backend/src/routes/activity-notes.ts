@@ -11,22 +11,22 @@ router.use(authenticateToken);
 
 interface ActivityNote {
   id: string;
-  activityId: string;
+  activity_id: string;
   content: string;
   title: string;
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  user_id: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface ActivityNoteRow extends ActivityNote {
-  authorFirstName?: string;
-  authorLastName?: string;
+  author_first_name?: string;
+  author_last_name?: string;
 }
 
 interface ActivityCheckRow {
   id: string;
-  userId?: string;
+  user_id?: string;
   permission?: string;
 }
 
@@ -71,8 +71,8 @@ router.get(
       const activityCheck = await db.query<ActivityCheckRow>(
         `SELECT a.id 
          FROM activities a 
-         LEFT JOIN shares s ON s.itemType = 'activity' AND s.itemId = a.id AND s.sharedWithUserId = $2
-         WHERE a.id = $1 AND (a.userId = $2 OR s.id IS NOT NULL)`,
+         LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
+         WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
         [activityId, req.user.userId]
       );
 
@@ -82,21 +82,21 @@ router.get(
       }
 
       const result = await db.query<ActivityNoteRow>(
-        `SELECT an.*, u.firstName as authorFirstName, u.lastName as authorLastName
-        FROM activityNotes an
-        JOIN users u ON an.userId = u.id
-        WHERE an.activityId = $1
-        ORDER BY an.createdAt DESC`,
+        `SELECT an.*, u.first_name as author_first_name, u.last_name as author_last_name
+        FROM activity_notes an
+        JOIN users u ON an.user_id = u.id
+        WHERE an.activity_id = $1
+        ORDER BY an.created_at DESC`,
         [activityId]
       );
 
       const notes: ActivityNoteResponse[] = result.rows.map((note) => ({
         id: note.id,
         content: note.content,
-        activityId: note.activityId,
-        authorName: `${note.authorFirstName} ${note.authorLastName}`,
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt,
+        activityId: note.activity_id,
+        authorName: `${note.author_first_name} ${note.author_last_name}`,
+        createdAt: note.created_at,
+        updatedAt: note.updated_at,
       }));
 
       res.json({ notes });
@@ -134,10 +134,10 @@ router.post(
 
       // Verify activity exists and user has access (owned or shared with edit permission)
       const activityCheck = await db.query<ActivityCheckRow>(
-        `SELECT a.id, a.userId, s.permissions as permission
+        `SELECT a.id, a.user_id, s.permissions as permission
          FROM activities a 
-         LEFT JOIN shares s ON s.itemType = 'activity' AND s.itemId = a.id AND s.sharedWithUserId = $2
-         WHERE a.id = $1 AND (a.userId = $2 OR s.id IS NOT NULL)`,
+         LEFT JOIN shares s ON s.item_type = 'activity' AND s.item_id = a.id AND s.shared_with_user_id = $2
+         WHERE a.id = $1 AND (a.user_id = $2 OR s.id IS NOT NULL)`,
         [activityId, req.user.userId]
       );
 
@@ -149,7 +149,7 @@ router.post(
       const activity = activityCheck.rows[0];
       // Check if user has permission to add notes (must be owner or have edit permission)
       if (
-        activity.userId !== req.user.userId &&
+        activity.user_id !== req.user.userId &&
         activity.permission !== "edit"
       ) {
         res.status(403).json({
@@ -164,7 +164,7 @@ router.post(
         (content.split(" ").length > 5 ? "..." : "");
 
       const result = await db.query<ActivityNote>(
-        `INSERT INTO activityNotes (activityId, content, userId, title)
+        `INSERT INTO activity_notes (activity_id, content, user_id, title)
         VALUES ($1, $2, $3, $4)
         RETURNING *`,
         [activityId, content, req.user.userId, title]
@@ -174,9 +174,9 @@ router.post(
 
       // Get user name for response
       const userResult = await db.query<{
-        firstName: string;
-        lastName: string;
-      }>("SELECT firstName, lastName FROM users WHERE id = $1", [
+        first_name: string;
+        last_name: string;
+      }>("SELECT first_name, last_name FROM users WHERE id = $1", [
         req.user.userId,
       ]);
       const user = userResult.rows[0];
@@ -184,10 +184,10 @@ router.post(
       res.status(201).json({
         id: note.id,
         content: note.content,
-        activityId: note.activityId,
-        authorName: `${user.firstName} ${user.lastName}`,
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt,
+        activityId: note.activity_id,
+        authorName: `${user.first_name} ${user.last_name}`,
+        createdAt: note.created_at,
+        updatedAt: note.updated_at,
       });
     } catch (error) {
       console.error("Create activity note error:", error);
@@ -224,7 +224,7 @@ router.put(
 
       // Check if note exists and belongs to user
       const existingNote = await db.query<{ id: string }>(
-        "SELECT id FROM activityNotes WHERE id = $1 AND userId = $2",
+        "SELECT id FROM activity_notes WHERE id = $1 AND user_id = $2",
         [id, req.user.userId]
       );
 
@@ -239,9 +239,9 @@ router.put(
         (content.split(" ").length > 5 ? "..." : "");
 
       const result = await db.query<ActivityNote>(
-        `UPDATE activityNotes 
-        SET content = $1, title = $2, updatedAt = CURRENT_TIMESTAMP
-        WHERE id = $3 AND userId = $4
+        `UPDATE activity_notes 
+        SET content = $1, title = $2, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3 AND user_id = $4
         RETURNING *`,
         [content, title, id, req.user.userId]
       );
@@ -250,9 +250,9 @@ router.put(
 
       // Get user name for response
       const userResult = await db.query<{
-        firstName: string;
-        lastName: string;
-      }>("SELECT firstName, lastName FROM users WHERE id = $1", [
+        first_name: string;
+        last_name: string;
+      }>("SELECT first_name, last_name FROM users WHERE id = $1", [
         req.user.userId,
       ]);
       const user = userResult.rows[0];
@@ -260,10 +260,10 @@ router.put(
       res.json({
         id: note.id,
         content: note.content,
-        activityId: note.activityId,
-        authorName: `${user.firstName} ${user.lastName}`,
-        createdAt: note.createdAt,
-        updatedAt: note.updatedAt,
+        activityId: note.activity_id,
+        authorName: `${user.first_name} ${user.last_name}`,
+        createdAt: note.created_at,
+        updatedAt: note.updated_at,
       });
     } catch (error) {
       console.error("Update activity note error:", error);
@@ -292,7 +292,7 @@ router.delete(
       const { id } = req.params;
 
       const result = await db.query<{ id: string }>(
-        "DELETE FROM activityNotes WHERE id = $1 AND userId = $2 RETURNING id",
+        "DELETE FROM activity_notes WHERE id = $1 AND user_id = $2 RETURNING id",
         [id, req.user.userId]
       );
 

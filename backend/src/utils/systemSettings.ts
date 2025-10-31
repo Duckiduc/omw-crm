@@ -1,7 +1,7 @@
 import db from "../config/database";
 
 interface SystemSettingRow {
-  settingvalue: string;
+  setting_value: string;
 }
 
 interface UserCountRow {
@@ -20,7 +20,7 @@ export const getSystemSetting = async (
 ): Promise<string | null> => {
   try {
     const result = await db.query<SystemSettingRow>(
-      "SELECT settingvalue FROM systemSettings WHERE settingkey = $1",
+      "SELECT setting_value FROM system_settings WHERE setting_key = $1",
       [settingKey]
     );
 
@@ -28,7 +28,7 @@ export const getSystemSetting = async (
       return defaultValue;
     }
 
-    return result.rows[0].settingvalue;
+    return result.rows[0].setting_value;
   } catch (error) {
     console.error(`Error getting system setting ${settingKey}:`, error);
     return defaultValue;
@@ -40,7 +40,7 @@ export const getSystemSetting = async (
  * @returns True if registration is enabled
  */
 export const isRegistrationEnabled = async (): Promise<boolean> => {
-  const value = await getSystemSetting("registrationEnabled", "true");
+  const value = await getSystemSetting("registration_enabled", "true");
   return value === "true";
 };
 
@@ -49,7 +49,7 @@ export const isRegistrationEnabled = async (): Promise<boolean> => {
  * @returns Maximum number of users
  */
 export const getMaxUsers = async (): Promise<number> => {
-  const value = await getSystemSetting("maxUsers", "0");
+  const value = await getSystemSetting("max_users", "0");
   return parseInt(value || "0", 10) || 0;
 };
 

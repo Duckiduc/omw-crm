@@ -13,10 +13,10 @@ router.use(authenticateToken);
 router.use(requireAdmin);
 
 interface UserRow extends User {
-  firstName: string;
-  lastName: string;
-  createdAt: Date;
-  updatedAt: Date;
+  first_name: string;
+  last_name: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 interface CountRow {
@@ -26,8 +26,8 @@ interface CountRow {
 interface UserStatsRow {
   total?: string;
   admins?: string;
-  regularUsers?: string;
-  newThisMonth?: string;
+  regular_users?: string;
+  new_this_month?: string;
 }
 
 interface AdminQueryParams {
@@ -89,7 +89,7 @@ router.get(
 
       let countQuery = "SELECT COUNT(*) FROM users WHERE 1=1";
       let dataQuery = `
-        SELECT id, email, firstname, lastname, role, createdat, updatedat
+        SELECT id, email, first_name, last_name, role, created_at, updated_at
         FROM users 
         WHERE 1=1
       `;
@@ -98,7 +98,7 @@ router.get(
 
       // Add filters
       if (search) {
-        const searchCondition = ` AND (firstname ILIKE $${paramCount} OR lastname ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
+        const searchCondition = ` AND (first_name ILIKE $${paramCount} OR last_name ILIKE $${paramCount} OR email ILIKE $${paramCount})`;
         countQuery += searchCondition;
         dataQuery += searchCondition;
         params.push(`%${search}%`);
@@ -113,7 +113,7 @@ router.get(
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY createdat DESC LIMIT $${paramCount} OFFSET $${
+      dataQuery += ` ORDER BY created_at DESC LIMIT $${paramCount} OFFSET $${
         paramCount + 1
       }`;
 
@@ -132,11 +132,11 @@ router.get(
       const users = dataResult.rows.map((user: any) => ({
         id: user.id,
         email: user.email,
-        firstName: user.firstname,
-        lastName: user.lastname,
+        firstName: user.first_name,
+        lastName: user.last_name,
         role: user.role,
-        createdAt: user.createdat,
-        updatedAt: user.updatedat,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
       }));
 
       res.json({
@@ -168,7 +168,7 @@ router.get("/users/:id", async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
 
     const result = await db.query<UserRow>(
-      "SELECT id, email, firstname, lastname, role, createdat, updatedat FROM users WHERE id = $1",
+      "SELECT id, email, first_name, last_name, role, created_at, updated_at FROM users WHERE id = $1",
       [id]
     );
 
@@ -181,11 +181,11 @@ router.get("/users/:id", async (req: AuthenticatedRequest, res: Response) => {
     res.json({
       id: user.id,
       email: user.email,
-      firstName: user.firstname,
-      lastName: user.lastname,
+      firstName: user.first_name,
+      lastName: user.last_name,
       role: user.role,
-      createdAt: user.createdat,
-      updatedAt: user.updatedat,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
     });
   } catch (error) {
     console.error("Get user error:", error);
@@ -235,7 +235,7 @@ router.post(
 
       // Create user
       const result = await db.query<UserRow>(
-        "INSERT INTO users (email, password, firstname, lastname, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, firstname, lastname, role, createdat, updatedat",
+        "INSERT INTO users (email, password, first_name, last_name, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, first_name, last_name, role, created_at, updated_at",
         [email, hashedPassword, firstName, lastName, role]
       );
 
@@ -243,11 +243,11 @@ router.post(
       res.status(201).json({
         id: user.id,
         email: user.email,
-        firstName: user.firstname,
-        lastName: user.lastname,
+        firstName: user.first_name,
+        lastName: user.last_name,
         role: user.role,
-        createdAt: user.createdat,
-        updatedAt: user.updatedat,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
       });
     } catch (error) {
       console.error("Create user error:", error);
@@ -332,9 +332,9 @@ router.put(
         } else {
           const dbField =
             key === "firstName"
-              ? "firstname"
+              ? "first_name"
               : key === "lastName"
-              ? "lastname"
+              ? "last_name"
               : key;
           fields.push(`${dbField} = $${paramCount}`);
           values.push(value);
@@ -347,14 +347,14 @@ router.put(
         return;
       }
 
-      fields.push("updatedat = CURRENT_TIMESTAMP");
+      fields.push("updated_at = CURRENT_TIMESTAMP");
       values.push(id);
 
       const query = `
         UPDATE users 
         SET ${fields.join(", ")} 
         WHERE id = $${paramCount} 
-        RETURNING id, email, firstname, lastname, role, createdat, updatedat
+        RETURNING id, email, first_name, last_name, role, created_at, updated_at
       `;
 
       const result = await db.query<UserRow>(query, values);
@@ -363,11 +363,11 @@ router.put(
       res.json({
         id: user.id,
         email: user.email,
-        firstName: user.firstname,
-        lastName: user.lastname,
+        firstName: user.first_name,
+        lastName: user.last_name,
         role: user.role,
-        createdAt: user.createdat,
-        updatedAt: user.updatedat,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
       });
     } catch (error) {
       console.error("Update user error:", error);
@@ -423,14 +423,14 @@ router.get("/settings", async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const result = await db.query<SystemSetting>(
-      "SELECT settingkey, settingvalue, description FROM systemSettings ORDER BY settingkey"
+      "SELECT setting_key, setting_value, description FROM system_settings ORDER BY setting_key"
     );
 
     // Convert to object format for easier frontend consumption
     const settings: Record<string, { value: string; description: string }> = {};
     result.rows.forEach((row: any) => {
-      settings[row.settingkey] = {
-        value: row.settingvalue,
+      settings[row.setting_key] = {
+        value: row.setting_value,
         description: row.description || "",
       };
     });
@@ -466,26 +466,32 @@ router.put(
       const { value } = req.body;
 
       // Validate specific setting types
-      if (key === "registrationEnabled" && !["true", "false"].includes(value)) {
+      if (
+        key === "registration_enabled" &&
+        !["true", "false"].includes(value)
+      ) {
         res.status(400).json({
-          message: "registrationEnabled must be 'true' or 'false'",
+          message: "registration_enabled must be 'true' or 'false'",
         });
         return;
       }
 
-      if (key === "maxUsers" && (isNaN(Number(value)) || parseInt(value) < 0)) {
+      if (
+        key === "max_users" &&
+        (isNaN(Number(value)) || parseInt(value) < 0)
+      ) {
         res.status(400).json({
-          message: "maxUsers must be a non-negative number",
+          message: "max_users must be a non-negative number",
         });
         return;
       }
 
       // Update setting
       const result = await db.query<SystemSetting>(
-        `UPDATE systemSettings 
-         SET settingvalue = $1, updatedat = CURRENT_TIMESTAMP 
-         WHERE settingkey = $2 
-         RETURNING settingkey, settingvalue, description`,
+        `UPDATE system_settings 
+         SET setting_value = $1, updated_at = CURRENT_TIMESTAMP 
+         WHERE setting_key = $2 
+         RETURNING setting_key, setting_value, description`,
         [value, key]
       );
 
@@ -496,8 +502,8 @@ router.put(
 
       const setting = result.rows[0] as any;
       res.json({
-        settingKey: setting.settingkey,
-        settingValue: setting.settingvalue,
+        setting_key: setting.setting_key,
+        setting_value: setting.setting_value,
         description: setting.description,
       });
     } catch (error) {
@@ -523,20 +529,20 @@ router.get(
           "SELECT COUNT(*) as admins FROM users WHERE role = 'admin'"
         ),
         db.query<UserStatsRow>(
-          "SELECT COUNT(*) as regularUsers FROM users WHERE role = 'user'"
+          "SELECT COUNT(*) as regular_users FROM users WHERE role = 'user'"
         ),
         db.query<UserStatsRow>(`
-        SELECT COUNT(*) as newThisMonth 
+        SELECT COUNT(*) as new_this_month 
         FROM users 
-        WHERE createdAt >= DATE_TRUNC('month', CURRENT_DATE)
+        WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)
       `),
       ]);
 
       res.json({
         total: parseInt(stats[0].rows[0].total || "0", 10),
         admins: parseInt(stats[1].rows[0].admins || "0", 10),
-        regularUsers: parseInt(stats[2].rows[0].regularUsers || "0", 10),
-        newThisMonth: parseInt(stats[3].rows[0].newThisMonth || "0", 10),
+        regularUsers: parseInt(stats[2].rows[0].regular_users || "0", 10),
+        newThisMonth: parseInt(stats[3].rows[0].new_this_month || "0", 10),
       });
     } catch (error) {
       console.error("Get user stats error:", error);

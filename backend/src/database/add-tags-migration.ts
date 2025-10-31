@@ -20,7 +20,7 @@ export const addTagsToContacts = async (): Promise<void> => {
 
       // Create index for better search performance
       await db.query(`
-        CREATE INDEX IF NOT EXISTS idxContactsTags ON contacts USING GIN (tags);
+        CREATE INDEX IF NOT EXISTS idx_contacts_tags ON contacts USING GIN (tags);
       `);
 
       console.log("✅ Tags column added successfully!");
