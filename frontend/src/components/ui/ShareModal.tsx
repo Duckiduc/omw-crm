@@ -26,7 +26,7 @@ export default function ShareModal({
 }: ShareModalProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [permission, setPermission] = useState("view");
+  const [permission, setPermission] = useState("read");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +83,7 @@ export default function ShareModal({
 
   const handleClose = () => {
     setSelectedUserId("");
-    setPermission("view");
+    setPermission("read");
     setMessage("");
     setError(null);
     onClose();
@@ -146,22 +146,22 @@ export default function ShareModal({
                   <input
                     type="radio"
                     name="permission"
-                    value="view"
-                    checked={permission === "view"}
+                    value="read"
+                    checked={permission === "read"}
                     onChange={(e) => setPermission(e.target.value)}
                     className="mr-2"
                   />
                   <Eye className="mr-1 h-4 w-4" />
                   <span className="text-sm">
-                    <strong>View only</strong> - Can see but not modify
+                    <strong>Read only</strong> - Can see but not modify
                   </span>
                 </label>
                 <label className="flex items-center">
                   <input
                     type="radio"
                     name="permission"
-                    value="edit"
-                    checked={permission === "edit"}
+                    value="write"
+                    checked={permission === "write"}
                     onChange={(e) => setPermission(e.target.value)}
                     className="mr-2"
                   />
