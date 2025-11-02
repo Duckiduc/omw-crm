@@ -288,7 +288,10 @@ export default function ContactsPage() {
             Manage your contacts and relationships
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="self-start sm:self-auto">
+        <Button
+          onClick={() => setShowForm(true)}
+          className="self-start sm:self-auto"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Contact
         </Button>
@@ -297,7 +300,10 @@ export default function ContactsPage() {
       {/* Search and Filters */}
       <Card>
         <CardContent className="p-4 space-y-4">
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+          <form
+            onSubmit={handleSearch}
+            className="flex flex-col sm:flex-row gap-2 sm:gap-4"
+          >
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -308,7 +314,9 @@ export default function ContactsPage() {
               />
             </div>
             <div className="flex gap-2">
-              <Button type="submit" className="flex-1 sm:flex-none">Search</Button>
+              <Button type="submit" className="flex-1 sm:flex-none">
+                Search
+              </Button>
               {searchTerm && (
                 <Button
                   type="button"
@@ -581,122 +589,122 @@ export default function ContactsPage() {
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-              <TableBody>
-                {contacts.map((contact) => (
-                  <TableRow key={contact.id}>
-                    <TableCell>
-                      <div className="font-medium">
-                        <button
-                          onClick={() => navigate(`/contacts/${contact.id}`)}
-                          className="text-primary hover:underline text-left"
-                        >
-                          {contact.firstName} {contact.lastName}
-                        </button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {contact.company_name ? (
-                        <div className="flex items-center">
-                          <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
-                          {contact.company_name}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {contact.position || (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <ContactStatusBadge
-                        status={contact.status || "all_good"}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {contact.tags && contact.tags.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {contact.tags.slice(0, 3).map((tag, index) => (
-                            <Badge key={index} variant="secondary">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {contact.tags.length > 3 && (
-                            <span className="text-xs text-muted-foreground">
-                              +{contact.tags.length - 3} more
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {contact.email ? (
-                        <div className="flex items-center">
-                          <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <a
-                            href={`mailto:${contact.email}`}
-                            className="text-primary hover:underline"
+                <TableBody>
+                  {contacts.map((contact) => (
+                    <TableRow key={contact.id}>
+                      <TableCell>
+                        <div className="font-medium">
+                          <button
+                            onClick={() => navigate(`/contacts/${contact.id}`)}
+                            className="text-primary hover:underline text-left"
                           >
-                            {contact.email}
-                          </a>
+                            {contact.firstName} {contact.lastName}
+                          </button>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {contact.phone ? (
-                        <div className="flex items-center">
-                          <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
-                          <a
-                            href={`tel:${contact.phone}`}
-                            className="text-primary hover:underline"
+                      </TableCell>
+                      <TableCell>
+                        {contact.company_name ? (
+                          <div className="flex items-center">
+                            <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
+                            {contact.company_name}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {contact.position || (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <ContactStatusBadge
+                          status={contact.status || "all_good"}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {contact.tags && contact.tags.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {contact.tags.slice(0, 3).map((tag, index) => (
+                              <Badge key={index} variant="secondary">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {contact.tags.length > 3 && (
+                              <span className="text-xs text-muted-foreground">
+                                +{contact.tags.length - 3} more
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {contact.email ? (
+                          <div className="flex items-center">
+                            <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
+                            <a
+                              href={`mailto:${contact.email}`}
+                              className="text-primary hover:underline"
+                            >
+                              {contact.email}
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {contact.phone ? (
+                          <div className="flex items-center">
+                            <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
+                            <a
+                              href={`tel:${contact.phone}`}
+                              className="text-primary hover:underline"
+                            >
+                              {contact.phone}
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShareModal({
+                                isOpen: true,
+                                contactId: contact.id,
+                                contactName: `${contact.firstName} ${contact.lastName}`,
+                              });
+                            }}
+                            title="Share contact"
                           >
-                            {contact.phone}
-                          </a>
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(contact)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(contact.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setShareModal({
-                              isOpen: true,
-                              contactId: contact.id,
-                              contactName: `${contact.firstName} ${contact.lastName}`,
-                            });
-                          }}
-                          title="Share contact"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(contact)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDelete(contact.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
               </Table>
             </div>
           )}
