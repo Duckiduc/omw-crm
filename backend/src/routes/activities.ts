@@ -175,9 +175,14 @@ router.get(
         paramCount++;
       }
 
-      dataQuery += ` ORDER BY a.due_date ASC NULLS LAST, a.created_at DESC LIMIT $${paramCount} OFFSET $${
-        paramCount + 1
-      }`;
+      dataQuery += ` ORDER BY 
+        CASE 
+          WHEN a.due_date IS NULL THEN 2
+          ELSE 1
+        END,
+        ABS(EXTRACT(EPOCH FROM (a.due_date - CURRENT_DATE))) ASC,
+        a.created_at DESC 
+        LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
 
       const countParams = [...params];
       const dataParams = [...params, limit, offset];
@@ -227,7 +232,13 @@ router.get("/upcoming", async (req: AuthenticatedRequest, res: Response) => {
       LEFT JOIN deals d ON a.deal_id = d.id
       WHERE a.user_id = $1 AND a.completed = false 
         AND (a.due_date IS NULL OR a.due_date >= CURRENT_DATE)
-      ORDER BY a.due_date ASC NULLS LAST, a.created_at DESC
+      ORDER BY 
+        CASE 
+          WHEN a.due_date IS NULL THEN 2
+          ELSE 1
+        END,
+        ABS(EXTRACT(EPOCH FROM (a.due_date - CURRENT_DATE))) ASC,
+        a.created_at DESC
       LIMIT 10`,
       [req.user.userId]
     );
