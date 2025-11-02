@@ -280,24 +280,24 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="px-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold">Contacts</h1>
           <p className="text-muted-foreground">
             Manage your contacts and relationships
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => setShowForm(true)} className="self-start sm:self-auto">
           <Plus className="mr-2 h-4 w-4" />
           Add Contact
         </Button>
       </div>
 
       {/* Search and Filters */}
-      <Card className="mb-6">
+      <Card>
         <CardContent className="p-4 space-y-4">
-          <form onSubmit={handleSearch} className="flex gap-4">
+          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -307,19 +307,22 @@ export default function ContactsPage() {
                 className="pl-10"
               />
             </div>
-            <Button type="submit">Search</Button>
-            {searchTerm && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("");
-                  setCurrentPage(1);
-                }}
-              >
-                Clear
-              </Button>
-            )}
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1 sm:flex-none">Search</Button>
+              {searchTerm && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setCurrentPage(1);
+                  }}
+                  className="flex-1 sm:flex-none"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </form>
 
           {/* Tag Filter */}
@@ -395,7 +398,7 @@ export default function ContactsPage() {
 
       {/* Contact Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle>
@@ -564,19 +567,20 @@ export default function ContactsPage() {
               </Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Tags</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
               <TableBody>
                 {contacts.map((contact) => (
                   <TableRow key={contact.id}>
@@ -693,15 +697,16 @@ export default function ContactsPage() {
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+          <div className="text-sm text-muted-foreground text-center sm:text-left">
             Page {currentPage} of {totalPages}
           </div>
           <div className="flex space-x-2">
@@ -709,6 +714,7 @@ export default function ContactsPage() {
               variant="outline"
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
+              size="sm"
             >
               Previous
             </Button>
@@ -718,6 +724,7 @@ export default function ContactsPage() {
                 setCurrentPage((prev) => Math.min(totalPages, prev + 1))
               }
               disabled={currentPage === totalPages}
+              size="sm"
             >
               Next
             </Button>
