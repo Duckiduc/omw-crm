@@ -128,9 +128,16 @@ router.post(
         { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
       );
 
+      // Set token in HTTP-only cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Use HTTPS in production
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
       res.status(201).json({
         message: "User created successfully",
-        token,
         user: {
           id: user.id,
           email: user.email,
@@ -192,9 +199,16 @@ router.post(
         { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
       );
 
+      // Set token in HTTP-only cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // Use HTTPS in production
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
       res.json({
         message: "Login successful",
-        token,
         user: {
           id: user.id,
           email: user.email,
@@ -337,6 +351,12 @@ router.post(
   "/logout",
   authenticateToken,
   (req: AuthenticatedRequest, res: Response) => {
+    // Clear the HTTP-only cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    });
     res.json({ message: "Logged out successfully" });
   }
 );

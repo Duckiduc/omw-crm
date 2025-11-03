@@ -86,29 +86,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check for existing token on mount
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem("token");
-      if (token) {
-        dispatch({ type: "AUTH_START" });
-        apiClient.setToken(token);
+      dispatch({ type: "AUTH_START" });
 
-        try {
-          const response = await apiClient.getCurrentUser();
-          if (response.data?.user) {
-            dispatch({ type: "AUTH_SUCCESS", payload: response.data.user });
-          } else {
-            // Token is invalid, remove it
-            localStorage.removeItem("token");
-            apiClient.setToken(null);
-            dispatch({ type: "AUTH_ERROR", payload: "Session expired" });
-          }
-        } catch {
-          // Network error or other issues
-          localStorage.removeItem("token");
-          apiClient.setToken(null);
-          dispatch({ type: "AUTH_ERROR", payload: "Authentication failed" });
+      try {
+        // Try to get current user - if cookie exists, this will succeed
+        const response = await apiClient.getCurrentUser();
+        if (response.data?.user) {
+          dispatch({ type: "AUTH_SUCCESS", payload: response.data.user });
+        } else {
+          // No valid session
+          dispatch({ type: "AUTH_LOGOUT" });
         }
-      } else {
-        // No token, user is not authenticated, stop loading
+      } catch {
+        // Network error or other issues
         dispatch({ type: "AUTH_LOGOUT" });
       }
     };
@@ -122,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await apiClient.login(email, password);
 
     if (response.data) {
-      apiClient.setToken(response.data.token);
+      // Cookie is set automatically by the server
       dispatch({ type: "AUTH_SUCCESS", payload: response.data.user });
       return true;
     } else {
@@ -145,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await apiClient.register(userData);
 
     if (response.data) {
-      apiClient.setToken(response.data.token);
+      // Cookie is set automatically by the server
       dispatch({ type: "AUTH_SUCCESS", payload: response.data.user });
       return true;
     } else {
@@ -157,7 +147,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Call backend to clear the cookie
+    await apiClient.logout();
+    // Clear local state
     apiClient.setToken(null);
     dispatch({ type: "AUTH_LOGOUT" });
   };

@@ -10,15 +10,14 @@ export interface ApiResponse<T> {
 
 class ApiClient {
   private baseURL: string;
-  private token: string | null = null;
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
-    this.token = localStorage.getItem("token");
   }
 
   setToken(token: string | null) {
-    this.token = token;
+    // No longer needed with cookie-based auth, but keeping for backward compatibility
+    // Cookies are sent automatically with credentials: 'include'
     if (token) {
       localStorage.setItem("token", token);
     } else {
@@ -37,14 +36,11 @@ class ApiClient {
       ...(options.headers as Record<string, string>),
     };
 
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
-
     try {
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: "include", // Always include cookies
       });
 
       const data = await response.json();
@@ -70,7 +66,7 @@ class ApiClient {
 
   // Auth endpoints
   async login(email: string, password: string) {
-    return this.request<{ token: string; user: User }>("/auth/login", {
+    return this.request<{ user: User }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
@@ -82,9 +78,15 @@ class ApiClient {
     firstName: string;
     lastName: string;
   }) {
-    return this.request<{ token: string; user: User }>("/auth/register", {
+    return this.request<{ user: User }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(userData),
+    });
+  }
+
+  async logout() {
+    return this.request<{ message: string }>("/auth/logout", {
+      method: "POST",
     });
   }
 
