@@ -147,10 +147,10 @@ router.post(
       }
 
       const activity = activityCheck.rows[0];
-      // Check if user has permission to add notes (must be owner or have edit permission)
+      // Check if user has permission to add notes (must be owner or have write permission)
       if (
         activity.user_id !== req.user.userId &&
-        activity.permission !== "edit"
+        activity.permission !== "write"
       ) {
         res.status(403).json({
           message: "You don't have permission to add notes to this activity",
