@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth";
 import contactRoutes from "./routes/contacts";
@@ -29,6 +30,7 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(limiter);
+app.use(cookieParser());
 
 console.log(
   "🌍 Environment Configuration: CORS enabled for Docker/Local setup"

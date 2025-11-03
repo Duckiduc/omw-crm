@@ -219,11 +219,13 @@ The system uses PostgreSQL with the following main tables:
 
 ## Security Features
 
-- JWT-based authentication
-- Password hashing with bcryptjs
-- CORS configuration for cross-origin requests
-- Helmet.js for security headers
-- Input validation and sanitization
+- **HTTP-only Cookies**: Secure session management using HTTP-only cookies (prevents XSS)
+- **JWT Authentication**: Industry-standard JSON Web Tokens
+- **Password Hashing**: bcryptjs with salt rounds for secure password storage
+- **CORS Configuration**: Properly configured cross-origin requests
+- **Helmet.js**: Security headers and best practices
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Validation**: Server-side validation and sanitization
 
 ## Customization
 
